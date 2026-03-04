@@ -73,7 +73,7 @@ const Sidebar = () => {
 
   return (
     <>
-      <aside className="sticky top-0 w-16 h-screen bg-white border-r border-gray-100 flex flex-col items-center shadow-sm py-4 z-20">
+      <aside className="sticky top-0 w-16 h-screen bg-white border-r border-gray-300 flex flex-col items-center shadow-md shadow-olive-400 py-4 z-20 rounded-tr-md rounded-br-md">
 
         
 

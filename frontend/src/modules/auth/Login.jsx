@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
+import companyLogo from "../../assets/logo.svg";
 // Building image placeholder – replace src with your actual image import
 // import buildingImg from "../../assets/auth/login.svg";
 
@@ -44,6 +44,7 @@ const Login = () => {
           >
             LOGIN
           </span>
+          
         </div>
       </div>
 
@@ -51,7 +52,7 @@ const Login = () => {
       <div className="flex-1 flex flex-col justify-center px-12 py-16 max-w-xl mx-auto w-full">
 
         {/* Heading */}
-        <h1 className="text-5xl font-black text-gray-900 mb-2 tracking-tight">LOGIN</h1>
+        <img src={companyLogo} alt=""  className="w-80 pb-5"/>
         <p className="text-sm text-gray-500 mb-8">Login or register with your Phone Number</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">

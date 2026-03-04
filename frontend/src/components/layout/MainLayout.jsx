@@ -4,12 +4,15 @@ import Sidebar from '../sidebar/Sidebar'
 
 const MainLayout = () => {
   return (
-    // outermost wrapper also hides overflow so body doesn't shift when inner scrollbar appears
-    <div className="flex min-h-screen bg-gray-100 overflow-hidden">
-      <Sidebar />
-
-      <div className="flex-1 flex flex-col overflow-hidden h-screen">
+    <div className="flex flex-col h-screen overflow-hidden">
+      <div className="flex-none">
         <Navbar />
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        <div className="flex-none">
+          <Sidebar />
+        </div>
 
         <main className="flex-1 overflow-y-auto p-3">
           <Outlet />
