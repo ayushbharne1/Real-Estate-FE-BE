@@ -1,12 +1,10 @@
-import { Search, Bell } from 'lucide-react'
+import { Search, Bell, CompassIcon } from 'lucide-react'
 import { useState } from 'react'
+import companyLogo from "../../assets/logo.svg";
 
 // ─── Logo Icon ──────────────────────────────────────────────────────────────
 const LogoIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <polygon points="2,26 14,2 26,26" fill="#E8431A" />
-    <polygon points="14,2 26,26 26,10" fill="#c93510" />
-  </svg>
+  <img src={companyLogo} alt="" className='w-45'/>
 )
 
 // ─── Navbar ─────────────────────────────────────────────────────────────────
@@ -22,9 +20,6 @@ const Navbar = () => {
       {/* Left – Logo */}
       <div className="flex items-center gap-2 flex-shrink-0">
         <LogoIcon />
-        <span className="text-[#E8431A] font-bold text-base tracking-widest uppercase">
-          LOGO
-        </span>
       </div>
 
       {/* Center – Search */}
