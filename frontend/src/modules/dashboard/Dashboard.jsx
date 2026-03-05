@@ -48,27 +48,54 @@ const SORT_OPTIONS = [
   'Price/Sqft: High to Low',
 ]
 
-const PROPERTIES = [
-  { id: 'PB2569', name: 'Brigade Orchards Apartment',     type: 'Apartment', bhk: '2BHK', facing: 'North-East', location: 'Electronic City', price: '16069', sbua: '13068', ask: '$21.00 Cr', img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=70',      category: 'apartment' },
-  { id: 'PB2569', name: 'Brigade Commercial',             type: 'Apartment', bhk: '2BHK', facing: 'North-East', location: 'Electronic City', price: '16069', sbua: '13068', ask: '$21.00 Cr', img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&q=70', category: 'commercial' },
-  { id: 'PB2569', name: 'Brigade Orchards Pavilion Villa',type: 'Apartment', bhk: '2BHK', facing: 'North-East', location: 'Electronic City', price: '16069', sbua: '13068', ask: '$21.00 Cr', img: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&q=70', category: 'villas' },
-  { id: 'PB2569', name: 'Brige Plot',                     type: 'Apartment', bhk: '2BHK', facing: 'North-East', location: 'Electronic City', price: '16069', sbua: '13068', ask: '$21.00 Cr', img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&q=70',  category: 'plot' },
-  { id: 'PB2569', name: 'Brigade Villa',                  type: 'Apartment', bhk: '2BHK', facing: 'North-East', location: 'Electronic City', price: '16069', sbua: '13068', ask: '$21.00 Cr', img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=70',  category: 'villas' },
-  { id: 'PB2569', name: 'Brigade Orchards Apartment',     type: 'Apartment', bhk: '2BHK', facing: 'North-East', location: 'Electronic City', price: '16069', sbua: '13068', ask: '$21.00 Cr', img: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&q=70', category: 'apartment' },
-  { id: 'PB2569', name: 'Orchards Plot',                  type: 'Apartment', bhk: '2BHK', facing: 'North-East', location: 'Electronic City', price: '16069', sbua: '13068', ask: '$21.00 Cr', img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&q=70',  category: 'plot' },
-  { id: 'PB2569', name: 'Brigade Commercial',             type: 'Apartment', bhk: '2BHK', facing: 'North-East', location: 'Electronic City', price: '16069', sbua: '13068', ask: '$21.00 Cr', img: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400&q=70', category: 'commercial' },
+// Resale properties — show Price/Sq.ft, SBUA, Ask Price
+const RESALE_PROPERTIES = [
+  { id: 'PB2569', name: 'Brigade Orchards Apartment',      type: 'Apartment',        bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16069', sbua: '13068', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=70',      category: 'apartment' },
+  { id: 'PB2569', name: 'Brigade Commercial',              type: 'Commercial Space', bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16069', sbua: '13068', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&q=70', category: 'commercial' },
+  { id: 'PB2569', name: 'Brigade Orchards Pavilion Villa', type: 'Villa',            bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16069', sbua: '13068', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&q=70', category: 'villas' },
+  { id: 'PB2569', name: 'Brige Plot',                      type: 'Plot',             bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16069', sbua: '13068', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&q=70',  category: 'plot' },
+  { id: 'PB2569', name: 'Wright The Grove',                type: 'Apartment',        bhk: '2BHK', facing: 'North',      location: 'Electronic City', priceSqft: '16069', sbua: '13068', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=70',  category: 'apartment' },
+  { id: 'PB2569', name: 'Ezzy Corniath',                   type: 'Row House',        bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16069', sbua: '13068', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1464082354059-27db6ce50048?w=400&q=70',  category: 'apartment' },
+  { id: 'PB2569', name: 'Independent House For Sale',      type: 'Independent House',bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '13969', sbua: '13568', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=70',  category: 'villas' },
+  { id: 'PB2569', name: 'Brige Plot',                      type: 'Office Space',     bhk: '4BHK', facing: 'North',      location: 'Electronic City', priceSqft: '14369', sbua: '13368', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400&q=70', category: 'commercial' },
 ]
 
-const TABLE_DATA = [
-  { id: 'RNA32024', name: 'Assetz Marq Phase-2',        type: 'Apartment', sbua: 3802, plot: '-', facing: 'South - East', rent: '$75k',  deposit: '$3 lakhs'   },
-  { id: 'RNA3023',  name: 'Sobha Carnation',            type: 'Apartment', sbua: 3569, plot: '-', facing: 'North',        rent: '$89k',  deposit: '$1.5 lakhs' },
-  { id: 'RNA3022',  name: 'SOBHA Dream Gardens',        type: 'Apartment', sbua: 5686, plot: '-', facing: 'West',         rent: '$45k',  deposit: '$2 Lakhs'   },
-  { id: 'RNA3021',  name: 'QVC The Hills',              type: 'Villa',     sbua: 4578, plot: '-', facing: 'North',        rent: '$99k',  deposit: '$8 lakhs'   },
-  { id: 'RNA3020',  name: 'R&S Lakeview Apartment',     type: 'Apartment', sbua: 1245, plot: '-', facing: 'North',        rent: '$88k',  deposit: '-'          },
-  { id: 'RNA3019',  name: 'Nikoo Homes 1',              type: 'Office',    sbua: 3698, plot: '-', facing: 'East',         rent: '$56k',  deposit: '$37 Lakhs'  },
-  { id: 'RNA3018',  name: 'Office Space in Hebal',      type: 'Apartment', sbua: 1596, plot: '-', facing: 'East',         rent: '$77k',  deposit: '$4 lakhs'   },
-  { id: 'RNA3017',  name: 'Prestige Green Gables',      type: 'Apartment', sbua: 2589, plot: '-', facing: 'East',         rent: '$35k',  deposit: '$5 lakhs'   },
-  { id: 'RNA3016',  name: 'Prestige Jade Pavillion',    type: 'Villa',     sbua: 4586, plot: '-', facing: 'West',         rent: '$45k',  deposit: '$69 lakhs'  },
+// Rental properties — show Rent, Deposit, SBUA
+const RENTAL_PROPERTIES = [
+  { id: 'PB2569', name: 'Brigade Orchards Apartment',      type: 'Apartment',        bhk: '2BHK', facing: 'East',       location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=70',      category: 'apartment' },
+  { id: 'PB2569', name: 'Brigade Villament',               type: 'Villament',        bhk: '2BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&q=70', category: 'apartment' },
+  { id: 'PB2569', name: 'Brigade Orchards Pavilion Villa', type: 'Villa',            bhk: '2BHK', facing: 'North',      location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=70', category: 'villas' },
+  { id: 'PB2569', name: 'Pavillion Row House',             type: 'Row House',        bhk: '3BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1464082354059-27db6ce50048?w=400&q=70',  category: 'apartment' },
+  { id: 'PB2569', name: 'Brigade Orchards Apartment',      type: 'Apartment',        bhk: '2BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&q=70', category: 'apartment' },
+  { id: 'PB2569', name: 'Brigade Villament',               type: 'Villament',        bhk: '2BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=70',  category: 'villas' },
+  { id: 'PB2569', name: 'Brigade Orchards Pavilion Villa', type: 'Villa',            bhk: '2BHK', facing: 'North',      location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&q=70', category: 'villas' },
+  { id: 'PB2569', name: 'Pavillion Row House',             type: 'Row House',        bhk: '3BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1464082354059-27db6ce50048?w=400&q=70',  category: 'commercial' },
+]
+
+// Resale table — Ask Price + Price Per Sqft
+const RESALE_TABLE_DATA = [
+  { id: 'RNA32024', name: 'Assetz Marq Phase-2',     type: 'Apartment', sbua: 3802, plot: '-',  facing: 'South - East', askPrice: '3.00 Cr',     priceSqft: '₹17K' },
+  { id: 'RNA3023',  name: 'Sobha Carnation',         type: 'Apartment', sbua: 3569, plot: '-',  facing: 'North',        askPrice: '2.80 Cr',     priceSqft: '₹17K' },
+  { id: 'RNA3022',  name: 'SOBHA Dream Gardens',     type: 'Apartment', sbua: 5686, plot: 1957, facing: 'West',         askPrice: '2.90 Cr',     priceSqft: '₹7K'  },
+  { id: 'RNA3021',  name: 'QVC The Hills',           type: 'Villa',     sbua: 4578, plot: '-',  facing: 'North',        askPrice: '2.39 Cr',     priceSqft: '₹8K'  },
+  { id: 'RNA3020',  name: 'R&S Lakeview Apartment',  type: 'Apartment', sbua: 1245, plot: 1500, facing: 'North',        askPrice: '3.25 Cr',     priceSqft: '₹9K'  },
+  { id: 'RNA3019',  name: 'Nikoo Homes 1',           type: 'Office',    sbua: 3698, plot: '-',  facing: 'East',         askPrice: '1.25 Cr',     priceSqft: '₹6K'  },
+  { id: 'RNA3018',  name: 'Office Space in Hebal',   type: 'Apartment', sbua: 1596, plot: 1289, facing: 'East',         askPrice: '3.00 Cr',     priceSqft: '₹12K' },
+  { id: 'RNA3017',  name: 'Prestige Green Gables',   type: 'Apartment', sbua: 2589, plot: '-',  facing: 'East',         askPrice: '95 Lakhs',    priceSqft: '₹30K' },
+  { id: 'RNA3016',  name: 'Prestige Jade Pavillion', type: 'Villa',     sbua: 4586, plot: '-',  facing: 'West',         askPrice: '81.586 Lakhs',priceSqft: '₹12K' },
+]
+
+// Rental table — Rent + Deposit
+const RENTAL_TABLE_DATA = [
+  { id: 'RNA32024', name: 'Assetz Marq Phase-2',     type: 'Apartment', sbua: 3802, plot: '-',  facing: 'South - East', rent: '₹75k',  deposit: '₹3 lakhs'   },
+  { id: 'RNA3023',  name: 'Sobha Carnation',         type: 'Apartment', sbua: 3569, plot: '-',  facing: 'North',        rent: '₹89k',  deposit: '₹1.5 lakhs' },
+  { id: 'RNA3022',  name: 'SOBHA Dream Gardens',     type: 'Apartment', sbua: 5686, plot: 1957, facing: 'West',         rent: '₹45k',  deposit: '₹2 Lakhs'   },
+  { id: 'RNA3021',  name: 'QVC The Hills',           type: 'Villa',     sbua: 4578, plot: '-',  facing: 'North',        rent: '₹99k',  deposit: '₹8 lakhs'   },
+  { id: 'RNA3020',  name: 'R&S Lakeview Apartment',  type: 'Apartment', sbua: 1245, plot: 1500, facing: 'North',        rent: '₹88k',  deposit: '-'          },
+  { id: 'RNA3019',  name: 'Nikoo Homes 1',           type: 'Office',    sbua: 3698, plot: '-',  facing: 'East',         rent: '₹56k',  deposit: '₹37 Lakhs'  },
+  { id: 'RNA3018',  name: 'Office Space in Hebal',   type: 'Apartment', sbua: 1596, plot: 1289, facing: 'East',         rent: '₹77k',  deposit: '₹4 lakhs'   },
+  { id: 'RNA3017',  name: 'Prestige Green Gables',   type: 'Apartment', sbua: 2589, plot: '-',  facing: 'East',         rent: '₹35k',  deposit: '₹5 lakhs'   },
+  { id: 'RNA3016',  name: 'Prestige Jade Pavillion', type: 'Villa',     sbua: 4586, plot: '-',  facing: 'West',         rent: '₹45k',  deposit: '₹69 lakhs'  },
 ]
 
 // ── Hooks ──────────────────────────────────────────────────────────────────────
@@ -88,8 +115,10 @@ const Chip = ({ label }) => (
 )
 
 // ── Property Card ──────────────────────────────────────────────────────────────
-const PropertyCard = ({ prop }) => {
+const PropertyCard = ({ prop, mode }) => {
   const navigate = useNavigate()
+  const isRental = mode === 'rental'
+
   return (
     <div
       onClick={() => navigate(`/property/details/${prop.id}`)}
@@ -128,18 +157,37 @@ const PropertyCard = ({ prop }) => {
         {/* Stats row */}
         <div className="flex items-center justify-between border-t border-gray-100 pt-3 gap-2">
           <div className="flex items-center justify-center gap-4 py-2 px-4 border border-gray-300 rounded-md">
-            <div>
-            <p className="text-sm font-bold text-gray-900">{prop.price}</p>
-            <p className="text-xs text-gray-400 mt-0.5">Price/Sq.ft</p>
-          </div>
-          <div>
-            <p className="text-sm font-bold text-gray-900">{prop.sbua}</p>
-            <p className="text-xs text-gray-400 mt-0.5">SBUA</p>
-          </div>
-          <div>
-            <p className="text-sm font-bold text-gray-900">{prop.ask}</p>
-            <p className="text-xs text-gray-400 mt-0.5">Ask Price</p>
-          </div>
+            {isRental ? (
+              <>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">{prop.rent}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Rent</p>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">{prop.deposit}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Deposit</p>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">{prop.sbua}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">SBUA</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">{prop.priceSqft}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Price/Sq.ft</p>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">{prop.sbua}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">SBUA</p>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">{prop.askPrice}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Ask Price</p>
+                </div>
+              </>
+            )}
           </div>
           <button
             onClick={(e) => e.stopPropagation()}
@@ -280,48 +328,25 @@ const BudgetDropdown = ({ value, onChange }) => {
       {open && (
         <div className="absolute top-full right-0 mt-1 w-72 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-4">
           <div className="flex items-center gap-2 mb-4">
-            <input
-              type="number"
-              placeholder="Min"
-              value={min}
-              onChange={e => setMin(e.target.value)}
-              className="w-0 flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors"
-            />
+            <input type="number" placeholder="Min" value={min} onChange={e => setMin(e.target.value)}
+              className="w-0 flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors" />
             <span className="text-gray-400 text-sm font-medium flex-shrink-0">to</span>
-            <input
-              type="number"
-              placeholder="Max"
-              value={max}
-              onChange={e => setMax(e.target.value)}
-              className="w-0 flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors"
-            />
+            <input type="number" placeholder="Max" value={max} onChange={e => setMax(e.target.value)}
+              className="w-0 flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors" />
           </div>
-
-          {/* Dual range slider */}
           <div className="relative h-5 mb-4">
             <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1.5 bg-gray-200 rounded-full">
-              <div
-                className="absolute h-full bg-[#E8431A] rounded-full"
-                style={{ left: `${sliderMin}%`, width: `${sliderMax - sliderMin}%` }}
-              />
+              <div className="absolute h-full bg-[#E8431A] rounded-full" style={{ left: `${sliderMin}%`, width: `${sliderMax - sliderMin}%` }} />
             </div>
-            <input
-              type="range" min={0} max={100} value={sliderMin}
+            <input type="range" min={0} max={100} value={sliderMin}
               onChange={e => { const v = Math.min(Number(e.target.value), sliderMax - 5); setSliderMin(v) }}
-              className="absolute w-full h-full opacity-0 cursor-pointer"
-              style={{ zIndex: sliderMin > 90 ? 5 : 3 }}
-            />
-            <input
-              type="range" min={0} max={100} value={sliderMax}
+              className="absolute w-full h-full opacity-0 cursor-pointer" style={{ zIndex: sliderMin > 90 ? 5 : 3 }} />
+            <input type="range" min={0} max={100} value={sliderMax}
               onChange={e => { const v = Math.max(Number(e.target.value), sliderMin + 5); setSliderMax(v) }}
-              className="absolute w-full h-full opacity-0 cursor-pointer"
-              style={{ zIndex: 4 }}
-            />
-            {/* Thumb visuals */}
+              className="absolute w-full h-full opacity-0 cursor-pointer" style={{ zIndex: 4 }} />
             <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#E8431A] shadow border-2 border-white pointer-events-none" style={{ left: `calc(${sliderMin}% - 8px)` }} />
             <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#E8431A] shadow border-2 border-white pointer-events-none" style={{ left: `calc(${sliderMax}% - 8px)` }} />
           </div>
-
           <div className="flex gap-2 justify-end">
             <button onClick={handleApply} className="bg-[#E8431A] hover:bg-[#cf3b16] text-white px-5 py-1.5 rounded-lg text-sm font-semibold transition-colors">Apply</button>
             <button onClick={handleCancel} className="border border-gray-300 text-gray-600 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">Cancel</button>
@@ -357,24 +382,14 @@ const SBUADropdown = ({ value, onChange }) => {
       {open && (
         <div className="absolute top-full right-0 mt-1 w-64 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-4">
           <div className="flex items-center gap-2 mb-4">
-            <input
-              type="number"
-              value={min}
-              onChange={e => setMin(e.target.value)}
-              className="w-0 flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors"
-            />
+            <input type="number" value={min} onChange={e => setMin(e.target.value)}
+              className="w-0 flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors" />
             <span className="text-gray-400 text-sm font-medium flex-shrink-0">to</span>
-            <input
-              type="number"
-              value={max}
-              onChange={e => setMax(e.target.value)}
-              className="w-0 flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors"
-            />
+            <input type="number" value={max} onChange={e => setMax(e.target.value)}
+              className="w-0 flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors" />
           </div>
-          <button
-            onClick={handleApply}
-            className="w-full bg-[#E8431A] hover:bg-[#cf3b16] text-white py-2 rounded-lg text-sm font-semibold transition-colors"
-          >
+          <button onClick={handleApply}
+            className="w-full bg-[#E8431A] hover:bg-[#cf3b16] text-white py-2 rounded-lg text-sm font-semibold transition-colors">
             Apply
           </button>
         </div>
@@ -401,11 +416,8 @@ const SortDropdown = ({ selected, onChange }) => {
       {open && (
         <div className="absolute top-full right-0 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-1 overflow-hidden">
           {SORT_OPTIONS.map(opt => (
-            <button
-              key={opt}
-              onClick={() => { onChange(opt); setOpen(false) }}
-              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${selected === opt ? 'text-[#E8431A] font-semibold bg-orange-50' : 'text-gray-700'}`}
-            >
+            <button key={opt} onClick={() => { onChange(opt); setOpen(false) }}
+              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${selected === opt ? 'text-[#E8431A] font-semibold bg-orange-50' : 'text-gray-700'}`}>
               {opt}
             </button>
           ))}
@@ -418,34 +430,33 @@ const SortDropdown = ({ selected, onChange }) => {
 // ── Main Dashboard ─────────────────────────────────────────────────────────────
 const Dashboard = () => {
   const navigate = useNavigate()
-  const [viewMode, setViewMode]           = useState('grid')
+  const [viewMode, setViewMode]             = useState('grid')
   const [activeCategory, setActiveCategory] = useState('all')
-  const [activeTab, setActiveTab]         = useState('resale')
-  const [currentPage, setCurrentPage]     = useState(2)
-  const [assetType, setAssetType]         = useState(null)
-  const [configuration, setConfiguration] = useState([])
-  const [budget, setBudget]               = useState(null)
-  const [sbua, setSbua]                   = useState(null)
-  const [sortBy, setSortBy]               = useState(null)
+  const [activeTab, setActiveTab]           = useState('resale')   // 'resale' | 'rental'
+  const [currentPage, setCurrentPage]       = useState(2)
+  const [assetType, setAssetType]           = useState(null)
+  const [configuration, setConfiguration]   = useState([])
+  const [budget, setBudget]                 = useState(null)
+  const [sbua, setSbua]                     = useState(null)
+  const [sortBy, setSortBy]                 = useState(null)
   const totalPages = 6
+
+  const isRental    = activeTab === 'rental'
+  const properties  = isRental ? RENTAL_PROPERTIES  : RESALE_PROPERTIES
+  const tableData   = isRental ? RENTAL_TABLE_DATA   : RESALE_TABLE_DATA
 
   return (
     <div className="min-h-screen bg-gray-50" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
 
-      {/* ── Category Bar + Toolbar (same row) ── */}
+      {/* ── Category Bar + Toolbar ── */}
       <div className="bg-white border-b border-gray-100 px-6 flex items-center justify-between gap-4" style={{overflow:'visible'}}>
         {/* Categories */}
         <div className="flex items-center gap-6 flex-shrink-0">
           {CATEGORIES.map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              onClick={() => setActiveCategory(id)}
+            <button key={id} onClick={() => setActiveCategory(id)}
               className={`flex flex-col items-center gap-0.5 text-xs font-medium py-2 transition-colors whitespace-nowrap border-b-2 ${
-                activeCategory === id
-                  ? 'text-[#E8431A] border-[#E8431A]'
-                  : 'text-gray-500 hover:text-gray-700 border-transparent'
-              }`}
-            >
+                activeCategory === id ? 'text-[#E8431A] border-[#E8431A]' : 'text-gray-500 hover:text-gray-700 border-transparent'
+              }`}>
               <Icon className={`w-5 h-5 ${activeCategory === id ? 'text-[#E8431A]' : 'text-gray-400'}`} />
               {label}
             </button>
@@ -454,17 +465,14 @@ const Dashboard = () => {
 
         {/* Toolbar */}
         <div className="flex items-center gap-2">
+          {/* Grid / Table toggle */}
           <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'grid' ? 'bg-[#E8431A] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-            >
+            <button onClick={() => setViewMode('grid')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'grid' ? 'bg-[#E8431A] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
               <Grid className="w-3.5 h-3.5" /> Grid
             </button>
-            <button
-              onClick={() => setViewMode('table')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'table' ? 'bg-[#E8431A] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-            >
+            <button onClick={() => setViewMode('table')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'table' ? 'bg-[#E8431A] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
               <List className="w-3.5 h-3.5" /> Table
             </button>
           </div>
@@ -477,20 +485,18 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* ── Active filters summary ── */}
+      {/* ── Active filters ── */}
       {(assetType || configuration.length > 0 || budget?.min || budget?.max || sbua?.min || sbua?.max || sortBy) && (
         <div className="px-6 py-2 bg-white border-b border-gray-100 flex items-center gap-2 flex-wrap">
           <span className="text-xs text-gray-500 font-medium">Active filters:</span>
           {assetType && (
             <span className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">
-              {assetType}
-              <button onClick={() => setAssetType(null)}><X className="w-3 h-3" /></button>
+              {assetType}<button onClick={() => setAssetType(null)}><X className="w-3 h-3" /></button>
             </span>
           )}
           {configuration.map(c => (
             <span key={c} className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">
-              {c}
-              <button onClick={() => setConfiguration(prev => prev.filter(x => x !== c))}><X className="w-3 h-3" /></button>
+              {c}<button onClick={() => setConfiguration(prev => prev.filter(x => x !== c))}><X className="w-3 h-3" /></button>
             </span>
           ))}
           {(budget?.min || budget?.max) && (
@@ -507,8 +513,7 @@ const Dashboard = () => {
           )}
           {sortBy && (
             <span className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">
-              {sortBy}
-              <button onClick={() => setSortBy(null)}><X className="w-3 h-3" /></button>
+              {sortBy}<button onClick={() => setSortBy(null)}><X className="w-3 h-3" /></button>
             </span>
           )}
         </div>
@@ -518,8 +523,8 @@ const Dashboard = () => {
       <div className="p-6">
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {PROPERTIES.map((prop, i) => (
-              <PropertyCard key={i} prop={prop} />
+            {properties.map((prop, i) => (
+              <PropertyCard key={i} prop={prop} mode={activeTab} />
             ))}
           </div>
         ) : (
@@ -533,13 +538,25 @@ const Dashboard = () => {
                   <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs">SBUA (Sqft)</th>
                   <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs">Plot Size (Sqft)</th>
                   <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs">Facing</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs">Rent ($/month)</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs">Deposit</th>
+
+                  {/* ── Mode-specific columns ── */}
+                  {isRental ? (
+                    <>
+                      <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs">Rent (₹/month)</th>
+                      <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs">Deposit</th>
+                    </>
+                  ) : (
+                    <>
+                      <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs">Ask Price</th>
+                      <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs">Price Per Sqft</th>
+                    </>
+                  )}
+
                   <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {TABLE_DATA.map((row, i) => (
+                {tableData.map((row, i) => (
                   <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3 text-gray-600 text-xs">{row.id}</td>
                     <td className="px-4 py-3 font-medium text-gray-800">{row.name}</td>
@@ -547,17 +564,27 @@ const Dashboard = () => {
                     <td className="px-4 py-3 text-gray-600">{row.sbua}</td>
                     <td className="px-4 py-3 text-gray-400">{row.plot}</td>
                     <td className="px-4 py-3 text-gray-600">{row.facing}</td>
-                    <td className="px-4 py-3 text-gray-800 font-medium">{row.rent}</td>
-                    <td className="px-4 py-3 text-gray-600">{row.deposit}</td>
+
+                    {/* ── Mode-specific cells ── */}
+                    {isRental ? (
+                      <>
+                        <td className="px-4 py-3 text-gray-800 font-medium">{row.rent}</td>
+                        <td className="px-4 py-3 text-gray-600">{row.deposit}</td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="px-4 py-3 text-gray-800 font-medium">{row.askPrice}</td>
+                        <td className="px-4 py-3 text-gray-600">{row.priceSqft}</td>
+                      </>
+                    )}
+
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <button className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-lg p-1.5 transition-colors">
                           <Share2 className="w-3.5 h-3.5" />
                         </button>
-                        <button
-                          onClick={() => navigate(`/property/details/${row.id}`)}
-                          className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-lg p-1.5 transition-colors"
-                        >
+                        <button onClick={() => navigate(`/property/details/${row.id}`)}
+                          className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-lg p-1.5 transition-colors">
                           <Info className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -575,11 +602,8 @@ const Dashboard = () => {
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                  <button
-                    key={p}
-                    onClick={() => setCurrentPage(p)}
-                    className={`w-7 h-7 rounded text-xs font-medium transition-colors ${currentPage === p ? 'bg-[#E8431A] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-                  >
+                  <button key={p} onClick={() => setCurrentPage(p)}
+                    className={`w-7 h-7 rounded text-xs font-medium transition-colors ${currentPage === p ? 'bg-[#E8431A] text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
                     {p}
                   </button>
                 ))}
