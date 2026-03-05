@@ -18,6 +18,14 @@ const loginSchema = z.object({
         .min(VALIDATION.PASSWORD_MIN, `Password must be at least ${VALIDATION.PASSWORD_MIN} characters`),
 });
 
+const createAdminSchema = z.object({
+  name:     z.string().min(2, "Name is required"),
+  email:    z.string().email("Enter a valid email"),
+  imageUrl: z.string().optional(),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+
 const step1Schema = z.object({
     listingType: z.enum(Object.values(ListingType), {
         required_error: "Please select a listing type",
@@ -93,6 +101,7 @@ const dashboardQuerySchema = z.object({
 });
 
 export {
+    createAdminSchema,
     loginSchema,
     step1Schema,
     step2Schema,

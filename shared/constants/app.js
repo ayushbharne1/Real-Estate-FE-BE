@@ -61,8 +61,7 @@ const UPLOAD = {
 };
 
 const SESSION_KEYS = {
-  TOKEN: "ir_token",
-  USER:  "ir_user",
+  USER: "ir_user",
 };
 
 const UI = {
@@ -75,7 +74,7 @@ const REGEX = {
   PINCODE: /^\d{6}$/,
 };
 
-export{
+export  {
   API_ROUTES, APP_ROUTES, PAGINATION,
   VALIDATION, UPLOAD, SESSION_KEYS, UI, REGEX,
 };

@@ -1,7 +1,7 @@
 import Property from "../models/Property.js";
 import { success, error } from "../utils/response.js";
 
-export const createProperty = async (req, res) => {
+const createProperty = async (req, res) => {
   try {
     const {
       name, listingType, assetType, possession,
@@ -12,18 +12,42 @@ export const createProperty = async (req, res) => {
       amenities, customAmenities, description,
     } = req.body;
 
-    // image URLs uploaded separately, passed as array in body or via upload route
-    const images = req.body.images || [];
+    // req.files populated by multer-storage-cloudinary
+    // Each file has .path (Cloudinary secure URL) and .filename (public_id)
+    const images = (req.files || []).map((f) => f.path);
+    const primaryImage = images[0] || "";
+
+    // amenities and customAmenities arrive as JSON strings from multipart form
+    const parsedAmenities       = typeof amenities === "string"       ? JSON.parse(amenities)       : (amenities || []);
+    const parsedCustomAmenities = typeof customAmenities === "string" ? JSON.parse(customAmenities) : (customAmenities || []);
 
     const property = await Property.create({
-      name, listingType, assetType, possession,
+      name,
+      listingType,
+      assetType,
+      possession,
       address: { street: address, city, state, pincode },
       images,
-      primaryImage: images[0] || "",
-      configuration: { bedrooms: bedrooms || 0, bathrooms: bathrooms || 0, balconies: balconies || 0 },
-      specs: { apartmentType, doorFacing, ageOfBuilding, floorNumber, furnishing, parking, pricePerSqft, askPrice, priceUnit, sbua },
-      amenities,
-      customAmenities,
+      primaryImage,
+      configuration: {
+        bedrooms:  Number(bedrooms)  || 0,
+        bathrooms: Number(bathrooms) || 0,
+        balconies: Number(balconies) || 0,
+      },
+      specs: {
+        apartmentType,
+        doorFacing:   doorFacing   || undefined,
+        ageOfBuilding,
+        floorNumber:  floorNumber  || undefined,
+        furnishing,
+        parking,
+        pricePerSqft: pricePerSqft ? Number(pricePerSqft) : undefined,
+        askPrice:     Number(askPrice),
+        priceUnit:    priceUnit || "LAKHS",
+        sbua:         Number(sbua),
+      },
+      amenities:       parsedAmenities,
+      customAmenities: parsedCustomAmenities,
       description,
     });
 
@@ -32,3 +56,5 @@ export const createProperty = async (req, res) => {
     error(res, err.message);
   }
 };
+
+export { createProperty };
