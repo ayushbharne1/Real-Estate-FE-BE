@@ -1,0 +1,20 @@
+{
+  "name": "shared",
+  "version": "1.0.0",
+  "main": "./index.js",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./schemas": "./schemas/index.js",
+    "./constants": "./constants/index.js",
+    "./enums": "./enums/index.js",
+    "./utils": "./utils/index.js",
+    "./schemas/*": "./schemas/*",
+    "./constants/*": "./constants/*",
+    "./enums/*": "./enums/*",
+    "./utils/*": "./utils/*"
+  },
+  "dependencies": {
+    "zod": "^3.22.0"
+  }
+}
