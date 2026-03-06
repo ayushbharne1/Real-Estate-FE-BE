@@ -2,35 +2,34 @@ import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   Home,
-  ClipboardList,
-  ShoppingCart,
-  Tag,
-  PlusCircle,
   Settings,
   LogOut,
-  ChevronDown,
   Tags,
+  PlusCircle,
+  Crown,
+  User,
 } from 'lucide-react'
 import ConfirmModal from '../common/ConfirmModal'
-import premiumIcon from '../../assets/sidebarpremium.png'
 
 // ─── Nav Config ────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
-  { id: 'dashboard', icon: Home,          path: '/',         label: 'Properties' },
-  { id: 'listings',  icon: Tags, path: '/listings', label: 'Listings' },
-  { id: 'add',       icon: PlusCircle,    path: '/add',      label: 'Add Inventory' },
+  { id: 'dashboard', icon: Home, path: '/', label: 'Properties' },
+  { id: 'listings', icon: Tags, path: '/listings', label: 'Listings' },
+  { id: 'add', icon: PlusCircle, path: '/add', label: 'Add Inventory' },
 ]
 
-const BOTTOM_ITEMS = [
-  { id: 'settings', icon: Settings, path: '/settings', label: 'Settings' },
-  { id: 'logout',   icon: LogOut,   path: '/login',    label: 'Logout', isLogout: true },
+const BOTTOM_NAV_ITEMS = [
+  { id: 'premium', icon: Crown, path: '/premium', label: 'Premium' },
+  { id: 'profile', icon: User, path: '/profile', label: 'Profile' },
+  // { id: 'settings', icon: Settings, path: '/settings', label: 'Settings' },
+  // { id: 'logout', icon: LogOut, path: '/logout', label: 'Logout' },
 ]
 
 // ─── Tooltip ───────────────────────────────────────────────────────────────────
 const Tooltip = ({ label, children }) => (
   <div className="relative group flex justify-center w-full">
     {children}
-    <span className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs font-medium rounded-md px-2.5 py-1.5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 shadow-lg">
+    <span className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs font-medium rounded-md px-2.5 py-1 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
       {label}
     </span>
   </div>
@@ -39,6 +38,7 @@ const Tooltip = ({ label, children }) => (
 // ─── Nav Item ──────────────────────────────────────────────────────────────────
 const NavItem = ({ item }) => {
   const Icon = item.icon
+
   return (
     <li className="w-full flex justify-center">
       <Tooltip label={item.label}>
@@ -46,10 +46,10 @@ const NavItem = ({ item }) => {
           to={item.path}
           end={item.path === '/'}
           className={({ isActive }) =>
-            `w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-150 ${
+            `w-11 h-11 flex items-center justify-center rounded-xl transition ${
               isActive
-                ? 'text-[#E8431A]  '
-                : 'text-gray-500  hover:text-[#E8431A]'
+                ? 'text-[#E8431A]'
+                : 'text-gray-500 hover:text-[#E8431A]'
             }`
           }
         >
@@ -75,60 +75,39 @@ const Sidebar = () => {
   return (
     <>
       <aside
-        className="sticky top-0 h-screen bg-white flex flex-col items-center py-4 z-20"
+        className="sticky top-0 h-screen bg-white flex flex-col items-center py-4 z-20 rounded-tr-lg rounded-br-lg bor shadow-md shadow-gray-400"
         style={{
           width: 64,
-          borderRight: '1px solid #f0f0f0',
-          boxShadow: '1px 0 8px rgba(0,0,0,0.04)',
+          
         }}
       >
-        {/* Main Nav */}
-        <nav className="flex-1 w-full flex flex-col items-center pt-2">
+        {/* Main Navigation */}
+        <nav className="flex-1 w-full flex flex-col items-center ">
           <ul className="flex flex-col items-center gap-2 w-full px-2">
-            {NAV_ITEMS.map(item => (
+            {NAV_ITEMS.map((item) => (
               <NavItem key={item.id} item={item} />
             ))}
           </ul>
         </nav>
 
-        {/* Bottom – Settings + Logout + Avatar */}
-        <div className="flex flex-col items-center gap-2 px-2 w-full pt-3" style={{ borderTop: '1px solid #f3f4f6' }}>
+        {/* Bottom Navigation */}
+        <div
+          className="flex flex-col items-center gap-2 px-2 w-full pt-3"
+          style={{ borderTop: '1px solid #f3f4f6' }}
+        >
+          {BOTTOM_NAV_ITEMS.map((item) => (
+            <NavItem key={item.id} item={item} />
+          ))}
 
-        {/* Settings & Logout */}
-          {BOTTOM_ITEMS.map(item =>
-            item.isLogout ? (
-              <Tooltip key={item.id} label={item.label}>
-                <button
-                  onClick={() => setShowLogoutModal(true)}
-                  className="w-11 h-11 flex items-center justify-center rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all duration-150"
-                >
-                  <item.icon className="w-5 h-5" strokeWidth={1.8} />
-                </button>
-              </Tooltip>
-            ) : (
-              <NavItem key={item.id} item={item} />
-            )
-          )}
-
-          {/* Avatar */}
-          <div className="mt-2 relative cursor-pointer">
-            <div
-              className="w-10 h-10 rounded-full overflow-hidden"
-              style={{ border: '2px solid #f0f0f0' }}
+          {/* Logout (same as before) */}
+          <Tooltip label="Logout">
+            <button
+              onClick={() => setShowLogoutModal(true)}
+              className="w-11 h-11 flex items-center justify-center rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all duration-150"
             >
-              <img
-                src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&q=80"
-                alt="User"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <span
-              className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow"
-              style={{ border: '1px solid #e5e7eb' }}
-            >
-              <ChevronDown className="w-2.5 h-2.5 text-gray-500" strokeWidth={2.5} />
-            </span>
-          </div>
+              <LogOut className="w-5 h-5" strokeWidth={1.8} />
+            </button>
+          </Tooltip>
         </div>
       </aside>
 
@@ -146,3 +125,4 @@ const Sidebar = () => {
 }
 
 export default Sidebar
+
