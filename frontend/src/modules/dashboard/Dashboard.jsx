@@ -49,57 +49,57 @@ const SORT_OPTIONS = [
 ]
 
 const RESALE_PROPERTIES = [
-  { id: 'PB2569', name: 'Brigade Orchards Apartment',      type: 'Apartment',         bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16069', sbua: '13068', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=70',      category: 'apartment' },
-  { id: 'PB2570', name: 'Brigade Commercial',              type: 'Commercial Space',  bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16069', sbua: '13068', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&q=70', category: 'commercial' },
-  { id: 'PB2571', name: 'Brigade Orchards Pavilion Villa', type: 'Villa',             bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16069', sbua: '13068', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&q=70', category: 'villas' },
-  { id: 'PB2572', name: 'Brige Plot',                     type: 'Plot',              bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16069', sbua: '13068', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&q=70',  category: 'plot' },
-  { id: 'PB2573', name: 'Wright The Grove',               type: 'Apartment',         bhk: '2BHK', facing: 'North',      location: 'Electronic City', priceSqft: '16069', sbua: '13068', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=70',  category: 'apartment' },
-  { id: 'PB2574', name: 'Ezzy Corniath',                  type: 'Row House',         bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16069', sbua: '13068', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1464082354059-27db6ce50048?w=400&q=70',  category: 'apartment' },
-  { id: 'PB2575', name: 'Independent House For Sale',     type: 'Independent House', bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '13969', sbua: '13568', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=70',  category: 'villas' },
-  { id: 'PB2576', name: 'Brige Office Space',             type: 'Office Space',      bhk: '4BHK', facing: 'North',      location: 'Electronic City', priceSqft: '14369', sbua: '13368', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400&q=70', category: 'commercial' },
-  { id: 'PB2577', name: 'Prestige Green Gables',          type: 'Apartment',         bhk: '3BHK', facing: 'East',       location: 'Whitefield',      priceSqft: '15000', sbua: '12000', askPrice: '₹18.00 Cr', img: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&q=70', category: 'apartment' },
-  { id: 'PB2578', name: 'Sobha Dream Gardens',            type: 'Villa',             bhk: '5BHK', facing: 'West',       location: 'Sarjapur Road',   priceSqft: '18000', sbua: '15000', askPrice: '₹27.00 Cr', img: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=70',  category: 'villas' },
-  { id: 'PB2579', name: 'NCC Urban One',                  type: 'Apartment',         bhk: '2BHK', facing: 'South',      location: 'Hebbal',          priceSqft: '12000', sbua: '10000', askPrice: '₹12.00 Cr', img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70',  category: 'apartment' },
-  { id: 'PB2580', name: 'Assetz 63 Degree East',          type: 'Apartment',         bhk: '3BHK', facing: 'North-West', location: 'Panathur',        priceSqft: '13500', sbua: '11500', askPrice: '₹15.52 Cr', img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=70',  category: 'apartment' },
+  { id: 'PB2569', name: 'Brigade Orchards Apartment',      type: 'Apartment',         bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16,069', sbua: '13,068 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=70',      category: 'apartment',  badge: 'Resale' },
+  { id: 'PB2570', name: 'Brigade Commercial',              type: 'Commercial Space',  bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16,069', sbua: '13,068 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&q=70', category: 'commercial', badge: 'Resale' },
+  { id: 'PB2571', name: 'Brigade Orchards Pavilion Villa', type: 'Villa',             bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16,069', sbua: '13,068 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&q=70', category: 'villas',     badge: 'Resale' },
+  { id: 'PB2572', name: 'Brigade Plot',                    type: 'Plot',              bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16,069', sbua: '13,068 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&q=70',  category: 'plot',       badge: 'Resale' },
+  { id: 'PB2573', name: 'Wright The Grove',                type: 'Apartment',         bhk: '2BHK', facing: 'North',      location: 'Electronic City', priceSqft: '16,069', sbua: '13,068 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=70',  category: 'apartment',  badge: 'Resale' },
+  { id: 'PB2574', name: 'Ezzy Corniath',                   type: 'Row House',         bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16,069', sbua: '13,068 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1464082354059-27db6ce50048?w=400&q=70',  category: 'apartment',  badge: 'Resale' },
+  { id: 'PB2575', name: 'Independent House For Sale',      type: 'Independent House', bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '13,969', sbua: '13,568 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=70',  category: 'villas',     badge: 'Resale' },
+  { id: 'PB2576', name: 'Brigade Office Space',            type: 'Office Space',      bhk: '4BHK', facing: 'North',      location: 'Electronic City', priceSqft: '14,369', sbua: '13,368 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400&q=70', category: 'commercial', badge: 'Resale' },
+  { id: 'PB2577', name: 'Prestige Green Gables',           type: 'Apartment',         bhk: '3BHK', facing: 'East',       location: 'Whitefield',      priceSqft: '15,000', sbua: '12,000 sq.ft', askPrice: '₹18.00 Cr', img: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&q=70', category: 'apartment',  badge: 'Resale' },
+  { id: 'PB2578', name: 'Sobha Dream Gardens',             type: 'Villa',             bhk: '5BHK', facing: 'West',       location: 'Sarjapur Road',   priceSqft: '18,000', sbua: '15,000 sq.ft', askPrice: '₹27.00 Cr', img: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=70',  category: 'villas',     badge: 'Resale' },
+  { id: 'PB2579', name: 'NCC Urban One',                   type: 'Apartment',         bhk: '2BHK', facing: 'South',      location: 'Hebbal',          priceSqft: '12,000', sbua: '10,000 sq.ft', askPrice: '₹12.00 Cr', img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70',  category: 'apartment',  badge: 'Resale' },
+  { id: 'PB2580', name: 'Assetz 63 Degree East',           type: 'Apartment',         bhk: '3BHK', facing: 'North-West', location: 'Panathur',        priceSqft: '13,500', sbua: '11,500 sq.ft', askPrice: '₹15.52 Cr', img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=70',  category: 'apartment',  badge: 'Resale' },
 ]
 
 const RENTAL_PROPERTIES = [
-  { id: 'PB2569', name: 'Brigade Orchards Apartment',      type: 'Apartment',  bhk: '2BHK', facing: 'East',       location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=70',      category: 'apartment' },
-  { id: 'PB2570', name: 'Brigade Villament',               type: 'Villament',  bhk: '2BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&q=70', category: 'apartment' },
-  { id: 'PB2571', name: 'Brigade Orchards Pavilion Villa', type: 'Villa',      bhk: '2BHK', facing: 'North',      location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=70', category: 'villas' },
-  { id: 'PB2572', name: 'Pavillion Row House',             type: 'Row House',  bhk: '3BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1464082354059-27db6ce50048?w=400&q=70',  category: 'apartment' },
-  { id: 'PB2573', name: 'Brigade Orchards Apartment',      type: 'Apartment',  bhk: '2BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&q=70', category: 'apartment' },
-  { id: 'PB2574', name: 'Brigade Villament',               type: 'Villament',  bhk: '2BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=70',  category: 'villas' },
-  { id: 'PB2575', name: 'Brigade Orchards Pavilion Villa', type: 'Villa',      bhk: '2BHK', facing: 'North',      location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&q=70', category: 'villas' },
-  { id: 'PB2576', name: 'Pavillion Row House',             type: 'Row House',  bhk: '3BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2388sqft', img: 'https://images.unsplash.com/photo-1464082354059-27db6ce50048?w=400&q=70',  category: 'commercial' },
-  { id: 'PB2577', name: 'Prestige Lakeside Habitat',       type: 'Apartment',  bhk: '3BHK', facing: 'East',       location: 'Whitefield',      rent: '₹85k',       deposit: '₹3 Lakh',    sbua: '1950sqft', img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=70',  category: 'apartment' },
-  { id: 'PB2578', name: 'Sobha Silicon Oasis',             type: 'Apartment',  bhk: '2BHK', facing: 'West',       location: 'Hosur Road',      rent: '₹65k',       deposit: '₹2.5 Lakh',  sbua: '1600sqft', img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70',   category: 'apartment' },
-  { id: 'PB2579', name: 'NCC Kalpana Villa',               type: 'Villa',      bhk: '4BHK', facing: 'South-East', location: 'Sarjapur',        rent: '₹1.5 Lakh',  deposit: '₹6 Lakh',    sbua: '3200sqft', img: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=70',  category: 'villas' },
-  { id: 'PB2580', name: 'Assetz 63 Degree East',           type: 'Apartment',  bhk: '3BHK', facing: 'North',      location: 'Panathur',        rent: '₹72k',       deposit: '₹2.8 Lakh',  sbua: '1800sqft', img: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&q=70',  category: 'apartment' },
+  { id: 'PB2569', name: 'Brigade Orchards Apartment',      type: 'Apartment', bhk: '2BHK', facing: 'East',       location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=70',      category: 'apartment', badge: 'Rental' },
+  { id: 'PB2570', name: 'Brigade Villament',               type: 'Villament', bhk: '2BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&q=70', category: 'apartment', badge: 'Rental' },
+  { id: 'PB2571', name: 'Brigade Orchards Pavilion Villa', type: 'Villa',     bhk: '2BHK', facing: 'North',      location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=70', category: 'villas',    badge: 'Rental' },
+  { id: 'PB2572', name: 'Pavillion Row House',             type: 'Row House', bhk: '3BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1464082354059-27db6ce50048?w=400&q=70',  category: 'apartment', badge: 'Rental' },
+  { id: 'PB2573', name: 'Brigade Orchards Apartment',      type: 'Apartment', bhk: '2BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&q=70', category: 'apartment', badge: 'Rental' },
+  { id: 'PB2574', name: 'Brigade Villament',               type: 'Villament', bhk: '2BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=70',  category: 'villas',    badge: 'Rental' },
+  { id: 'PB2575', name: 'Brigade Orchards Pavilion Villa', type: 'Villa',     bhk: '2BHK', facing: 'North',      location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&q=70', category: 'villas',    badge: 'Rental' },
+  { id: 'PB2576', name: 'Pavillion Row House',             type: 'Row House', bhk: '3BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1464082354059-27db6ce50048?w=400&q=70',  category: 'commercial',badge: 'Rental' },
+  { id: 'PB2577', name: 'Prestige Lakeside Habitat',       type: 'Apartment', bhk: '3BHK', facing: 'East',       location: 'Whitefield',      rent: '₹85k',       deposit: '₹3 Lakh',    sbua: '1,950 sq.ft', img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=70',  category: 'apartment', badge: 'Rental' },
+  { id: 'PB2578', name: 'Sobha Silicon Oasis',             type: 'Apartment', bhk: '2BHK', facing: 'West',       location: 'Hosur Road',      rent: '₹65k',       deposit: '₹2.5 Lakh',  sbua: '1,600 sq.ft', img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70',   category: 'apartment', badge: 'Rental' },
+  { id: 'PB2579', name: 'NCC Kalpana Villa',               type: 'Villa',     bhk: '4BHK', facing: 'South-East', location: 'Sarjapur',        rent: '₹1.5 Lakh',  deposit: '₹6 Lakh',    sbua: '3,200 sq.ft', img: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=70',  category: 'villas',    badge: 'Rental' },
+  { id: 'PB2580', name: 'Assetz 63 Degree East',           type: 'Apartment', bhk: '3BHK', facing: 'North',      location: 'Panathur',        rent: '₹72k',       deposit: '₹2.8 Lakh',  sbua: '1,800 sq.ft', img: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&q=70',  category: 'apartment', badge: 'Rental' },
 ]
 
 const RESALE_TABLE_DATA = [
-  { id: 'RNA32024', name: 'Assetz Marq Phase-2',     type: 'Apartment', sbua: 3802, plot: '-',  facing: 'South - East', askPrice: '3.00 Cr',      priceSqft: '₹17K' },
-  { id: 'RNA3023',  name: 'Sobha Carnation',         type: 'Apartment', sbua: 3569, plot: '-',  facing: 'North',        askPrice: '2.80 Cr',      priceSqft: '₹17K' },
-  { id: 'RNA3022',  name: 'SOBHA Dream Gardens',     type: 'Apartment', sbua: 5686, plot: 1957, facing: 'West',         askPrice: '2.90 Cr',      priceSqft: '₹7K'  },
-  { id: 'RNA3021',  name: 'QVC The Hills',           type: 'Villa',     sbua: 4578, plot: '-',  facing: 'North',        askPrice: '2.39 Cr',      priceSqft: '₹8K'  },
-  { id: 'RNA3020',  name: 'R&S Lakeview Apartment',  type: 'Apartment', sbua: 1245, plot: 1500, facing: 'North',        askPrice: '3.25 Cr',      priceSqft: '₹9K'  },
-  { id: 'RNA3019',  name: 'Nikoo Homes 1',           type: 'Office',    sbua: 3698, plot: '-',  facing: 'East',         askPrice: '1.25 Cr',      priceSqft: '₹6K'  },
-  { id: 'RNA3018',  name: 'Office Space in Hebal',   type: 'Apartment', sbua: 1596, plot: 1289, facing: 'East',         askPrice: '3.00 Cr',      priceSqft: '₹12K' },
-  { id: 'RNA3017',  name: 'Prestige Green Gables',   type: 'Apartment', sbua: 2589, plot: '-',  facing: 'East',         askPrice: '95 Lakhs',     priceSqft: '₹30K' },
-  { id: 'RNA3016',  name: 'Prestige Jade Pavillion', type: 'Villa',     sbua: 4586, plot: '-',  facing: 'West',         askPrice: '81.586 Lakhs', priceSqft: '₹12K' },
+  { id: 'RNA32024', name: 'Assetz Marq Phase-2',     type: 'Apartment', sbua: 3802, plot: '-',  facing: 'South - East', askPrice: '3.00 Cr',      priceSqft: '₹17K', handover: 'DEC/2027' },
+  { id: 'RNA3023',  name: 'Sobha Carnation',         type: 'Apartment', sbua: 3569, plot: '-',  facing: 'North',        askPrice: '2.80 Cr',      priceSqft: '₹17K', handover: 'Ready' },
+  { id: 'RNA3022',  name: 'SOBHA Dream Gardens',     type: 'Apartment', sbua: 5686, plot: 1957, facing: 'West',         askPrice: '2.90 Cr',      priceSqft: '₹7K',  handover: 'JUN/2026' },
+  { id: 'RNA3021',  name: 'QVC The Hills',           type: 'Villa',     sbua: 4578, plot: '-',  facing: 'North',        askPrice: '2.39 Cr',      priceSqft: '₹8K',  handover: 'Ready' },
+  { id: 'RNA3020',  name: 'R&S Lakeview Apartment',  type: 'Apartment', sbua: 1245, plot: 1500, facing: 'North',        askPrice: '3.25 Cr',      priceSqft: '₹9K',  handover: 'DEC/2028' },
+  { id: 'RNA3019',  name: 'Nikoo Homes 1',           type: 'Office',    sbua: 3698, plot: '-',  facing: 'East',         askPrice: '1.25 Cr',      priceSqft: '₹6K',  handover: 'Ready' },
+  { id: 'RNA3018',  name: 'Office Space in Hebbal',  type: 'Apartment', sbua: 1596, plot: 1289, facing: 'East',         askPrice: '3.00 Cr',      priceSqft: '₹12K', handover: 'Ready' },
+  { id: 'RNA3017',  name: 'Prestige Green Gables',   type: 'Apartment', sbua: 2589, plot: '-',  facing: 'East',         askPrice: '95 Lakhs',     priceSqft: '₹30K', handover: 'Ready' },
+  { id: 'RNA3016',  name: 'Prestige Jade Pavillion', type: 'Villa',     sbua: 4586, plot: '-',  facing: 'West',         askPrice: '81.59 Lakhs',  priceSqft: '₹12K', handover: 'Ready' },
 ]
 
 const RENTAL_TABLE_DATA = [
-  { id: 'RNA32024', name: 'Assetz Marq Phase-2',     type: 'Apartment', sbua: 3802, plot: '-',  facing: 'South - East', rent: '₹75k',  deposit: '₹3 lakhs'   },
-  { id: 'RNA3023',  name: 'Sobha Carnation',         type: 'Apartment', sbua: 3569, plot: '-',  facing: 'North',        rent: '₹89k',  deposit: '₹1.5 lakhs' },
-  { id: 'RNA3022',  name: 'SOBHA Dream Gardens',     type: 'Apartment', sbua: 5686, plot: 1957, facing: 'West',         rent: '₹45k',  deposit: '₹2 Lakhs'   },
-  { id: 'RNA3021',  name: 'QVC The Hills',           type: 'Villa',     sbua: 4578, plot: '-',  facing: 'North',        rent: '₹99k',  deposit: '₹8 lakhs'   },
-  { id: 'RNA3020',  name: 'R&S Lakeview Apartment',  type: 'Apartment', sbua: 1245, plot: 1500, facing: 'North',        rent: '₹88k',  deposit: '-'          },
-  { id: 'RNA3019',  name: 'Nikoo Homes 1',           type: 'Office',    sbua: 3698, plot: '-',  facing: 'East',         rent: '₹56k',  deposit: '₹37 Lakhs'  },
-  { id: 'RNA3018',  name: 'Office Space in Hebal',   type: 'Apartment', sbua: 1596, plot: 1289, facing: 'East',         rent: '₹77k',  deposit: '₹4 lakhs'   },
-  { id: 'RNA3017',  name: 'Prestige Green Gables',   type: 'Apartment', sbua: 2589, plot: '-',  facing: 'East',         rent: '₹35k',  deposit: '₹5 lakhs'   },
-  { id: 'RNA3016',  name: 'Prestige Jade Pavillion', type: 'Villa',     sbua: 4586, plot: '-',  facing: 'West',         rent: '₹45k',  deposit: '₹69 lakhs'  },
+  { id: 'RNA32024', name: 'Assetz Marq Phase-2',     type: 'Apartment', sbua: 3802, plot: '-',  facing: 'South - East', rent: '₹75k',  deposit: '₹3 Lakhs',   status: 'Ready to Move' },
+  { id: 'RNA3023',  name: 'Sobha Carnation',         type: 'Apartment', sbua: 3569, plot: '-',  facing: 'North',        rent: '₹89k',  deposit: '₹1.5 Lakhs', status: 'Ready to Move' },
+  { id: 'RNA3022',  name: 'SOBHA Dream Gardens',     type: 'Apartment', sbua: 5686, plot: 1957, facing: 'West',         rent: '₹45k',  deposit: '₹2 Lakhs',   status: 'Ready to Move' },
+  { id: 'RNA3021',  name: 'QVC The Hills',           type: 'Villa',     sbua: 4578, plot: '-',  facing: 'North',        rent: '₹99k',  deposit: '₹8 Lakhs',   status: 'Ready to Move' },
+  { id: 'RNA3020',  name: 'R&S Lakeview Apartment',  type: 'Apartment', sbua: 1245, plot: 1500, facing: 'North',        rent: '₹88k',  deposit: '-',          status: 'Ready to Move' },
+  { id: 'RNA3019',  name: 'Nikoo Homes 1',           type: 'Office',    sbua: 3698, plot: '-',  facing: 'East',         rent: '₹56k',  deposit: '₹37 Lakhs',  status: 'Ready to Move' },
+  { id: 'RNA3018',  name: 'Office Space in Hebbal',  type: 'Apartment', sbua: 1596, plot: 1289, facing: 'East',         rent: '₹77k',  deposit: '₹4 Lakhs',   status: 'Ready to Move' },
+  { id: 'RNA3017',  name: 'Prestige Green Gables',   type: 'Apartment', sbua: 2589, plot: '-',  facing: 'East',         rent: '₹35k',  deposit: '₹5 Lakhs',   status: 'Ready to Move' },
+  { id: 'RNA3016',  name: 'Prestige Jade Pavillion', type: 'Villa',     sbua: 4586, plot: '-',  facing: 'West',         rent: '₹45k',  deposit: '₹69 Lakhs',  status: 'Ready to Move' },
 ]
 
 // ── Hooks ──────────────────────────────────────────────────────────────────────
@@ -111,12 +111,11 @@ function useOutsideClick(ref, handler) {
   }, [ref, handler])
 }
 
-// ── Shared Pagination Component ────────────────────────────────────────────────
+// ── Pagination ─────────────────────────────────────────────────────────────────
 const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, itemsPerPage, onItemsPerPageChange }) => {
   const start = (currentPage - 1) * itemsPerPage + 1
   const end = Math.min(currentPage * itemsPerPage, totalItems)
 
-  // Build page numbers with ellipsis
   const getPageNumbers = () => {
     const pages = []
     if (totalPages <= 7) {
@@ -136,52 +135,32 @@ const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, itemsPe
       <p className="text-xs text-gray-500">
         Showing <span className="font-semibold text-gray-700">{start}–{end}</span> of <span className="font-semibold text-gray-700">{totalItems}</span> results
       </p>
-
       <div className="flex items-center gap-1">
-        {/* Prev */}
-        <button
-          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-          disabled={currentPage === 1}
-          className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
+        <button onClick={() => onPageChange(Math.max(1, currentPage - 1))} disabled={currentPage === 1}
+          className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
           <ChevronLeft className="w-4 h-4" />
         </button>
-
         {getPageNumbers().map((p, i) =>
           p === '...' ? (
             <span key={`ellipsis-${i}`} className="w-8 h-8 flex items-center justify-center text-gray-400 text-sm">…</span>
           ) : (
-            <button
-              key={p}
-              onClick={() => onPageChange(p)}
+            <button key={p} onClick={() => onPageChange(p)}
               className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
-                currentPage === p
-                  ? 'bg-[#E8431A] text-white shadow-sm'
-                  : 'border border-gray-200 text-gray-600 hover:bg-gray-100 hover:border-gray-300'
-              }`}
-            >
+                currentPage === p ? 'bg-[#E8431A] text-white shadow-sm' : 'border border-gray-200 text-gray-600 hover:bg-gray-100 hover:border-gray-300'
+              }`}>
               {p}
             </button>
           )
         )}
-
-        {/* Next */}
-        <button
-          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-          disabled={currentPage === totalPages}
-          className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
+        <button onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages}
+          className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
-
       <div className="flex items-center gap-2 text-xs text-gray-500">
         <span>Per page:</span>
-        <select
-          value={itemsPerPage}
-          onChange={e => { onItemsPerPageChange(Number(e.target.value)); onPageChange(1) }}
-          className="border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-700 outline-none focus:border-[#E8431A] transition-colors cursor-pointer"
-        >
+        <select value={itemsPerPage} onChange={e => { onItemsPerPageChange(Number(e.target.value)); onPageChange(1) }}
+          className="border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-700 outline-none focus:border-[#E8431A] transition-colors cursor-pointer">
           {[4, 8, 12, 16].map(n => <option key={n} value={n}>{n}</option>)}
         </select>
       </div>
@@ -202,14 +181,15 @@ const PropertyCard = ({ prop, mode }) => {
   const isRental = mode === 'rental'
 
   return (
-    <div
-      onClick={() => navigate(`/property/details/${prop.id}`)}
-      className="bg-white rounded-md overflow-hidden shadow-md border border-gray-300 hover:shadow-lg transition-all duration-200 cursor-pointer group"
-    >
+    <div onClick={() => navigate(`/property/details/${prop.id}`)}
+      className="bg-white rounded-md overflow-hidden shadow-md border border-gray-300 hover:shadow-lg transition-all duration-200 cursor-pointer group">
       <div className="relative overflow-hidden">
         <img src={prop.img} alt={prop.name} className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300" />
         <span className="absolute top-3 left-3 bg-[#E8431A] text-white text-xs font-bold px-2.5 py-1 rounded-md tracking-wide">
           {prop.id}
+        </span>
+        <span className={`absolute bottom-3 left-3 text-white text-[10px] font-bold px-2 py-0.5 rounded-md ${isRental ? 'bg-blue-600' : 'bg-gray-700'}`}>
+          {prop.badge}
         </span>
       </div>
       <div className="p-2">
@@ -227,22 +207,20 @@ const PropertyCard = ({ prop, mode }) => {
           <div className="flex items-center justify-center gap-4 py-2 px-1 border border-gray-300 rounded-sm flex-1">
             {isRental ? (
               <>
-                <div><p className="text-sm font-bold text-gray-900">{prop.rent}</p><p className="text-xs text-gray-400 mt-0.5">Rent</p></div>
-                <div><p className="text-sm font-bold text-gray-900">{prop.deposit}</p><p className="text-xs text-gray-400 mt-0.5">Deposit</p></div>
-                <div><p className="text-sm font-bold text-gray-900">{prop.sbua}</p><p className="text-xs text-gray-400 mt-0.5">SBUA</p></div>
+                <div className="text-center"><p className="text-sm font-bold text-gray-900">{prop.rent}</p><p className="text-xs text-gray-400 mt-0.5">Rent</p></div>
+                <div className="text-center"><p className="text-sm font-bold text-gray-900">{prop.deposit}</p><p className="text-xs text-gray-400 mt-0.5">Deposit</p></div>
+                <div className="text-center"><p className="text-sm font-bold text-gray-900">{prop.sbua}</p><p className="text-xs text-gray-400 mt-0.5">SBUA</p></div>
               </>
             ) : (
               <>
-                <div><p className="text-sm font-bold text-gray-900">{prop.priceSqft}</p><p className="text-xs text-gray-400 mt-0.5">Price/Sq.ft</p></div>
-                <div><p className="text-sm font-bold text-gray-900">{prop.sbua}</p><p className="text-xs text-gray-400 mt-0.5">SBUA</p></div>
-                <div><p className="text-sm font-bold text-gray-900">{prop.askPrice}</p><p className="text-xs text-gray-400 mt-0.5">Ask Price</p></div>
+                <div className="text-center"><p className="text-sm font-bold text-gray-900">{prop.priceSqft}</p><p className="text-xs text-gray-400 mt-0.5">Price/Sq.ft</p></div>
+                <div className="text-center"><p className="text-sm font-bold text-gray-900">{prop.sbua}</p><p className="text-xs text-gray-400 mt-0.5">SBUA</p></div>
+                <div className="text-center"><p className="text-sm font-bold text-gray-900">{prop.askPrice}</p><p className="text-xs text-gray-400 mt-0.5">Ask Price</p></div>
               </>
             )}
           </div>
-          <button
-            onClick={e => e.stopPropagation()}
-            className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-md px-3 py-2 flex flex-col items-center gap-0.5 text-xs font-semibold transition-colors flex-shrink-0"
-          >
+          <button onClick={e => e.stopPropagation()}
+            className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-md px-3 py-2 flex flex-col items-center gap-0.5 text-xs font-semibold transition-colors flex-shrink-0">
             <Share2 className="w-3.5 h-3.5" /> Share
           </button>
         </div>
@@ -251,7 +229,7 @@ const PropertyCard = ({ prop, mode }) => {
   )
 }
 
-// ── Dropdowns ─────────────────────────────────────────────────────────────────
+// ── Dropdowns ──────────────────────────────────────────────────────────────────
 const AssetTypeDropdown = ({ selected, onChange }) => {
   const [open, setOpen] = useState(false)
   const ref = useRef()
@@ -422,50 +400,43 @@ const SortDropdown = ({ selected, onChange }) => {
 // ── Main Dashboard ─────────────────────────────────────────────────────────────
 const Dashboard = () => {
   const navigate = useNavigate()
-  const [viewMode, setViewMode]           = useState('grid')
+  const [viewMode, setViewMode]             = useState('grid')
   const [activeCategory, setActiveCategory] = useState('all')
-  const [activeTab, setActiveTab]         = useState('resale')
-  const [assetType, setAssetType]         = useState(null)
-  const [configuration, setConfiguration] = useState([])
-  const [budget, setBudget]               = useState(null)
-  const [sbua, setSbua]                   = useState(null)
-  const [sortBy, setSortBy]               = useState(null)
+  const [activeTab, setActiveTab]           = useState('resale')
+  const [assetType, setAssetType]           = useState(null)
+  const [configuration, setConfiguration]   = useState([])
+  const [budget, setBudget]                 = useState(null)
+  const [sbua, setSbua]                     = useState(null)
+  const [sortBy, setSortBy]                 = useState(null)
 
-  // ── Pagination state — separate for grid and table ──
-  const [gridPage, setGridPage]             = useState(1)
-  const [gridItemsPerPage, setGridItemsPerPage] = useState(8)
-  const [tablePage, setTablePage]           = useState(1)
+  const [gridPage, setGridPage]                   = useState(1)
+  const [gridItemsPerPage, setGridItemsPerPage]   = useState(8)
+  const [tablePage, setTablePage]                 = useState(1)
   const [tableItemsPerPage, setTableItemsPerPage] = useState(9)
 
-  const isRental   = activeTab === 'rental'
-  const allProperties = isRental ? RENTAL_PROPERTIES : RESALE_PROPERTIES
-  const allTableData  = isRental ? RENTAL_TABLE_DATA  : RESALE_TABLE_DATA
+  const isRental       = activeTab === 'rental'
+  const allProperties  = isRental ? RENTAL_PROPERTIES : RESALE_PROPERTIES
+  const allTableData   = isRental ? RENTAL_TABLE_DATA  : RESALE_TABLE_DATA
 
-  // Filter by category
   const filteredProperties = activeCategory === 'all'
     ? allProperties
     : allProperties.filter(p => p.category === activeCategory)
 
-  // Grid pagination
-  const gridTotalPages = Math.ceil(filteredProperties.length / gridItemsPerPage)
-  const paginatedGrid  = filteredProperties.slice((gridPage - 1) * gridItemsPerPage, gridPage * gridItemsPerPage)
-
-  // Table pagination
+  const gridTotalPages  = Math.ceil(filteredProperties.length / gridItemsPerPage)
+  const paginatedGrid   = filteredProperties.slice((gridPage - 1) * gridItemsPerPage, gridPage * gridItemsPerPage)
   const tableTotalPages = Math.ceil(allTableData.length / tableItemsPerPage)
   const paginatedTable  = allTableData.slice((tablePage - 1) * tableItemsPerPage, tablePage * tableItemsPerPage)
 
-  // Reset to page 1 on tab / category change
-  const handleTabChange = (tab) => { setActiveTab(tab); setGridPage(1); setTablePage(1) }
+  const handleTabChange      = (tab) => { setActiveTab(tab);      setGridPage(1); setTablePage(1) }
   const handleCategoryChange = (cat) => { setActiveCategory(cat); setGridPage(1) }
 
   const hasFilters = assetType || configuration.length > 0 || budget?.min || budget?.max || sbua?.min || sbua?.max || sortBy
 
   return (
-    <div className="bg-gray-50 " style={{ fontFamily: "'Segoe UI', sans-serif" }}>
+    <div className="bg-gray-50" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
 
       {/* ── Sticky Header ── */}
-      <div className="mx-2 sticky top-0 z-20 bg-white border-b border-gray-100 px-6 flex items-center justify-between gap-4" style={{ overflow: 'visible' }}>
-        {/* Categories */}
+      <div className="mx-2 sticky top-0 z-10 bg-white border-b border-gray-100 px-6 flex items-center justify-between gap-4" style={{ overflow: 'visible' }}>
         <div className="flex items-center gap-6 flex-shrink-0">
           {CATEGORIES.map(({ id, label, Icon }) => (
             <button key={id} onClick={() => handleCategoryChange(id)}
@@ -478,7 +449,6 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Resale / Rental toggle */}
         <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden flex-shrink-0">
           {['resale', 'rental'].map(t => (
             <button key={t} onClick={() => handleTabChange(t)}
@@ -488,7 +458,6 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Toolbar */}
         <div className="flex items-center gap-2">
           <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
             <button onClick={() => setViewMode('grid')}
@@ -508,7 +477,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* ── Active filters ── */}
+      {/* ── Active Filters ── */}
       {hasFilters && (
         <div className="px-6 py-2 bg-white border-b border-gray-100 flex items-center gap-2 flex-wrap">
           <span className="text-xs text-gray-500 font-medium">Active filters:</span>
@@ -556,17 +525,9 @@ const Dashboard = () => {
                 <p className="text-sm font-medium">No properties found</p>
               </div>
             )}
-
-            {/* ── Grid Pagination ── */}
             {filteredProperties.length > 0 && (
-              <Pagination
-                currentPage={gridPage}
-                totalPages={gridTotalPages}
-                onPageChange={setGridPage}
-                totalItems={filteredProperties.length}
-                itemsPerPage={gridItemsPerPage}
-                onItemsPerPageChange={setGridItemsPerPage}
-              />
+              <Pagination currentPage={gridPage} totalPages={gridTotalPages} onPageChange={setGridPage}
+                totalItems={filteredProperties.length} itemsPerPage={gridItemsPerPage} onItemsPerPageChange={setGridItemsPerPage} />
             )}
           </>
         ) : (
@@ -584,11 +545,13 @@ const Dashboard = () => {
                     <>
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Rent/Month</th>
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Deposit</th>
+                      <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Status</th>
                     </>
                   ) : (
                     <>
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Ask Price</th>
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Price/Sqft</th>
+                      <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Handover</th>
                     </>
                   )}
                   <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Actions</th>
@@ -597,8 +560,8 @@ const Dashboard = () => {
               <tbody>
                 {paginatedTable.map((row, i) => (
                   <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-xs font-mono text-gray-500">{row.id}</td>
-                    <td className="px-4 py-3 font-semibold text-gray-800">{row.name}</td>
+                    <td className="px-4 py-3 text-xs font-mono font-bold text-[#E8431A]">{row.id}</td>
+                    <td className="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap">{row.name}</td>
                     <td className="px-4 py-3 text-gray-600">{row.type}</td>
                     <td className="px-4 py-3 text-gray-600">{row.sbua}</td>
                     <td className="px-4 py-3 text-gray-400">{row.plot}</td>
@@ -607,20 +570,27 @@ const Dashboard = () => {
                       <>
                         <td className="px-4 py-3 font-semibold text-gray-800">{row.rent}</td>
                         <td className="px-4 py-3 text-gray-600">{row.deposit}</td>
+                        <td className="px-4 py-3">
+                          <span className="text-xs bg-green-50 text-green-700 border border-green-200 rounded-full px-2 py-0.5 font-medium whitespace-nowrap">{row.status}</span>
+                        </td>
                       </>
                     ) : (
                       <>
                         <td className="px-4 py-3 font-semibold text-gray-800">{row.askPrice}</td>
                         <td className="px-4 py-3 text-gray-600">{row.priceSqft}</td>
+                        <td className="px-4 py-3">
+                          <span className={`text-xs rounded-full px-2 py-0.5 font-medium whitespace-nowrap border ${row.handover === 'Ready' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                            {row.handover}
+                          </span>
+                        </td>
                       </>
                     )}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <button className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-lg p-1.5 transition-colors">
+                        <button onClick={e => e.stopPropagation()} className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-lg p-1.5 transition-colors">
                           <Share2 className="w-3.5 h-3.5" />
                         </button>
-                        <button onClick={() => navigate(`/property/details/${row.id}`)}
-                          className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-lg p-1.5 transition-colors">
+                        <button onClick={() => navigate(`/property/details/${row.id}`)} className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-lg p-1.5 transition-colors">
                           <Info className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -629,17 +599,9 @@ const Dashboard = () => {
                 ))}
               </tbody>
             </table>
-
-            {/* ── Table Pagination ── */}
             <div className="border-t border-gray-100 px-4">
-              <Pagination
-                currentPage={tablePage}
-                totalPages={tableTotalPages}
-                onPageChange={setTablePage}
-                totalItems={allTableData.length}
-                itemsPerPage={tableItemsPerPage}
-                onItemsPerPageChange={setTableItemsPerPage}
-              />
+              <Pagination currentPage={tablePage} totalPages={tableTotalPages} onPageChange={setTablePage}
+                totalItems={allTableData.length} itemsPerPage={tableItemsPerPage} onItemsPerPageChange={setTableItemsPerPage} />
             </div>
           </div>
         )}
