@@ -204,7 +204,7 @@ const PropertyCard = ({ prop, mode }) => {
   return (
     <div
       onClick={() => navigate(`/property/details/${prop.id}`)}
-      className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-300 hover:shadow-lg transition-all duration-200 cursor-pointer group"
+      className="bg-white rounded-md overflow-hidden shadow-md border border-gray-300 hover:shadow-lg transition-all duration-200 cursor-pointer group"
     >
       <div className="relative overflow-hidden">
         <img src={prop.img} alt={prop.name} className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -212,7 +212,7 @@ const PropertyCard = ({ prop, mode }) => {
           {prop.id}
         </span>
       </div>
-      <div className="p-4">
+      <div className="p-2">
         <div className="flex flex-wrap gap-1.5 mb-3">
           <Chip label={prop.type} />
           <Chip label={prop.bhk} />
@@ -224,7 +224,7 @@ const PropertyCard = ({ prop, mode }) => {
           {prop.location}
         </p>
         <div className="flex items-center justify-between border-t border-gray-100 pt-3 gap-2">
-          <div className="flex items-center justify-center gap-4 py-2 px-4 border border-gray-300 rounded-md flex-1">
+          <div className="flex items-center justify-center gap-4 py-2 px-1 border border-gray-300 rounded-sm flex-1">
             {isRental ? (
               <>
                 <div><p className="text-sm font-bold text-gray-900">{prop.rent}</p><p className="text-xs text-gray-400 mt-0.5">Rent</p></div>
