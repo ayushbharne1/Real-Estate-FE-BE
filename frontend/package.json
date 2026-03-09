@@ -13,6 +13,7 @@
     "@reduxjs/toolkit": "^2.11.2",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/react-table": "^8.21.3",
+    "axios": "^1.13.6",
     "country-state-city": "^3.2.1",
     "formik": "^2.4.9",
     "lucide-react": "^0.575.0",

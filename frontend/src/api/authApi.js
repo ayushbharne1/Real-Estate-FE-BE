@@ -1,4 +1,11 @@
+import axios from 'axios'
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+
+const api = axios.create({
+  baseURL: BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+})
 
 /**
  * POST /api/auth/login
@@ -8,23 +15,16 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
  * 409 → { status: 'ERROR', message: 'Email already exists' }
  */
 export async function loginApi({ email, password }) {
-  const res = await fetch(`${BASE_URL}/api/auth/login`, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ email, password }),
-  })
-
-  const json = await res.json()
-
-  if (!res.ok) {
+  try {
+    const { data } = await api.post('/api/auth/login', { email, password })
+    // 200 shape: { status: 'SUCCESS', data: { token, admin } }
+    return data.data
+  } catch (err) {
+    const json = err.response?.data || {}
     // Normalise error shape for the slice
-    // API returns: { status: 'ERROR', message, errors?: { field: [string] } }
     throw {
-      message: json.message || `Error ${res.status}`,
+      message: json.message || `Error ${err.response?.status ?? 'Unknown'}`,
       errors:  json.errors  || {},
     }
   }
-
-  // 200 shape: { status: 'SUCCESS', data: { token, admin } }
-  return json.data
 }
