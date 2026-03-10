@@ -34,12 +34,12 @@ const Login = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated)
 
   // Local form state
-  const [email,    setEmail]    = useState('')
+  const [identifier,    setIdentifier]    = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
 
   // Client-side validation errors
-  const [localErrors, setLocalErrors] = useState({ email: '', password: '' })
+  const [localErrors, setLocalErrors] = useState({ identifier: '', password: '' })
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -47,10 +47,10 @@ const Login = () => {
   }, [isAuthenticated, navigate])
 
   // Clear Redux errors when user starts typing
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value)
-    setLocalErrors(prev => ({ ...prev, email: '' }))
-    if (serverError || fieldErrors?.email) dispatch(clearErrors())
+  const handleIdentifierChange = (e) => {
+    setIdentifier(e.target.value)
+    setLocalErrors(prev => ({ ...prev, identifier: '' }))
+    if (serverError || fieldErrors?.identifier) dispatch(clearErrors())
   }
   const handlePasswordChange = (e) => {
     setPassword(e.target.value)
@@ -60,26 +60,24 @@ const Login = () => {
 
   // Client-side validate before dispatching
   const validate = () => {
-    const errors = { email: '', password: '' }
-    if (!email.trim()) {
-      errors.email = 'Email is required'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.email = 'Enter a valid email address'
-    }
+    const errors = { identifier: '', password: '' }
+    if (!identifier.trim()) {
+      errors.identifier = 'Email or username is required'
+    } 
     if (!password) {
       errors.password = 'Password is required'
     } else if (password.length < 6) {
       errors.password = 'Password must be at least 6 characters'
     }
     setLocalErrors(errors)
-    return !errors.email && !errors.password
+    return !errors.identifier && !errors.password
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validate()) return
 
-    const result = await dispatch(loginUser({ email, password }))
+    const result = await dispatch(loginUser({ identifier, password }))
 
     if (loginUser.fulfilled.match(result)) {
       toast.success(`Welcome back, ${result.payload.admin?.name || 'Admin'}!`)
@@ -92,7 +90,7 @@ const Login = () => {
   }
 
   // Merge server field errors on top of local ones
-  const emailError    = localErrors.email    || fieldErrors?.email?.[0]    || ''
+  const IdentifierError    = localErrors.identifier    || fieldErrors?.identifier?.[0]    || ''
   const passwordError = localErrors.password || fieldErrors?.password?.[0] || ''
 
   return (
@@ -132,7 +130,7 @@ const Login = () => {
           </div>
 
           {/* General server error banner (non-field errors) */}
-          {serverError && !fieldErrors?.email && !fieldErrors?.password && (
+          {serverError && !fieldErrors?.identifier && !fieldErrors?.password && (
             <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6 text-sm text-red-600">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               {serverError}
@@ -141,22 +139,22 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
 
-            {/* Email */}
+            {/* Identifier */}
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
-                Email <span className="text-[#E8431A]">*</span>
+                Email or Username <span className="text-[#E8431A]">*</span>
               </label>
               <input
-                type="email"
-                value={email}
-                onChange={handleEmailChange}
-                placeholder="admin@example.com"
-                autoComplete="email"
+                type="text"
+                value={identifier}
+                onChange={handleIdentifierChange}
+                placeholder="admin@example.com or admin123"
+                autoComplete="username"
                 className={`w-full px-0 py-2 border-0 border-b-2 text-gray-800 text-sm focus:outline-none transition-colors bg-transparent ${
-                  emailError ? 'border-red-400' : 'border-gray-200 focus:border-[#E8431A]'
+                  IdentifierError ? 'border-red-400' : 'border-gray-200 focus:border-[#E8431A]'
                 }`}
               />
-              <FieldError message={emailError} />
+              <FieldError message={IdentifierError} />
             </div>
 
             {/* Password */}

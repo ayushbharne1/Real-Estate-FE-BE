@@ -14,9 +14,9 @@ const api = axios.create({
  * 400 → { status: 'ERROR', message, errors: { password: [...] } }
  * 409 → { status: 'ERROR', message: 'Email already exists' }
  */
-export async function loginApi({ email, password }) {
+export async function loginApi({ identifier, password }) {
   try {
-    const { data } = await api.post('/api/auth/login', { email, password })
+    const { data } = await api.post('/api/auth/login', { identifier, password })
     // 200 shape: { status: 'SUCCESS', data: { token, admin } }
     return data.data
   } catch (err) {

@@ -4,13 +4,13 @@ import { loginApi } from '../../api/authApi'
 // ── Async Thunk ───────────────────────────────────────────────────────────────
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
-  async ({ email, password }, { rejectWithValue }) => {
+  async ({ identifier, password }, { rejectWithValue }) => {
     try {
-      const data = await loginApi({ email, password })
+      const data = await loginApi({ identifier, password })
       // Persist token to localStorage
       localStorage.setItem('token', data.token)
       localStorage.setItem('admin', JSON.stringify(data.admin))
-      return data  // { token, admin: { id, name, email } }
+      return data  // { token, admin: { id, name, identifier } }
     } catch (err) {
       // err is already shaped by authApi: { message, errors? }
       return rejectWithValue(err)
@@ -30,7 +30,7 @@ const initialState = {
   token:      localStorage.getItem('token') || null,
   loading:    false,
   error:      null,    // string — general error message
-  fieldErrors: {},     // { email?: string[], password?: string[] }
+  fieldErrors: {},     // { identifier?: string[], password?: string[] }
   isAuthenticated: !!localStorage.getItem('token'),
 }
 
