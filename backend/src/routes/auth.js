@@ -1,10 +1,19 @@
-import express from "express";
-const router = express.Router();
+import { Router } from "express";
 import { createAdmin, login, logout, getMe } from "../controllers/authController.js";
-import { protect } from "../middleware/auth.js";
-import { validateBody } from "../middleware/validate.js";
-import { loginSchema, createAdminSchema } from "shared/schemas";
-import { upload } from "../config/cloudinary.js";
+import { protect }        from "../middleware/auth.js";
+import { validateBody }   from "../middleware/validate.js";
+import { uploadAvatar }   from "../config/cloudinary.js";
+import { loginSchema }    from "shared/schemas/index.js";
+import { z } from "zod";
+
+const router = Router();
+
+const createAdminSchema = z.object({
+  userName: z.string().min(2, "Username is required"),
+  email:    z.string().email("Enter a valid email"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
 /**
  * @swagger
  * tags:
@@ -16,9 +25,8 @@ import { upload } from "../config/cloudinary.js";
  * @swagger
  * /api/auth/register:
  *   post:
- *     summary: Create a new admin account
- *     tags:
- *       - Auth
+ *     summary: Create a new admin account (with optional avatar)
+ *     tags: [Auth]
  *     security: []
  *     requestBody:
  *       required: true
@@ -26,45 +34,23 @@ import { upload } from "../config/cloudinary.js";
  *         multipart/form-data:
  *           schema:
  *             type: object
- *             required:
- *               - name
- *               - email
- *               - password
+ *             required: [userName, email, password]
  *             properties:
- *               name:
- *                 type: string
- *                 example: John Doe
- *               email:
- *                 type: string
- *                 format: email
- *                 example: admin@example.com
- *               imageUrl:
- *                 type: string
- *                 format: binary
- *               password:
- *                 type: string
- *                 example: secret123
+ *               userName: { type: string, example: "johndoe" }
+ *               email:    { type: string, format: email, example: "admin@example.com" }
+ *               password: { type: string, example: "secret123" }
+ *               image:    { type: string, format: binary, description: "Optional avatar image" }
  *     responses:
- *       201:
- *         description: Admin created
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Success'
- *       409:
- *         description: Email already exists
+ *       201: { description: Admin created }
+ *       409: { description: Email or username already exists }
  */
-router.post(
-  "/register",
-  upload.single("imageUrl"),
-  validateBody(createAdminSchema),
-  createAdmin
-);
+router.post("/register", uploadAvatar.single("image"), validateBody(createAdminSchema), createAdmin);
+
 /**
  * @swagger
  * /api/auth/login:
  *   post:
- *     summary: Admin login
+ *     summary: Login with email or username
  *     tags: [Auth]
  *     security: []
  *     requestBody:
@@ -73,18 +59,13 @@ router.post(
  *         application/json:
  *           schema:
  *             type: object
- *             required: [email, password]
+ *             required: [identifier, password]
  *             properties:
- *               email:    { type: string, format: email }
- *               password: { type: string }
+ *               identifier: { type: string, example: "admin@example.com or johndoe" }
+ *               password:   { type: string }
  *     responses:
- *       200:
- *         description: Login successful, returns JWT token
- *         content:
- *           application/json:
- *             schema: { $ref: '#/components/schemas/AuthResponse' }
- *       401:
- *         description: Invalid credentials
+ *       200: { description: Login successful, sets httpOnly cookie }
+ *       401: { description: Invalid credentials }
  */
 router.post("/login", validateBody(loginSchema), login);
 
@@ -92,13 +73,10 @@ router.post("/login", validateBody(loginSchema), login);
  * @swagger
  * /api/auth/logout:
  *   post:
- *     summary: Admin logout
+ *     summary: Logout and clear cookie
  *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
  *     responses:
- *       200:
- *         description: Logged out successfully
+ *       200: { description: Logged out }
  */
 router.post("/logout", protect, logout);
 
@@ -106,18 +84,11 @@ router.post("/logout", protect, logout);
  * @swagger
  * /api/auth/me:
  *   get:
- *     summary: Get current logged-in admin
+ *     summary: Get current admin
  *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
  *     responses:
- *       200:
- *         description: Admin profile
- *         content:
- *           application/json:
- *             schema: { $ref: '#/components/schemas/Admin' }
- *       401:
- *         description: Unauthorized
+ *       200: { description: Admin profile }
+ *       401: { description: Unauthorized }
  */
 router.get("/me", protect, getMe);
 
