@@ -6,6 +6,8 @@ import {
   AssetType, DoorFacing, AgeOfBuilding, FloorRange,
   FurnishingStatus, ParkingType, PossessionStatus,
   BHKType, Amenity, PriceUnit, SortOption, ListingType,
+  CommissionType, MaintenanceType, PreferredTenant,
+  KhataType, ExtraRoom, StructureType,
 } from "../enums/index.js";
 
 const LISTING_TYPE_OPTIONS = [
@@ -21,7 +23,7 @@ const ASSET_TYPE_OPTIONS = [
   { value: AssetType.COMMERCIAL_SPACE,    label: "Commercial Space" },
   { value: AssetType.ROW_HOUSE,           label: "Row House" },
   { value: AssetType.COMMERCIAL_PROPERTY, label: "Commercial Property" },
-  { value: AssetType.VILAMENT,            label: "Vilament" },
+  { value: AssetType.VILAMENT,            label: "Villament" },
   { value: AssetType.OFFICE_SPACE,        label: "Office Space" },
   { value: AssetType.RETAIL_SPACE,        label: "Retail Space" },
 ];
@@ -58,6 +60,16 @@ const FURNISHING_OPTIONS = [
   { value: FurnishingStatus.UNFURNISHED,    label: "Unfurnished" },
 ];
 
+// Office Space only
+const FURNISHING_OFFICE_OPTIONS = [
+  { value: FurnishingStatus.PLUG_AND_PLAY, label: "Plug & Play" },
+];
+
+// Retail Space only
+const FURNISHING_RETAIL_OPTIONS = [
+  { value: FurnishingStatus.WARM_SHELL, label: "Warm Shell" },
+];
+
 const PARKING_OPTIONS = [
   { value: ParkingType.NONE,       label: "No Parking" },
   { value: ParkingType.ONE,        label: "1 Parking" },
@@ -83,7 +95,6 @@ const BHK_OPTIONS = [
   { value: BHKType.FIVE_BHK,  label: "5 BHK" },
 ];
 
-// Dashboard filter chips (no studio)
 const BHK_FILTER_OPTIONS = [
   { value: BHKType.ONE_BHK,   label: "1BHK" },
   { value: BHKType.TWO_BHK,   label: "2BHK" },
@@ -94,11 +105,11 @@ const BHK_FILTER_OPTIONS = [
 
 const AMENITY_OPTIONS = [
   { value: Amenity.SWIMMING_POOL,      label: "Swimming Pool",        icon: "🏊" },
-  { value: Amenity.LIFTS,              label: "Lifts",                icon: "🛗" },
+  { value: Amenity.LIFTS,              label: "Lifts / Elevators",    icon: "🛗" },
   { value: Amenity.CCTV_SURVEILLANCE,  label: "CCTV Surveillance",    icon: "📹" },
   { value: Amenity.SECURITY,           label: "Security",             icon: "🔒" },
   { value: Amenity.POWER_BACKUP,       label: "Power Backup",         icon: "⚡" },
-  { value: Amenity.WATER_STORAGE,      label: "Water Storage",        icon: "💧" },
+  { value: Amenity.WATER_STORAGE,      label: "Water Storage / Tank", icon: "💧" },
   { value: Amenity.GYM,                label: "Gym",                  icon: "🏋️" },
   { value: Amenity.GARDEN_LANDSCAPING, label: "Garden / Landscaping", icon: "🌿" },
   { value: Amenity.COMMUNITY_CENTER,   label: "Community Center",     icon: "🏛️" },
@@ -126,9 +137,53 @@ const ITEMS_PER_PAGE_OPTIONS = [
   { value: 50,  label: "50 / page" },
 ];
 
+// ── New options from updated flow ──────────────────────────────
+
+const COMMISSION_TYPE_OPTIONS = [
+  { value: CommissionType.COMMISSION_SHARING, label: "Commission Sharing" },
+  { value: CommissionType.OWNER_PAYS,         label: "Owner Pays" },
+  { value: CommissionType.TENANT_PAYS,        label: "Tenant Pays" },
+];
+
+const MAINTENANCE_OPTIONS = [
+  { value: MaintenanceType.INCLUDED,     label: "Included" },
+  { value: MaintenanceType.NOT_INCLUDED, label: "Not Included (Per Month)" },
+];
+
+const PREFERRED_TENANT_OPTIONS = [
+  { value: PreferredTenant.FAMILY,   label: "Family" },
+  { value: PreferredTenant.BACHELOR, label: "Bachelor" },
+  { value: PreferredTenant.COMPANY,  label: "Company" },
+  { value: PreferredTenant.ANY,      label: "Any" },
+];
+
+const KHATA_OPTIONS = [
+  { value: KhataType.A, label: "A" },
+  { value: KhataType.B, label: "B" },
+];
+
+const EXTRA_ROOM_OPTIONS = [
+  { value: ExtraRoom.STUDY_ROOM,   label: "Study Room" },
+  { value: ExtraRoom.SERVANT_ROOM, label: "Servant Room" },
+  { value: ExtraRoom.POOJA_ROOM,   label: "Pooja Room" },
+  { value: ExtraRoom.STORE_ROOM,   label: "Store Room" },
+];
+
+const STRUCTURE_OPTIONS = [
+  { value: StructureType.G,      label: "G" },
+  { value: StructureType.G_1,    label: "G+1" },
+  { value: StructureType.G_2,    label: "G+2" },
+  { value: StructureType.G_3,    label: "G+3" },
+  { value: StructureType.G_4,    label: "G+4" },
+  { value: StructureType.G_PLUS, label: "G+5+" },
+];
+
 export {
   LISTING_TYPE_OPTIONS, ASSET_TYPE_OPTIONS, DOOR_FACING_OPTIONS,
   AGE_OF_BUILDING_OPTIONS, FLOOR_RANGE_OPTIONS, FURNISHING_OPTIONS,
+  FURNISHING_OFFICE_OPTIONS, FURNISHING_RETAIL_OPTIONS,
   PARKING_OPTIONS, POSSESSION_OPTIONS, BHK_OPTIONS, BHK_FILTER_OPTIONS,
   AMENITY_OPTIONS, PRICE_UNIT_OPTIONS, SORT_OPTIONS, ITEMS_PER_PAGE_OPTIONS,
+  COMMISSION_TYPE_OPTIONS, MAINTENANCE_OPTIONS, PREFERRED_TENANT_OPTIONS,
+  KHATA_OPTIONS, EXTRA_ROOM_OPTIONS, STRUCTURE_OPTIONS,
 };

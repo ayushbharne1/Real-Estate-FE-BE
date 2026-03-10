@@ -14,6 +14,7 @@ const API_ROUTES = {
   },
   INVENTORY: {
     CREATE: "/api/inventory",
+    UPDATE: (id) => `/api/inventory/${id}`,
   },
   UPLOAD: {
     IMAGES: "/api/upload/images",
@@ -32,6 +33,7 @@ const APP_ROUTES = {
   DASHBOARD:       "/dashboard",
   PROPERTY_DETAIL: (id) => `/property/${id}`,
   INVENTORY_ADD:   "/inventory/add",
+  INVENTORY_EDIT:  (id) => `/inventory/edit/${id}`,
 };
 
 const PAGINATION = {
@@ -54,10 +56,20 @@ const VALIDATION = {
 };
 
 const UPLOAD = {
-  IMAGE_MAX_SIZE_BYTES: 10 * 1024 * 1024, // 10 MB
+  // ── Images ──────────────────────────────────────────────────
+  IMAGE_MAX_SIZE_BYTES: 10 * 1024 * 1024,   // 10 MB per image
   IMAGE_MIN_COUNT:      1,
-  IMAGE_MAX_COUNT:      15,
+  IMAGE_MAX_COUNT:      10,                  // max 10 images per property
   ALLOWED_IMAGE_TYPES:  ["image/jpeg", "image/png", "image/webp"],
+
+  // Shown when no images are uploaded
+  DEFAULT_IMAGE_URL:
+    "https://res.cloudinary.com/infiniterealty/image/upload/v1/infiniterealty/defaults/property-placeholder.webp",
+
+  // ── Video ────────────────────────────────────────────────────
+  VIDEO_MAX_SIZE_BYTES: 100 * 1024 * 1024,  // 100 MB per video
+  VIDEO_MAX_COUNT:      1,                   // max 1 video per property
+  ALLOWED_VIDEO_TYPES:  ["video/mp4", "video/webm", "video/quicktime"],
 };
 
 const SESSION_KEYS = {
@@ -74,7 +86,7 @@ const REGEX = {
   PINCODE: /^\d{6}$/,
 };
 
-export  {
+export {
   API_ROUTES, APP_ROUTES, PAGINATION,
   VALIDATION, UPLOAD, SESSION_KEYS, UI, REGEX,
 };

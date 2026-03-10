@@ -49,6 +49,8 @@ const FurnishingStatus = Object.freeze({
   FURNISHED:      "FURNISHED",
   SEMI_FURNISHED: "SEMI_FURNISHED",
   UNFURNISHED:    "UNFURNISHED",
+  PLUG_AND_PLAY:  "PLUG_AND_PLAY",   // Office Space
+  WARM_SHELL:     "WARM_SHELL",      // Retail Space
 });
 
 const ParkingType = Object.freeze({
@@ -95,6 +97,47 @@ const PriceUnit = Object.freeze({
   CRORES: "CRORES",
 });
 
+// ── Rental-specific enums ─────────────────────────────
+const CommissionType = Object.freeze({
+  COMMISSION_SHARING: "COMMISSION_SHARING",
+  OWNER_PAYS:         "OWNER_PAYS",
+  TENANT_PAYS:        "TENANT_PAYS",
+});
+
+const MaintenanceType = Object.freeze({
+  INCLUDED:     "INCLUDED",
+  NOT_INCLUDED: "NOT_INCLUDED",
+});
+
+const PreferredTenant = Object.freeze({
+  FAMILY:       "FAMILY",
+  BACHELOR:     "BACHELOR",
+  COMPANY:      "COMPANY",
+  ANY:          "ANY",
+});
+
+// ── Resale-specific enums ─────────────────────────────
+const KhataType = Object.freeze({
+  A: "A",
+  B: "B",
+});
+
+const ExtraRoom = Object.freeze({
+  STUDY_ROOM:    "STUDY_ROOM",
+  SERVANT_ROOM:  "SERVANT_ROOM",
+  POOJA_ROOM:    "POOJA_ROOM",
+  STORE_ROOM:    "STORE_ROOM",
+});
+
+const StructureType = Object.freeze({
+  G:      "G",
+  G_1:    "G+1",
+  G_2:    "G+2",
+  G_3:    "G+3",
+  G_4:    "G+4",
+  G_PLUS: "G+5+",
+});
+
 const SortOption = Object.freeze({
   PRICE_LOW_TO_HIGH:      "PRICE_LOW_TO_HIGH",
   PRICE_HIGH_TO_LOW:      "PRICE_HIGH_TO_LOW",
@@ -116,8 +159,11 @@ const PropertyTab = Object.freeze({
   PLOT:       "PLOT",
   VILLAS:     "VILLAS",
 });
+
 export {
-    ListingType, AssetType, DoorFacing, AgeOfBuilding, FloorRange,
-    FurnishingStatus, ParkingType, PossessionStatus, BHKType,
-    Amenity, PriceUnit, SortOption, ViewMode, PropertyTab,
+  ListingType, AssetType, DoorFacing, AgeOfBuilding, FloorRange,
+  FurnishingStatus, ParkingType, PossessionStatus, BHKType,
+  Amenity, PriceUnit, SortOption, ViewMode, PropertyTab,
+  CommissionType, MaintenanceType, PreferredTenant,
+  KhataType, ExtraRoom, StructureType,
 };
