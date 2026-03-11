@@ -1,19 +1,14 @@
 // src/modules/inventory/InventoryFormFields.jsx
-// Reusable field primitives + renderField dispatcher used by all 3 steps.
 
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Check, AlertCircle, Upload, X } from 'lucide-react'
-import { UPLOAD } from 'shared/constants/app.js'
+import { BHK_OPTIONS, AMENITY_OPTIONS } from 'shared/constants/dropdown.js'
 
 const RED = '#E8431A'
 
 export const inputBase  = 'w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm placeholder-gray-300 outline-none bg-white transition-all'
 export const focusStyle = { borderColor: RED, boxShadow: `0 0 0 3px ${RED}18` }
 export const blurStyle  = { borderColor: '#e5e7eb', boxShadow: 'none' }
-// Merge shared amenities + custom ones added in this session
-  import { AMENITY_OPTIONS } from 'shared/constants/dropdown.js'
-  // ─── Config Input (BHK + Bath + Balcony) ─────────────────────────────────────
-import { BHK_OPTIONS } from 'shared/constants/dropdown.js'
 
 // ─── Label ────────────────────────────────────────────────────────────────────
 export const Label = ({ children, required }) => (
@@ -22,17 +17,22 @@ export const Label = ({ children, required }) => (
   </label>
 )
 
-// ─── Error ────────────────────────────────────────────────────────────────────
-export const FieldError = ({ name, formik }) =>
-  formik.touched[name] && formik.errors[name]
-    ? <p className="flex items-center gap-1 text-xs mt-1" style={{ color: RED }}>
-        <AlertCircle className="w-3 h-3" />{formik.errors[name]}
-      </p>
-    : null
+// ─── FieldError — single source of truth, used ONLY here, never duplicated ───
+// renderField does NOT call FieldError — each component renders its own.
+export const FieldError = ({ name, formik }) => {
+  const touched = formik.touched[name]
+  const error   = formik.errors[name]
+  if (!touched || !error) return null
+  return (
+    <p className="flex items-center gap-1 text-xs mt-1" style={{ color: RED }}>
+      <AlertCircle className="w-3 h-3 flex-shrink-0" />{error}
+    </p>
+  )
+}
 
 // ─── Text Input ───────────────────────────────────────────────────────────────
 export const TextInput = ({ name, placeholder, formik }) => (
-  <>
+  <div>
     <input type="text" name={name} placeholder={placeholder}
       value={formik.values[name] ?? ''} onChange={formik.handleChange} onBlur={formik.handleBlur}
       className={inputBase}
@@ -40,14 +40,14 @@ export const TextInput = ({ name, placeholder, formik }) => (
       onFocus={e => Object.assign(e.target.style, focusStyle)}
       onBlurCapture={e => Object.assign(e.target.style, blurStyle)} />
     <FieldError name={name} formik={formik} />
-  </>
+  </div>
 )
 
 // ─── Number Input ─────────────────────────────────────────────────────────────
 export const NumberInput = ({ name, placeholder, suffix, formik }) => {
   const err = formik.touched[name] && formik.errors[name]
   return (
-    <>
+    <div>
       <div className="flex items-stretch border border-gray-200 rounded-lg overflow-hidden bg-white"
         style={err ? { borderColor: RED } : {}}
         onFocusCapture={e => Object.assign(e.currentTarget.style, focusStyle)}
@@ -58,18 +58,18 @@ export const NumberInput = ({ name, placeholder, suffix, formik }) => {
         {suffix && <span className="px-3 py-2.5 text-xs text-gray-400 bg-gray-50 border-l border-gray-200 whitespace-nowrap">{suffix}</span>}
       </div>
       <FieldError name={name} formik={formik} />
-    </>
+    </div>
   )
 }
 
 // ─── Dropdown ─────────────────────────────────────────────────────────────────
-// options: { value, label }[]
+// Fix: on select → setFieldValue + setFieldError(name, undefined) to clear error
 export const Dropdown = ({ name, placeholder, options = [], formik, onSelect }) => {
   const [open, setOpen] = useState(false)
   const ref = useRef()
-  const val = formik.values[name]
-  const err = formik.touched[name] && formik.errors[name]
-  const selectedLabel = options.find(o => o.value === val)?.label ?? val
+  const val           = formik.values[name]
+  const err           = formik.touched[name] && formik.errors[name]
+  const selectedLabel = options.find(o => o.value === val)?.label ?? (val || '')
 
   useEffect(() => {
     const h = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
@@ -79,20 +79,25 @@ export const Dropdown = ({ name, placeholder, options = [], formik, onSelect }) 
 
   const select = o => {
     formik.setFieldValue(name, o.value)
-    formik.setFieldTouched(name, true)
+    // ✅ Clear the error immediately after a valid selection
+    formik.setFieldError(name, undefined)
+    formik.setFieldTouched(name, false, false)
     onSelect?.(o.value)
     setOpen(false)
   }
 
   return (
-    <>
+    <div>
       <div className="relative" ref={ref}>
         <button type="button" onClick={() => setOpen(o => !o)}
-          onBlur={() => formik.setFieldTouched(name, true)}
-          className="w-full flex items-center justify-between border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white text-left"
-          style={open ? focusStyle : err ? { borderColor: RED } : {}}>
-          <span className={selectedLabel ? 'text-gray-800' : 'text-gray-300'}>{selectedLabel || placeholder}</span>
-          <ChevronDown className="w-4 h-4 text-gray-300 flex-shrink-0" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
+          onBlur={() => { if (!val) formik.setFieldTouched(name, true) }}
+          className="w-full flex items-center justify-between border rounded-lg px-3 py-2.5 text-sm bg-white text-left transition-all"
+          style={open ? focusStyle : err ? { borderColor: RED } : { borderColor: '#e5e7eb' }}>
+          <span className={selectedLabel ? 'text-gray-800' : 'text-gray-300'}>
+            {selectedLabel || placeholder}
+          </span>
+          <ChevronDown className="w-4 h-4 text-gray-300 flex-shrink-0"
+            style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
         </button>
         {open && (
           <div className="absolute top-full left-0 right-0 bg-white border border-gray-100 rounded-xl shadow-2xl z-30 mt-1 max-h-52 overflow-y-auto">
@@ -107,19 +112,16 @@ export const Dropdown = ({ name, placeholder, options = [], formik, onSelect }) 
           </div>
         )}
       </div>
+      {/* ✅ FieldError rendered ONCE here inside the component — NOT again in renderField */}
       <FieldError name={name} formik={formik} />
-    </>
+    </div>
   )
 }
 
 // ─── Price Input ──────────────────────────────────────────────────────────────
-// fieldKey: 'askPrice' | 'rent' | 'deposit'
 export const PriceInput = ({ fieldKey, formik }) => {
   const [open, setOpen] = useState(false)
   const ref = useRef()
-  const vn = `${fieldKey}Value`
-  const un = `${fieldKey}Unit`
-  // Map fieldKey aliases
   const valueKey = fieldKey === 'askPrice' ? 'askPriceValue' : fieldKey === 'rent' ? 'rentValue' : 'depositValue'
   const unitKey  = fieldKey === 'askPrice' ? 'askPriceUnit'  : fieldKey === 'rent' ? 'rentUnit'  : 'depositUnit'
   const err = formik.touched[valueKey] && formik.errors[valueKey]
@@ -130,12 +132,12 @@ export const PriceInput = ({ fieldKey, formik }) => {
     return () => document.removeEventListener('mousedown', h)
   }, [])
 
-  const unitLabel = { LAKHS: 'Lakhs', CRORES: 'Crores', THOUSAND: 'Thousand' }
+  const unitLabel = { LAKHS: 'Lakhs', CRORES: 'Crores' }
 
   return (
-    <>
-      <div className="flex items-stretch border border-gray-200 rounded-lg overflow-visible relative bg-white"
-        style={err ? { borderColor: RED } : {}}
+    <div>
+      <div className="flex items-stretch border rounded-lg overflow-visible relative bg-white"
+        style={err ? { borderColor: RED } : { borderColor: '#e5e7eb' }}
         onFocusCapture={e => Object.assign(e.currentTarget.style, focusStyle)}
         onBlurCapture={e => Object.assign(e.currentTarget.style, blurStyle)}>
         <input type="number" name={valueKey} placeholder="Enter amount"
@@ -162,7 +164,7 @@ export const PriceInput = ({ fieldKey, formik }) => {
         </div>
       </div>
       <FieldError name={valueKey} formik={formik} />
-    </>
+    </div>
   )
 }
 
@@ -172,33 +174,38 @@ export const YesNoInput = ({ name, formik }) => (
     {['Yes', 'No'].map(v => (
       <button key={v} type="button" onClick={() => formik.setFieldValue(name, v)}
         className="flex-1 py-2.5 text-sm font-semibold transition-colors"
-        style={formik.values[name] === v ? { background: RED, color: '#fff' } : { background: '#fff', color: '#374151' }}>
+        style={formik.values[name] === v
+          ? { background: RED, color: '#fff' }
+          : { background: '#fff', color: '#374151' }}>
         {v}
       </button>
     ))}
   </div>
 )
 
-
-
+// ─── Config Input (BHK + Bath + Balcony) ─────────────────────────────────────
 export const ConfigInput = ({ formik }) => (
-  <div className="flex gap-2">
-    <div className="flex-1">
-      <Dropdown name="bedrooms" placeholder="BHK" options={BHK_OPTIONS} formik={formik} />
-    </div>
-    {[{ name: 'bathrooms', ph: 'Bathrooms' }, { name: 'balconies', ph: 'Balconies' }].map(({ name, ph }) => (
-      <div key={name} className="flex-1">
-        <input type="number" name={name} placeholder={ph}
-          value={formik.values[name] ?? ''} onChange={formik.handleChange} onBlur={formik.handleBlur}
-          className={inputBase}
-          onFocus={e => Object.assign(e.target.style, focusStyle)}
-          onBlurCapture={e => Object.assign(e.target.style, blurStyle)} />
+  <div>
+    <div className="flex gap-2">
+      <div className="flex-1">
+        {/* Dropdown already renders its own FieldError */}
+        <Dropdown name="bedrooms" placeholder="BHK" options={BHK_OPTIONS} formik={formik} />
       </div>
-    ))}
+      {[{ name: 'bathrooms', ph: 'Bathrooms' }, { name: 'balconies', ph: 'Balconies' }].map(({ name, ph }) => (
+        <div key={name} className="flex-1">
+          <input type="number" name={name} placeholder={ph}
+            value={formik.values[name] ?? ''} onChange={formik.handleChange} onBlur={formik.handleBlur}
+            className={inputBase}
+            onFocus={e => Object.assign(e.target.style, focusStyle)}
+            onBlurCapture={e => Object.assign(e.target.style, blurStyle)} />
+        </div>
+      ))}
+    </div>
+    {/* bedrooms FieldError already shown inside Dropdown above */}
   </div>
 )
 
-// ─── Multi-select (Extra Rooms) ───────────────────────────────────────────────
+// ─── Multi-select (Extra Rooms etc.) ─────────────────────────────────────────
 export const MultiSelect = ({ name, options = [], formik }) => {
   const selected = formik.values[name] || []
   const toggle = v => {
@@ -212,7 +219,9 @@ export const MultiSelect = ({ name, options = [], formik }) => {
         return (
           <button key={o.value} type="button" onClick={() => toggle(o.value)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium transition-all"
-            style={on ? { borderColor: RED, background: `${RED}0d`, color: RED } : { borderColor: '#e5e7eb', color: '#374151', background: '#fafafa' }}>
+            style={on
+              ? { borderColor: RED, background: `${RED}0d`, color: RED }
+              : { borderColor: '#e5e7eb', color: '#374151', background: '#fafafa' }}>
             {on && <Check className="w-3 h-3" />}
             {o.label}
           </button>
@@ -222,7 +231,7 @@ export const MultiSelect = ({ name, options = [], formik }) => {
   )
 }
 
-// ─── Pricing Section Divider ──────────────────────────────────────────────────
+// ─── Pricing Divider ──────────────────────────────────────────────────────────
 export const PricingDivider = () => (
   <div className="flex items-center gap-3 py-1">
     <div className="flex-1 border-t border-gray-200" />
@@ -231,15 +240,18 @@ export const PricingDivider = () => (
   </div>
 )
 
-// ─── Amenities Multi-select ───────────────────────────────────────────────────
+// ─── Amenities ────────────────────────────────────────────────────────────────
 export const AmenitiesInput = ({ formik }) => {
   const [customInput, setCustomInput] = useState('')
-  const [extras, setExtras] = useState([])
+  const [extras, setExtras]           = useState([])
+
+  const all = [...AMENITY_OPTIONS, ...extras.map(v => ({ value: v, label: v }))]
 
   const toggle = v => {
-    const cur = formik.values.amenities || []
+    const cur  = formik.values.amenities || []
     formik.setFieldValue('amenities', cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v])
   }
+
   const addCustom = () => {
     const v = customInput.trim()
     if (!v) return
@@ -249,9 +261,6 @@ export const AmenitiesInput = ({ formik }) => {
     setCustomInput('')
   }
 
-  
-  const all = [...AMENITY_OPTIONS, ...extras.map(v => ({ value: v, label: v }))]
-
   return (
     <div>
       <div className="grid grid-cols-3 gap-2 mb-3">
@@ -260,7 +269,9 @@ export const AmenitiesInput = ({ formik }) => {
           return (
             <button key={a.value} type="button" onClick={() => toggle(a.value)}
               className="flex items-center gap-2.5 border rounded-xl px-3 py-2.5 text-left font-medium transition-all"
-              style={on ? { borderColor: RED, background: `${RED}0d` } : { borderColor: '#f0f0f0', background: '#fafafa', color: '#374151' }}>
+              style={on
+                ? { borderColor: RED, background: `${RED}0d` }
+                : { borderColor: '#f0f0f0', background: '#fafafa', color: '#374151' }}>
               <span className="w-4 h-4 rounded border flex items-center justify-center flex-shrink-0"
                 style={on ? { background: RED, borderColor: RED } : { borderColor: '#d1d5db' }}>
                 {on && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
@@ -286,6 +297,8 @@ export const AmenitiesInput = ({ formik }) => {
 }
 
 // ─── renderField ──────────────────────────────────────────────────────────────
+// ✅ Each component renders its OWN FieldError internally.
+//    This function must NOT add any extra <FieldError> wrapper — no duplicates.
 export function renderField(key, cfg, formik) {
   switch (cfg.type) {
     case 'text':        return <TextInput    name={key} placeholder={`Enter ${cfg.label}`} formik={formik} />
@@ -295,18 +308,13 @@ export function renderField(key, cfg, formik) {
     case 'price':       return <PriceInput   fieldKey={key} formik={formik} />
     case 'config':      return <ConfigInput  formik={formik} />
     case 'multiselect': return <MultiSelect  name={key} options={cfg.options} formik={formik} />
-    case 'amenities':   return null   // rendered separately by Step3
+    case 'amenities':   return null   // rendered separately in Step3
     default:            return <TextInput    name={key} placeholder={`Enter ${cfg.label}`} formik={formik} />
   }
 }
 
-// ─── Media Uploads ────────────────────────────────────────────────────────────
-
-/**
- * PhotoUpload — manages local preview + exposes File[] via onChange
- * For Edit mode pass existingUrls (string[]) for current images
- */
-export const PhotoUpload = ({ onChange, existingUrls = [], maxCount = UPLOAD.IMAGE_MAX_COUNT }) => {
+// ─── Photo Upload ─────────────────────────────────────────────────────────────
+export const PhotoUpload = ({ onChange, existingUrls = [], maxCount = 10 }) => {
   const ref = useRef()
   const [previews, setPreviews] = useState(
     existingUrls.map(url => ({ url, file: null, existing: true }))
@@ -314,8 +322,7 @@ export const PhotoUpload = ({ onChange, existingUrls = [], maxCount = UPLOAD.IMA
 
   const add = e => {
     const files = Array.from(e.target.files)
-    const newPreviews = files.map(f => ({ url: URL.createObjectURL(f), file: f, existing: false }))
-    const next = [...previews, ...newPreviews].slice(0, maxCount)
+    const next  = [...previews, ...files.map(f => ({ url: URL.createObjectURL(f), file: f, existing: false }))].slice(0, maxCount)
     setPreviews(next)
     _notify(next)
     e.target.value = ''
@@ -329,18 +336,14 @@ export const PhotoUpload = ({ onChange, existingUrls = [], maxCount = UPLOAD.IMA
     _notify(next)
   }
 
-  const _notify = items => {
-    onChange?.({
-      newFiles:       items.filter(x => !x.existing).map(x => x.file),
-      existingUrls:   items.filter(x => x.existing).map(x => x.url),
-    })
-  }
-
-  const canAdd = previews.length < maxCount
+  const _notify = items => onChange?.({
+    newFiles:     items.filter(x => !x.existing).map(x => x.file),
+    existingUrls: items.filter(x =>  x.existing).map(x => x.url),
+  })
 
   return (
     <div>
-      {canAdd && (
+      {previews.length < maxCount && (
         <div onClick={() => ref.current?.click()}
           className="flex items-center gap-2 border-2 border-dashed border-gray-200 rounded-xl p-3 cursor-pointer hover:border-orange-300 transition-colors">
           <Upload className="w-4 h-4 text-gray-400" />
@@ -363,21 +366,15 @@ export const PhotoUpload = ({ onChange, existingUrls = [], maxCount = UPLOAD.IMA
           ))}
         </div>
       )}
-      {previews.length >= maxCount && (
-        <p className="text-xs text-gray-400 mt-1">Maximum {maxCount} photos reached</p>
-      )}
+      {previews.length >= maxCount && <p className="text-xs text-gray-400 mt-1">Maximum {maxCount} photos reached</p>}
     </div>
   )
 }
 
-/**
- * VideoUpload — manages single video preview + exposes File via onChange
- * For Edit mode pass existingUrl (string) for current video
- */
+// ─── Video Upload ─────────────────────────────────────────────────────────────
 export const VideoUpload = ({ onChange, existingUrl = null }) => {
   const ref = useRef()
   const [video, setVideo] = useState(existingUrl ? { url: existingUrl, file: null, existing: true } : null)
-  const [removeFlag, setRemoveFlag] = useState(false)
 
   const add = e => {
     const f = e.target.files[0]
@@ -385,7 +382,6 @@ export const VideoUpload = ({ onChange, existingUrl = null }) => {
     if (video && !video.existing) URL.revokeObjectURL(video.url)
     const next = { url: URL.createObjectURL(f), file: f, existing: false }
     setVideo(next)
-    setRemoveFlag(false)
     onChange?.({ file: f, removeVideo: false })
     e.target.value = ''
   }
@@ -393,7 +389,6 @@ export const VideoUpload = ({ onChange, existingUrl = null }) => {
   const remove = () => {
     if (video && !video.existing) URL.revokeObjectURL(video.url)
     setVideo(null)
-    setRemoveFlag(true)
     onChange?.({ file: null, removeVideo: true })
   }
 

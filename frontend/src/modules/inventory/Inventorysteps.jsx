@@ -1,5 +1,4 @@
 // src/modules/inventory/InventorySteps.jsx
-// Step1, Step2, Step3 — fully split, reusable, no local state for form data.
 
 import { useState } from 'react'
 import { State, City } from 'country-state-city'
@@ -8,16 +7,14 @@ import {
   Label, FieldError, TextInput, Dropdown, PricingDivider,
   PhotoUpload, VideoUpload, AmenitiesInput, renderField,
   inputBase, focusStyle, blurStyle,
-} from './inventoryformfields'
-import {
-  ASSET_TYPE_OPTIONS, POSSESSION_OPTIONS,
-} from 'shared/constants/dropdown.js'
-import { PRICING_KEYS } from './inventoryUtils'
+} from './InventoryFormFields'
+import { POSSESSION_OPTIONS } from 'shared/constants/dropdown.js'
+import { getAssetTypeOptions, PRICING_KEYS } from './inventoryUtils'
+import { ListingType } from 'shared/enums/index.js'
 
 const RED = '#E8431A'
 const IN_STATES = State.getStatesOfCountry('IN')
 
-// ─── helper: make 2-column grid rows from entries ─────────────────────────────
 function makeRows(entries) {
   const rows = []
   for (let i = 0; i < entries.length; i += 2) rows.push(entries.slice(i, i + 2))
@@ -26,14 +23,27 @@ function makeRows(entries) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // STEP 1 — Basic Details
-// Props: formik, onPhotosChange, onVideoChange
-//        existingImages (for edit), existingVideoUrl (for edit)
 // ─────────────────────────────────────────────────────────────────────────────
 export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = [], existingVideoUrl = null }) => {
-  const [pincodeStatus, setPincodeStatus] = useState('idle')   // idle | loading | found | error
+  const [pincodeStatus, setPincodeStatus] = useState('idle')
 
-  const selState = IN_STATES.find(s => s.name === formik.values.state)
-  const cities   = selState ? City.getCitiesOfState('IN', selState.isoCode).map(c => c.name) : []
+  const listingType  = formik.values.listingType
+  // ✅ Asset type options filtered dynamically by selected listing type
+  const assetOptions = getAssetTypeOptions(listingType)
+
+  // When listing type changes, reset assetType if the current selection is no longer valid
+  const handleListingTypeChange = (val) => {
+    formik.setFieldValue('listingType', val)
+    const validValues = getAssetTypeOptions(val).map(o => o.value)
+    if (!validValues.includes(formik.values.assetType)) {
+      formik.setFieldValue('assetType', '')
+      formik.setFieldError('assetType', undefined)
+      formik.setFieldTouched('assetType', false, false)
+    }
+  }
+
+  const selState   = IN_STATES.find(s => s.name === formik.values.state)
+  const cities     = selState ? City.getCitiesOfState('IN', selState.isoCode).map(c => c.name) : []
   const cityOptions = cities.map(c => ({ value: c, label: c }))
 
   const handlePin = async e => {
@@ -49,15 +59,18 @@ export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = 
         const st = IN_STATES.find(s => s.name.toLowerCase() === po.State.toLowerCase())
         if (st) {
           formik.setFieldValue('state', st.name)
-          const cs = City.getCitiesOfState('IN', st.isoCode).map(c => c.name)
+          const cs   = City.getCitiesOfState('IN', st.isoCode).map(c => c.name)
           const city = cs.find(c => c.toLowerCase() === po.District.toLowerCase())
             || cs.find(c => po.District.toLowerCase().includes(c.toLowerCase()))
             || po.District
           formik.setFieldValue('city', city)
         } else {
           formik.setFieldValue('state', po.State)
-          formik.setFieldValue('city', po.District)
+          formik.setFieldValue('city',  po.District)
         }
+        // Clear pincode error after auto-fill
+        formik.setFieldError('pincode', undefined)
+        formik.setFieldTouched('pincode', false, false)
         setPincodeStatus('found')
       } else { setPincodeStatus('error') }
     } catch { setPincodeStatus('error') }
@@ -69,12 +82,42 @@ export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = 
       <div className="grid grid-cols-2 gap-5">
         <div>
           <Label required>Name of Property</Label>
+          {/* TextInput renders its own FieldError */}
           <TextInput name="name" placeholder="Eg. Prestige Camden Gardens" formik={formik} />
         </div>
         <div>
           <Label required>Select Asset Type</Label>
-          <Dropdown name="assetType" placeholder="Select Asset Type" options={ASSET_TYPE_OPTIONS} formik={formik} />
+          {/* ✅ Dynamic options based on listingType. Dropdown renders its own FieldError. */}
+          <Dropdown
+            name="assetType"
+            placeholder="Select Asset Type"
+            options={assetOptions}
+            formik={formik}
+          />
         </div>
+      </div>
+
+      {/* Listing type toggle (also in header but duplicated here for clarity on mobile) */}
+      <div className="flex items-center gap-3">
+        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Listing Type</span>
+        <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
+          {[
+            { value: ListingType.RESALE, label: 'Resale' },
+            { value: ListingType.RENTAL, label: 'Rental' },
+          ].map(opt => (
+            <button key={opt.value} type="button"
+              onClick={() => handleListingTypeChange(opt.value)}
+              className="px-5 py-2 text-sm font-semibold transition-colors"
+              style={listingType === opt.value
+                ? { background: RED, color: '#fff' }
+                : { background: '#fff', color: '#374151' }}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        {listingType === ListingType.RENTAL && (
+          <span className="text-xs text-gray-400">Only Apartment & Villa available for rental</span>
+        )}
       </div>
 
       {/* Photos + Video */}
@@ -113,20 +156,23 @@ export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = 
           </div>
           {pincodeStatus === 'found' && <p className="text-xs mt-1 text-green-600">Auto-filled ✓</p>}
           {pincodeStatus === 'error' && <p className="text-xs mt-1" style={{ color: RED }}>Not found</p>}
+          {/* Manual FieldError for pincode — this is a raw input, not using TextInput */}
           <FieldError name="pincode" formik={formik} />
         </div>
         <div>
           <Label required>State</Label>
+          {/* Dropdown renders its own FieldError */}
           <Dropdown name="state" placeholder="State"
-            options={IN_STATES.map(s => ({ value: s.name, label: s.name }))} formik={formik}
-            onSelect={() => { formik.setFieldValue('city', ''); setPincodeStatus('idle') }} />
-          <FieldError name="state" formik={formik} />
+            options={IN_STATES.map(s => ({ value: s.name, label: s.name }))}
+            formik={formik}
+            onSelect={() => { formik.setFieldValue('city', '') }} />
         </div>
         <div>
           <Label required>City</Label>
-          <Dropdown name="city" placeholder={cityOptions.length ? 'City' : 'Select state first'}
-            options={cityOptions} formik={formik} />
-          <FieldError name="city" formik={formik} />
+          <Dropdown name="city"
+            placeholder={cityOptions.length ? 'City' : 'Select state first'}
+            options={cityOptions}
+            formik={formik} />
         </div>
         <button type="button"
           className="border-2 rounded-xl px-3 py-2.5 text-sm font-semibold flex items-center justify-center gap-1.5 mt-5 hover:opacity-80 whitespace-nowrap transition-colors"
@@ -151,7 +197,7 @@ export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STEP 2 — Property Details (dynamic, asset-type specific)
+// STEP 2 — Property Details
 // ─────────────────────────────────────────────────────────────────────────────
 export const Step2 = ({ formik, fieldConfig }) => {
   if (!fieldConfig) return (
@@ -163,7 +209,7 @@ export const Step2 = ({ formik, fieldConfig }) => {
 
   const allEntries      = Object.entries(fieldConfig.step2)
   const propertyEntries = allEntries.filter(([k]) => !PRICING_KEYS.has(k))
-  const pricingEntries  = allEntries.filter(([k]) => PRICING_KEYS.has(k))
+  const pricingEntries  = allEntries.filter(([k]) =>  PRICING_KEYS.has(k))
 
   return (
     <div className="space-y-5">
@@ -172,6 +218,7 @@ export const Step2 = ({ formik, fieldConfig }) => {
           {row.map(([key, cfg]) => (
             <div key={key} className={cfg.type === 'config' ? 'col-span-2' : ''}>
               <Label required={cfg.required}>{cfg.label}</Label>
+              {/* renderField returns component that includes its own FieldError — NO extra wrapper */}
               {renderField(key, cfg, formik)}
             </div>
           ))}
@@ -213,7 +260,6 @@ export const Step3 = ({ formik, fieldConfig }) => {
 
   return (
     <div className="space-y-6">
-      {/* Non-amenity fields */}
       {others.length > 0 && (
         <div className="space-y-5">
           {makeRows(others).map((row, i) => (
@@ -229,7 +275,6 @@ export const Step3 = ({ formik, fieldConfig }) => {
         </div>
       )}
 
-      {/* Amenities */}
       {hasAmenities && (
         <div>
           <Label>Amenities</Label>
@@ -237,7 +282,6 @@ export const Step3 = ({ formik, fieldConfig }) => {
         </div>
       )}
 
-      {/* Description — always shown */}
       <div>
         <Label>Description</Label>
         <textarea name="description" placeholder="Describe the property…" rows={5}
@@ -251,7 +295,7 @@ export const Step3 = ({ formik, fieldConfig }) => {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// NOT AVAILABLE NOTICE (Rental locked types)
+// NOT AVAILABLE NOTICE
 // ─────────────────────────────────────────────────────────────────────────────
 export const NotAvailableNotice = ({ assetType }) => (
   <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -260,11 +304,8 @@ export const NotAvailableNotice = ({ assetType }) => (
     </div>
     <h3 className="text-lg font-bold text-gray-800 mb-2">Not Available for Rental</h3>
     <p className="text-sm text-gray-500 max-w-xs leading-relaxed">
-      <strong>{assetType}</strong> properties cannot be listed for rental.
-      Please switch to <strong>Resale</strong> or choose a different asset type.
-    </p>
-    <p className="mt-3 text-xs text-gray-400">
-      Rental available for: <span className="font-semibold text-gray-600">Apartment · Villa</span>
+      <strong>{assetType}</strong> cannot be listed for rental.
+      Please switch to <strong>Resale</strong> or select Apartment / Villa.
     </p>
   </div>
 )
