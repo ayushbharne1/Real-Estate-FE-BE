@@ -1,226 +1,168 @@
-import { useState, useRef, useEffect } from 'react'
+// src/modules/dashboard/Dashboard.jsx
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import {
-  Search, Grid, List, ChevronDown, MapPin, Share2,
-  Info, ChevronLeft, ChevronRight, Bell, ArrowUpDown,
+  Grid, List, ChevronDown, MapPin, Share2,
+  Info, ChevronLeft, ChevronRight, ArrowUpDown,
   Building2, LayoutGrid, Home, Landmark, TreePine,
-  Warehouse, Store, X
+  Warehouse, Store, X, Loader2
 } from 'lucide-react'
+import {
+  fetchProperties,
+  selectInventoryList,
+  selectInventoryTotal,
+  selectInventoryPages,
+  selectListLoading,
+  selectListError,
+} from '../../redux/slices/inventorySlice'
 
-// ── Brand ──────────────────────────────────────────────────────────────────────
-const LogoIcon = () => (
-  <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
-    <polygon points="2,26 14,2 26,26" fill="#E8431A" />
-    <polygon points="14,2 26,26 26,10" fill="#c03510" />
-  </svg>
-)
-
-// ── Data ───────────────────────────────────────────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { id: 'all',        label: 'All',        Icon: LayoutGrid },
-  { id: 'commercial', label: 'Commercial', Icon: Building2 },
-  { id: 'apartment',  label: 'Apartment',  Icon: Home },
-  { id: 'plot',       label: 'Plot',       Icon: Landmark },
-  { id: 'villas',     label: 'Villas',     Icon: TreePine },
+  { id: 'all',        label: 'All',        Icon: LayoutGrid, assetFilter: null },
+  { id: 'commercial', label: 'Commercial', Icon: Building2,  assetFilter: ['COMMERCIAL_SPACE','COMMERCIAL_PROPERTY','OFFICE_SPACE','RETAIL_SPACE'] },
+  { id: 'apartment',  label: 'Apartment',  Icon: Home,       assetFilter: ['APARTMENT'] },
+  { id: 'plot',       label: 'Plot',       Icon: Landmark,   assetFilter: ['PLOT'] },
+  { id: 'villas',     label: 'Villas',     Icon: TreePine,   assetFilter: ['VILLA','VILAMENT','INDEPENDENT_HOUSE','ROW_HOUSE'] },
 ]
 
 const ASSET_TYPES = [
-  { label: 'Apartment',           count: 2386, Icon: Home },
-  { label: 'Plot',                count: 575,  Icon: Landmark },
-  { label: 'Villa',               count: 280,  Icon: TreePine },
-  { label: 'Independent House',   count: 80,   Icon: Home },
-  { label: 'Commercial Space',    count: 41,   Icon: Building2 },
-  { label: 'Row House',           count: 25,   Icon: Home },
-  { label: 'Commercial Property', count: 21,   Icon: Warehouse },
-  { label: 'Villament',           count: 9,    Icon: Home },
-  { label: 'Office Space',        count: 5,    Icon: Building2 },
-  { label: 'Retail Space',        count: 3,    Icon: Store },
+  { label: 'Apartment',           value: 'APARTMENT',           Icon: Home },
+  { label: 'Plot',                value: 'PLOT',                Icon: Landmark },
+  { label: 'Villa',               value: 'VILLA',               Icon: TreePine },
+  { label: 'Independent House',   value: 'INDEPENDENT_HOUSE',   Icon: Home },
+  { label: 'Commercial Space',    value: 'COMMERCIAL_SPACE',    Icon: Building2 },
+  { label: 'Row House',           value: 'ROW_HOUSE',           Icon: Home },
+  { label: 'Commercial Property', value: 'COMMERCIAL_PROPERTY', Icon: Warehouse },
+  { label: 'Villament',           value: 'VILAMENT',            Icon: Home },
+  { label: 'Office Space',        value: 'OFFICE_SPACE',        Icon: Building2 },
+  { label: 'Retail Space',        value: 'RETAIL_SPACE',        Icon: Store },
 ]
 
 const BHK_OPTIONS = ['1BHK', '2BHK', '3BHK', '4BHK', '5BHK']
 
 const SORT_OPTIONS = [
-  'Price: Low to High',
-  'Price: High to Low',
-  'Newest First',
-  'Oldest First',
-  'Price/Sqft: Low to High',
-  'Price/Sqft: High to Low',
+  { label: 'Price: Low to High',      value: 'PRICE_LOW_TO_HIGH' },
+  { label: 'Price: High to Low',      value: 'PRICE_HIGH_TO_LOW' },
+  { label: 'Newest First',            value: 'NEWEST_FIRST' },
+  { label: 'Oldest First',            value: 'OLDEST_FIRST' },
+  { label: 'Price/Sqft: Low to High', value: 'PRICE_SQFT_LOW_TO_HIGH' },
+  { label: 'Price/Sqft: High to Low', value: 'PRICE_SQFT_HIGH_TO_LOW' },
 ]
 
-const RESALE_PROPERTIES = [
-  { id: 'PB2569', name: 'Brigade Orchards Apartment',      type: 'Apartment',         bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16,069', sbua: '13,068 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=70',      category: 'apartment',  badge: 'Resale' },
-  { id: 'PB2570', name: 'Brigade Commercial',              type: 'Commercial Space',  bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16,069', sbua: '13,068 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&q=70', category: 'commercial', badge: 'Resale' },
-  { id: 'PB2571', name: 'Brigade Orchards Pavilion Villa', type: 'Villa',             bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16,069', sbua: '13,068 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&q=70', category: 'villas',     badge: 'Resale' },
-  { id: 'PB2572', name: 'Brigade Plot',                    type: 'Plot',              bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16,069', sbua: '13,068 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&q=70',  category: 'plot',       badge: 'Resale' },
-  { id: 'PB2573', name: 'Wright The Grove',                type: 'Apartment',         bhk: '2BHK', facing: 'North',      location: 'Electronic City', priceSqft: '16,069', sbua: '13,068 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=70',  category: 'apartment',  badge: 'Resale' },
-  { id: 'PB2574', name: 'Ezzy Corniath',                   type: 'Row House',         bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '16,069', sbua: '13,068 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1464082354059-27db6ce50048?w=400&q=70',  category: 'apartment',  badge: 'Resale' },
-  { id: 'PB2575', name: 'Independent House For Sale',      type: 'Independent House', bhk: '4BHK', facing: 'North-East', location: 'Electronic City', priceSqft: '13,969', sbua: '13,568 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=70',  category: 'villas',     badge: 'Resale' },
-  { id: 'PB2576', name: 'Brigade Office Space',            type: 'Office Space',      bhk: '4BHK', facing: 'North',      location: 'Electronic City', priceSqft: '14,369', sbua: '13,368 sq.ft', askPrice: '₹21.00 Cr', img: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400&q=70', category: 'commercial', badge: 'Resale' },
-  { id: 'PB2577', name: 'Prestige Green Gables',           type: 'Apartment',         bhk: '3BHK', facing: 'East',       location: 'Whitefield',      priceSqft: '15,000', sbua: '12,000 sq.ft', askPrice: '₹18.00 Cr', img: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&q=70', category: 'apartment',  badge: 'Resale' },
-  { id: 'PB2578', name: 'Sobha Dream Gardens',             type: 'Villa',             bhk: '5BHK', facing: 'West',       location: 'Sarjapur Road',   priceSqft: '18,000', sbua: '15,000 sq.ft', askPrice: '₹27.00 Cr', img: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=70',  category: 'villas',     badge: 'Resale' },
-  { id: 'PB2579', name: 'NCC Urban One',                   type: 'Apartment',         bhk: '2BHK', facing: 'South',      location: 'Hebbal',          priceSqft: '12,000', sbua: '10,000 sq.ft', askPrice: '₹12.00 Cr', img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70',  category: 'apartment',  badge: 'Resale' },
-  { id: 'PB2580', name: 'Assetz 63 Degree East',           type: 'Apartment',         bhk: '3BHK', facing: 'North-West', location: 'Panathur',        priceSqft: '13,500', sbua: '11,500 sq.ft', askPrice: '₹15.52 Cr', img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=70',  category: 'apartment',  badge: 'Resale' },
-]
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const RED = '#E8431A'
 
-const RENTAL_PROPERTIES = [
-  { id: 'PB2569', name: 'Brigade Orchards Apartment',      type: 'Apartment', bhk: '2BHK', facing: 'East',       location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=70',      category: 'apartment', badge: 'Rental' },
-  { id: 'PB2570', name: 'Brigade Villament',               type: 'Villament', bhk: '2BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&q=70', category: 'apartment', badge: 'Rental' },
-  { id: 'PB2571', name: 'Brigade Orchards Pavilion Villa', type: 'Villa',     bhk: '2BHK', facing: 'North',      location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=70', category: 'villas',    badge: 'Rental' },
-  { id: 'PB2572', name: 'Pavillion Row House',             type: 'Row House', bhk: '3BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1464082354059-27db6ce50048?w=400&q=70',  category: 'apartment', badge: 'Rental' },
-  { id: 'PB2573', name: 'Brigade Orchards Apartment',      type: 'Apartment', bhk: '2BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&q=70', category: 'apartment', badge: 'Rental' },
-  { id: 'PB2574', name: 'Brigade Villament',               type: 'Villament', bhk: '2BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=70',  category: 'villas',    badge: 'Rental' },
-  { id: 'PB2575', name: 'Brigade Orchards Pavilion Villa', type: 'Villa',     bhk: '2BHK', facing: 'North',      location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&q=70', category: 'villas',    badge: 'Rental' },
-  { id: 'PB2576', name: 'Pavillion Row House',             type: 'Row House', bhk: '3BHK', facing: 'North-East', location: 'Electronic City', rent: '₹1.12 Lakh', deposit: '₹4.48 Lakh', sbua: '2,388 sq.ft', img: 'https://images.unsplash.com/photo-1464082354059-27db6ce50048?w=400&q=70',  category: 'commercial',badge: 'Rental' },
-  { id: 'PB2577', name: 'Prestige Lakeside Habitat',       type: 'Apartment', bhk: '3BHK', facing: 'East',       location: 'Whitefield',      rent: '₹85k',       deposit: '₹3 Lakh',    sbua: '1,950 sq.ft', img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=70',  category: 'apartment', badge: 'Rental' },
-  { id: 'PB2578', name: 'Sobha Silicon Oasis',             type: 'Apartment', bhk: '2BHK', facing: 'West',       location: 'Hosur Road',      rent: '₹65k',       deposit: '₹2.5 Lakh',  sbua: '1,600 sq.ft', img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=70',   category: 'apartment', badge: 'Rental' },
-  { id: 'PB2579', name: 'NCC Kalpana Villa',               type: 'Villa',     bhk: '4BHK', facing: 'South-East', location: 'Sarjapur',        rent: '₹1.5 Lakh',  deposit: '₹6 Lakh',    sbua: '3,200 sq.ft', img: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=70',  category: 'villas',    badge: 'Rental' },
-  { id: 'PB2580', name: 'Assetz 63 Degree East',           type: 'Apartment', bhk: '3BHK', facing: 'North',      location: 'Panathur',        rent: '₹72k',       deposit: '₹2.8 Lakh',  sbua: '1,800 sq.ft', img: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&q=70',  category: 'apartment', badge: 'Rental' },
-]
-
-const RESALE_TABLE_DATA = [
-  { id: 'RNA32024', name: 'Assetz Marq Phase-2',     type: 'Apartment', sbua: 3802, plot: '-',  facing: 'South - East', askPrice: '3.00 Cr',      priceSqft: '₹17K', handover: 'DEC/2027' },
-  { id: 'RNA3023',  name: 'Sobha Carnation',         type: 'Apartment', sbua: 3569, plot: '-',  facing: 'North',        askPrice: '2.80 Cr',      priceSqft: '₹17K', handover: 'Ready' },
-  { id: 'RNA3022',  name: 'SOBHA Dream Gardens',     type: 'Apartment', sbua: 5686, plot: 1957, facing: 'West',         askPrice: '2.90 Cr',      priceSqft: '₹7K',  handover: 'JUN/2026' },
-  { id: 'RNA3021',  name: 'QVC The Hills',           type: 'Villa',     sbua: 4578, plot: '-',  facing: 'North',        askPrice: '2.39 Cr',      priceSqft: '₹8K',  handover: 'Ready' },
-  { id: 'RNA3020',  name: 'R&S Lakeview Apartment',  type: 'Apartment', sbua: 1245, plot: 1500, facing: 'North',        askPrice: '3.25 Cr',      priceSqft: '₹9K',  handover: 'DEC/2028' },
-  { id: 'RNA3019',  name: 'Nikoo Homes 1',           type: 'Office',    sbua: 3698, plot: '-',  facing: 'East',         askPrice: '1.25 Cr',      priceSqft: '₹6K',  handover: 'Ready' },
-  { id: 'RNA3018',  name: 'Office Space in Hebbal',  type: 'Apartment', sbua: 1596, plot: 1289, facing: 'East',         askPrice: '3.00 Cr',      priceSqft: '₹12K', handover: 'Ready' },
-  { id: 'RNA3017',  name: 'Prestige Green Gables',   type: 'Apartment', sbua: 2589, plot: '-',  facing: 'East',         askPrice: '95 Lakhs',     priceSqft: '₹30K', handover: 'Ready' },
-  { id: 'RNA3016',  name: 'Prestige Jade Pavillion', type: 'Villa',     sbua: 4586, plot: '-',  facing: 'West',         askPrice: '81.59 Lakhs',  priceSqft: '₹12K', handover: 'Ready' },
-]
-
-const RENTAL_TABLE_DATA = [
-  { id: 'RNA32024', name: 'Assetz Marq Phase-2',     type: 'Apartment', sbua: 3802, plot: '-',  facing: 'South - East', rent: '₹75k',  deposit: '₹3 Lakhs',   status: 'Ready to Move' },
-  { id: 'RNA3023',  name: 'Sobha Carnation',         type: 'Apartment', sbua: 3569, plot: '-',  facing: 'North',        rent: '₹89k',  deposit: '₹1.5 Lakhs', status: 'Ready to Move' },
-  { id: 'RNA3022',  name: 'SOBHA Dream Gardens',     type: 'Apartment', sbua: 5686, plot: 1957, facing: 'West',         rent: '₹45k',  deposit: '₹2 Lakhs',   status: 'Ready to Move' },
-  { id: 'RNA3021',  name: 'QVC The Hills',           type: 'Villa',     sbua: 4578, plot: '-',  facing: 'North',        rent: '₹99k',  deposit: '₹8 Lakhs',   status: 'Ready to Move' },
-  { id: 'RNA3020',  name: 'R&S Lakeview Apartment',  type: 'Apartment', sbua: 1245, plot: 1500, facing: 'North',        rent: '₹88k',  deposit: '-',          status: 'Ready to Move' },
-  { id: 'RNA3019',  name: 'Nikoo Homes 1',           type: 'Office',    sbua: 3698, plot: '-',  facing: 'East',         rent: '₹56k',  deposit: '₹37 Lakhs',  status: 'Ready to Move' },
-  { id: 'RNA3018',  name: 'Office Space in Hebbal',  type: 'Apartment', sbua: 1596, plot: 1289, facing: 'East',         rent: '₹77k',  deposit: '₹4 Lakhs',   status: 'Ready to Move' },
-  { id: 'RNA3017',  name: 'Prestige Green Gables',   type: 'Apartment', sbua: 2589, plot: '-',  facing: 'East',         rent: '₹35k',  deposit: '₹5 Lakhs',   status: 'Ready to Move' },
-  { id: 'RNA3016',  name: 'Prestige Jade Pavillion', type: 'Villa',     sbua: 4586, plot: '-',  facing: 'West',         rent: '₹45k',  deposit: '₹69 Lakhs',  status: 'Ready to Move' },
-]
-
-// ── Hooks ──────────────────────────────────────────────────────────────────────
-function useOutsideClick(ref, handler) {
-  useEffect(() => {
-    const listener = (e) => { if (ref.current && !ref.current.contains(e.target)) handler() }
-    document.addEventListener('mousedown', listener)
-    return () => document.removeEventListener('mousedown', listener)
-  }, [ref, handler])
+function formatPrice(value, unit) {
+  if (!value) return '—'
+  const num = Number(value)
+  if (unit === 'CRORES' || num >= 100) return `₹${(num / 100).toFixed(2)} Cr`
+  if (unit === 'LAKHS' || num < 100)   return `₹${num.toFixed(2)} L`
+  return `₹${num}`
 }
 
-// ── Pagination ─────────────────────────────────────────────────────────────────
-const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, itemsPerPage, onItemsPerPageChange }) => {
-  const start = (currentPage - 1) * itemsPerPage + 1
-  const end = Math.min(currentPage * itemsPerPage, totalItems)
-
-  const getPageNumbers = () => {
-    const pages = []
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i)
-    } else {
-      pages.push(1)
-      if (currentPage > 3) pages.push('...')
-      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) pages.push(i)
-      if (currentPage < totalPages - 2) pages.push('...')
-      pages.push(totalPages)
-    }
-    return pages
-  }
-
-  return (
-    <div className="flex items-center justify-between px-1 py-4 mt-2">
-      <p className="text-xs text-gray-500">
-        Showing <span className="font-semibold text-gray-700">{start}–{end}</span> of <span className="font-semibold text-gray-700">{totalItems}</span> results
-      </p>
-      <div className="flex items-center gap-1">
-        <button onClick={() => onPageChange(Math.max(1, currentPage - 1))} disabled={currentPage === 1}
-          className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-        {getPageNumbers().map((p, i) =>
-          p === '...' ? (
-            <span key={`ellipsis-${i}`} className="w-8 h-8 flex items-center justify-center text-gray-400 text-sm">…</span>
-          ) : (
-            <button key={p} onClick={() => onPageChange(p)}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
-                currentPage === p ? 'bg-[#E8431A] text-white shadow-sm' : 'border border-gray-200 text-gray-600 hover:bg-gray-100 hover:border-gray-300'
-              }`}>
-              {p}
-            </button>
-          )
-        )}
-        <button onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages}
-          className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-          <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
-      <div className="flex items-center gap-2 text-xs text-gray-500">
-        <span>Per page:</span>
-        <select value={itemsPerPage} onChange={e => { onItemsPerPageChange(Number(e.target.value)); onPageChange(1) }}
-          className="border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-700 outline-none focus:border-[#E8431A] transition-colors cursor-pointer">
-          {[4, 8, 12, 16].map(n => <option key={n} value={n}>{n}</option>)}
-        </select>
-      </div>
-    </div>
-  )
+function formatSqft(val) {
+  return val ? `${Number(val).toLocaleString()} sq.ft` : '—'
 }
 
-// ── Chip ───────────────────────────────────────────────────────────────────────
+function formatPriceSqft(val) {
+  return val ? `₹${Number(val).toLocaleString()}` : '—'
+}
+
+function getBHKLabel(bedrooms) {
+  if (!bedrooms) return null
+  return `${bedrooms}BHK`
+}
+
+function getAssetLabel(assetType) {
+  return ASSET_TYPES.find(a => a.value === assetType)?.label || assetType || '—'
+}
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
 const Chip = ({ label }) => (
   <span className="text-xs border border-gray-200 rounded-full px-3 py-1 text-gray-500 whitespace-nowrap bg-gray-50">
     {label}
   </span>
 )
 
-// ── Property Card ──────────────────────────────────────────────────────────────
 const PropertyCard = ({ prop, mode }) => {
-  const navigate = useNavigate()
-  const isRental = mode === 'rental'
+  const navigate  = useNavigate()
+  const isRental  = mode === 'rental'
+  const b         = prop.basicDetails || {}
+  const pd        = prop.propertyDetails || {}
+  const img       = b.primaryImage || b.images?.[0] || 'https://via.placeholder.com/400x300?text=No+Image'
+  const bhk       = getBHKLabel(b.bedrooms)
+  const facing    = pd.doorFacing?.replace(/_/g, ' ') || null
+
+  const priceLabel  = isRental
+    ? formatPrice(pd.rentPerMonth, pd.rentUnit)
+    : formatPrice(pd.askPrice, pd.priceUnit)
+  const depositLabel = isRental ? formatPrice(pd.deposit, pd.depositUnit) : null
 
   return (
-    <div onClick={() => navigate(`/property/details/${prop.id}`)}
-      className="bg-white rounded-md overflow-hidden shadow-md border border-gray-300 hover:shadow-lg transition-all duration-200 cursor-pointer group">
+    <div
+      onClick={() => navigate(`/property/details/${prop._id}`)}
+      className="bg-white rounded-md overflow-hidden shadow-md border border-gray-300 hover:shadow-lg transition-all duration-200 cursor-pointer group"
+    >
       <div className="relative overflow-hidden">
-        <img src={prop.img} alt={prop.name} className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300" />
+        <img src={img} alt={b.name} className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300" />
         <span className="absolute top-3 left-3 bg-[#E8431A] text-white text-xs font-bold px-2.5 py-1 rounded-md tracking-wide">
-          {prop.id}
+          {prop.propertyId}
         </span>
         <span className={`absolute bottom-3 left-3 text-white text-[10px] font-bold px-2 py-0.5 rounded-md ${isRental ? 'bg-blue-600' : 'bg-gray-700'}`}>
-          {prop.badge}
+          {isRental ? 'Rental' : 'Resale'}
         </span>
       </div>
-      <div className="p-2">
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          <Chip label={prop.type} />
-          <Chip label={prop.bhk} />
-          <Chip label={prop.facing} />
+      <div className="p-3">
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          <Chip label={getAssetLabel(b.assetType)} />
+          {bhk && <Chip label={bhk} />}
+          {facing && <Chip label={facing} />}
         </div>
-        <p className="font-bold text-gray-900 text-base leading-snug mb-1">{prop.name}</p>
-        <p className="flex items-center gap-1 text-sm text-gray-400 mb-4">
-          <MapPin className="w-3.5 h-3.5 text-[#E8431A] flex-shrink-0" />
-          {prop.location}
+        <p className="font-bold text-gray-900 text-sm leading-snug mb-1 truncate">{b.name}</p>
+        <p className="flex items-center gap-1 text-xs text-gray-400 mb-3">
+          <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: RED }} />
+          {b.area || b.city || '—'}
         </p>
-        <div className="flex items-center justify-between border-t border-gray-100 pt-3 gap-2">
-          <div className="flex items-center justify-center gap-4 py-2 px-1 border border-gray-300 rounded-sm flex-1">
+        <div className="flex items-center justify-between border-t border-gray-100 pt-2.5 gap-2">
+          <div className="flex items-center justify-around flex-1 border border-gray-300 rounded-sm py-2 px-1 gap-1">
             {isRental ? (
               <>
-                <div className="text-center"><p className="text-sm font-bold text-gray-900">{prop.rent}</p><p className="text-xs text-gray-400 mt-0.5">Rent</p></div>
-                <div className="text-center"><p className="text-sm font-bold text-gray-900">{prop.deposit}</p><p className="text-xs text-gray-400 mt-0.5">Deposit</p></div>
-                <div className="text-center"><p className="text-sm font-bold text-gray-900">{prop.sbua}</p><p className="text-xs text-gray-400 mt-0.5">SBUA</p></div>
+                <div className="text-center">
+                  <p className="text-xs font-bold text-gray-900">{priceLabel}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">Rent</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-bold text-gray-900">{depositLabel || '—'}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">Deposit</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-bold text-gray-900">{formatSqft(pd.sbua)}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">SBUA</p>
+                </div>
               </>
             ) : (
               <>
-                <div className="text-center"><p className="text-sm font-bold text-gray-900">{prop.priceSqft}</p><p className="text-xs text-gray-400 mt-0.5">Price/Sq.ft</p></div>
-                <div className="text-center"><p className="text-sm font-bold text-gray-900">{prop.sbua}</p><p className="text-xs text-gray-400 mt-0.5">SBUA</p></div>
-                <div className="text-center"><p className="text-sm font-bold text-gray-900">{prop.askPrice}</p><p className="text-xs text-gray-400 mt-0.5">Ask Price</p></div>
+                <div className="text-center">
+                  <p className="text-xs font-bold text-gray-900">{formatPriceSqft(pd.pricePerSqft)}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">Price/Sq.ft</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-bold text-gray-900">{formatSqft(pd.sbua)}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">SBUA</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-bold text-gray-900">{priceLabel}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">Ask Price</p>
+                </div>
               </>
             )}
           </div>
-          <button onClick={e => e.stopPropagation()}
-            className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-md px-3 py-2 flex flex-col items-center gap-0.5 text-xs font-semibold transition-colors flex-shrink-0">
+          <button
+            onClick={e => e.stopPropagation()}
+            className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-md px-2.5 py-2 flex flex-col items-center gap-0.5 text-[10px] font-semibold transition-colors flex-shrink-0"
+          >
             <Share2 className="w-3.5 h-3.5" /> Share
           </button>
         </div>
@@ -229,26 +171,33 @@ const PropertyCard = ({ prop, mode }) => {
   )
 }
 
-// ── Dropdowns ──────────────────────────────────────────────────────────────────
+// ── Dropdown components ───────────────────────────────────────────────────────
+
 const AssetTypeDropdown = ({ selected, onChange }) => {
   const [open, setOpen] = useState(false)
-  const ref = useRef()
-  useOutsideClick(ref, () => setOpen(false))
+  const ref = useRef(null)
+  useEffect(() => {
+    const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
   return (
-    <div className="relative" ref={ref}>
-      <button onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm font-medium transition-colors bg-white ${open || selected ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}>
-        <Building2 className="w-3.5 h-3.5" />
-        Asset Type {selected && <span className="bg-[#E8431A] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">1</span>}
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${selected ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}
+      >
+        <Building2 className="w-4 h-4" /> Asset Type <ChevronDown className="w-3.5 h-3.5" />
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-1 overflow-hidden">
-          {ASSET_TYPES.map(({ label, count, Icon: Ic }) => (
-            <button key={label} onClick={() => { onChange(label === selected ? null : label); setOpen(false) }}
-              className={`w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${selected === label ? 'text-[#E8431A] font-semibold' : 'text-gray-700'}`}>
-              <div className="flex items-center gap-2.5"><Ic className="w-4 h-4 text-gray-400" /><span>{label}</span></div>
-              <span className={`text-xs font-semibold ${selected === label ? 'text-[#E8431A]' : 'text-gray-400'}`}>{count}</span>
+        <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-2 max-h-72 overflow-y-auto">
+          {ASSET_TYPES.map(({ label, value, Icon }) => (
+            <button
+              key={value}
+              onClick={() => { onChange(selected === value ? null : value); setOpen(false) }}
+              className={`w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selected === value ? 'text-[#E8431A] font-semibold bg-orange-50' : 'text-gray-700'}`}
+            >
+              <span className="flex items-center gap-2"><Icon className="w-4 h-4" />{label}</span>
             </button>
           ))}
         </div>
@@ -259,32 +208,36 @@ const AssetTypeDropdown = ({ selected, onChange }) => {
 
 const ConfigurationDropdown = ({ selected, onChange }) => {
   const [open, setOpen] = useState(false)
-  const [localSelected, setLocalSelected] = useState(selected || [])
-  const ref = useRef()
-  useOutsideClick(ref, () => setOpen(false))
-  const toggle = (bhk) => setLocalSelected(prev => prev.includes(bhk) ? prev.filter(b => b !== bhk) : [...prev, bhk])
+  const ref = useRef(null)
+  useEffect(() => {
+    const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
   return (
-    <div className="relative" ref={ref}>
-      <button onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm font-medium transition-colors bg-white ${open || selected?.length > 0 ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}>
-        <Home className="w-3.5 h-3.5" />
-        Configuration
-        {selected?.length > 0 && <span className="bg-[#E8431A] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">{selected.length}</span>}
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${selected.length > 0 ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}
+      >
+        <Home className="w-4 h-4" /> Configuration <ChevronDown className="w-3.5 h-3.5" />
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1 w-72 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-4">
-          <div className="flex flex-wrap gap-2 mb-4">
+        <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-3">
+          <div className="flex gap-2 flex-wrap mb-3">
             {BHK_OPTIONS.map(bhk => (
-              <button key={bhk} onClick={() => toggle(bhk)}
-                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${localSelected.includes(bhk) ? 'bg-[#E8431A] text-white border-[#E8431A]' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}>
+              <button
+                key={bhk}
+                onClick={() => onChange(prev => prev.includes(bhk) ? prev.filter(x => x !== bhk) : [...prev, bhk])}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${selected.includes(bhk) ? 'bg-[#E8431A] text-white border-[#E8431A]' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+              >
                 {bhk}
               </button>
             ))}
           </div>
           <div className="flex gap-2 justify-end">
-            <button onClick={() => { onChange(localSelected); setOpen(false) }} className="bg-[#E8431A] hover:bg-[#cf3b16] text-white px-5 py-1.5 rounded-lg text-sm font-semibold">Apply</button>
-            <button onClick={() => { setLocalSelected(selected || []); setOpen(false) }} className="border border-gray-300 text-gray-600 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
+            <button onClick={() => { onChange([]); setOpen(false) }} className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button onClick={() => setOpen(false)} className="text-xs px-3 py-1.5 rounded-lg bg-[#E8431A] text-white hover:bg-[#cf3b16]">Apply</button>
           </div>
         </div>
       )}
@@ -294,46 +247,32 @@ const ConfigurationDropdown = ({ selected, onChange }) => {
 
 const BudgetDropdown = ({ value, onChange }) => {
   const [open, setOpen] = useState(false)
-  const [min, setMin] = useState(value?.min ?? '')
-  const [max, setMax] = useState(value?.max ?? '')
-  const [sliderMin, setSliderMin] = useState(0)
-  const [sliderMax, setSliderMax] = useState(100)
-  const ref = useRef()
-  useOutsideClick(ref, () => setOpen(false))
-  const isActive = value?.min || value?.max
+  const [min, setMin]   = useState(value?.min || '')
+  const [max, setMax]   = useState(value?.max || '')
+  const ref = useRef(null)
+  useEffect(() => {
+    const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
   return (
-    <div className="relative" ref={ref}>
-      <button onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm font-medium transition-colors bg-white ${open || isActive ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}>
-        <Landmark className="w-3.5 h-3.5" />
-        Budget
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}
+      >
+        Budget <ChevronDown className="w-3.5 h-3.5" />
       </button>
       {open && (
-        <div className="absolute top-full right-0 mt-1 w-72 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-4">
+        <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-4">
           <div className="flex items-center gap-2 mb-4">
-            <input type="number" placeholder="Min" value={min} onChange={e => setMin(e.target.value)}
-              className="w-0 flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A]" />
-            <span className="text-gray-400 text-sm flex-shrink-0">to</span>
-            <input type="number" placeholder="Max" value={max} onChange={e => setMax(e.target.value)}
-              className="w-0 flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A]" />
-          </div>
-          <div className="relative h-5 mb-4">
-            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1.5 bg-gray-200 rounded-full">
-              <div className="absolute h-full bg-[#E8431A] rounded-full" style={{ left: `${sliderMin}%`, width: `${sliderMax - sliderMin}%` }} />
-            </div>
-            <input type="range" min={0} max={100} value={sliderMin}
-              onChange={e => setSliderMin(Math.min(Number(e.target.value), sliderMax - 5))}
-              className="absolute w-full h-full opacity-0 cursor-pointer" style={{ zIndex: sliderMin > 90 ? 5 : 3 }} />
-            <input type="range" min={0} max={100} value={sliderMax}
-              onChange={e => setSliderMax(Math.max(Number(e.target.value), sliderMin + 5))}
-              className="absolute w-full h-full opacity-0 cursor-pointer" style={{ zIndex: 4 }} />
-            <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#E8431A] shadow border-2 border-white pointer-events-none" style={{ left: `calc(${sliderMin}% - 8px)` }} />
-            <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#E8431A] shadow border-2 border-white pointer-events-none" style={{ left: `calc(${sliderMax}% - 8px)` }} />
+            <input value={min} onChange={e => setMin(e.target.value)} placeholder="Min" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A]" />
+            <span className="text-gray-400 text-sm">to</span>
+            <input value={max} onChange={e => setMax(e.target.value)} placeholder="Max" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A]" />
           </div>
           <div className="flex gap-2 justify-end">
-            <button onClick={() => { onChange({ min, max }); setOpen(false) }} className="bg-[#E8431A] hover:bg-[#cf3b16] text-white px-5 py-1.5 rounded-lg text-sm font-semibold">Apply</button>
-            <button onClick={() => { setMin(value?.min ?? ''); setMax(value?.max ?? ''); setOpen(false) }} className="border border-gray-300 text-gray-600 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
+            <button onClick={() => { onChange(null); setMin(''); setMax(''); setOpen(false) }} className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button onClick={() => { if (min || max) onChange({ min, max }); setOpen(false) }} className="text-xs px-3 py-1.5 rounded-lg bg-[#E8431A] text-white hover:bg-[#cf3b16]">Apply</button>
           </div>
         </div>
       )}
@@ -343,30 +282,30 @@ const BudgetDropdown = ({ value, onChange }) => {
 
 const SBUADropdown = ({ value, onChange }) => {
   const [open, setOpen] = useState(false)
-  const [min, setMin] = useState(value?.min ?? '0')
-  const [max, setMax] = useState(value?.max ?? '1000')
-  const ref = useRef()
-  useOutsideClick(ref, () => setOpen(false))
-  const isActive = value?.min || value?.max
+  const [min, setMin]   = useState(value?.min || '0')
+  const [max, setMax]   = useState(value?.max || '1000')
+  const ref = useRef(null)
+  useEffect(() => {
+    const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
   return (
-    <div className="relative" ref={ref}>
-      <button onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm font-medium transition-colors bg-white ${open || isActive ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}>
-        <LayoutGrid className="w-3.5 h-3.5" />
-        SBUA
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}
+      >
+        SBUA <ChevronDown className="w-3.5 h-3.5" />
       </button>
       {open && (
-        <div className="absolute top-full right-0 mt-1 w-64 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-4">
+        <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-4">
           <div className="flex items-center gap-2 mb-4">
-            <input type="number" value={min} onChange={e => setMin(e.target.value)}
-              className="w-0 flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A]" />
-            <span className="text-gray-400 text-sm flex-shrink-0">to</span>
-            <input type="number" value={max} onChange={e => setMax(e.target.value)}
-              className="w-0 flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A]" />
+            <input value={min} onChange={e => setMin(e.target.value)} placeholder="0" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A]" />
+            <span className="text-gray-400 text-sm">to</span>
+            <input value={max} onChange={e => setMax(e.target.value)} placeholder="1000" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A]" />
           </div>
-          <button onClick={() => { onChange({ min, max }); setOpen(false) }}
-            className="w-full bg-[#E8431A] hover:bg-[#cf3b16] text-white py-2 rounded-lg text-sm font-semibold">Apply</button>
+          <button onClick={() => { onChange({ min, max }); setOpen(false) }} className="w-full text-xs py-2 rounded-lg bg-[#E8431A] text-white hover:bg-[#cf3b16]">Apply</button>
         </div>
       )}
     </div>
@@ -375,20 +314,26 @@ const SBUADropdown = ({ value, onChange }) => {
 
 const SortDropdown = ({ selected, onChange }) => {
   const [open, setOpen] = useState(false)
-  const ref = useRef()
-  useOutsideClick(ref, () => setOpen(false))
+  const ref = useRef(null)
+  useEffect(() => {
+    const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
   return (
-    <div className="relative" ref={ref}>
-      <button onClick={() => setOpen(o => !o)}
-        className={`flex items-center justify-center border rounded-lg p-1.5 transition-colors bg-white ${open || selected ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-500 hover:border-gray-400'}`}>
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${selected ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-500 hover:border-gray-400'}`}
+      >
         <ArrowUpDown className="w-4 h-4" />
       </button>
       {open && (
         <div className="absolute top-full right-0 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-1 overflow-hidden">
-          {SORT_OPTIONS.map(opt => (
-            <button key={opt} onClick={() => { onChange(opt); setOpen(false) }}
-              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${selected === opt ? 'text-[#E8431A] font-semibold bg-orange-50' : 'text-gray-700'}`}>
-              {opt}
+          {SORT_OPTIONS.map(({ label, value }) => (
+            <button key={value} onClick={() => { onChange(value); setOpen(false) }}
+              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${selected === value ? 'text-[#E8431A] font-semibold bg-orange-50' : 'text-gray-700'}`}>
+              {label}
             </button>
           ))}
         </div>
@@ -397,38 +342,119 @@ const SortDropdown = ({ selected, onChange }) => {
   )
 }
 
+const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, itemsPerPage, onItemsPerPageChange }) => {
+  const pages = []
+  for (let i = 1; i <= totalPages; i++) pages.push(i)
+  const visiblePages = pages.filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+  return (
+    <div className="flex items-center justify-between py-4">
+      <p className="text-xs text-gray-500">
+        Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}–{Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} results
+      </p>
+      <div className="flex items-center gap-1.5">
+        <button onClick={() => onPageChange(Math.max(1, currentPage - 1))} disabled={currentPage === 1}
+          className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        {visiblePages.map((p, i) =>
+          i > 0 && visiblePages[i - 1] !== p - 1 ? (
+            [<span key={`e-${i}`} className="w-8 h-8 flex items-center justify-center text-gray-400 text-sm">…</span>,
+            <button key={p} onClick={() => onPageChange(p)}
+              className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === p ? 'bg-[#E8431A] text-white shadow-sm' : 'border border-gray-200 text-gray-600 hover:bg-gray-100'}`}>
+              {p}
+            </button>]
+          ) : (
+            <button key={p} onClick={() => onPageChange(p)}
+              className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === p ? 'bg-[#E8431A] text-white shadow-sm' : 'border border-gray-200 text-gray-600 hover:bg-gray-100'}`}>
+              {p}
+            </button>
+          )
+        )}
+        <button onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages}
+          className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+      <div className="flex items-center gap-2 text-xs text-gray-500">
+        <span>Per page:</span>
+        <select value={itemsPerPage} onChange={e => { onItemsPerPageChange(Number(e.target.value)); onPageChange(1) }}
+          className="border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-700 outline-none focus:border-[#E8431A] cursor-pointer">
+          {[4, 8, 12, 16].map(n => <option key={n} value={n}>{n}</option>)}
+        </select>
+      </div>
+    </div>
+  )
+}
+
 // ── Main Dashboard ─────────────────────────────────────────────────────────────
 const Dashboard = () => {
-  const navigate = useNavigate()
-  const [viewMode, setViewMode]             = useState('grid')
+  const navigate  = useNavigate()
+  const dispatch  = useDispatch()
+
+  const items      = useSelector(selectInventoryList)
+  const total      = useSelector(selectInventoryTotal)
+  const totalPages = useSelector(selectInventoryPages)
+  const loading    = useSelector(selectListLoading)
+  const listError  = useSelector(selectListError)
+
+  const [viewMode,       setViewMode]       = useState('grid')
   const [activeCategory, setActiveCategory] = useState('all')
-  const [activeTab, setActiveTab]           = useState('resale')
-  const [assetType, setAssetType]           = useState(null)
-  const [configuration, setConfiguration]   = useState([])
-  const [budget, setBudget]                 = useState(null)
-  const [sbua, setSbua]                     = useState(null)
-  const [sortBy, setSortBy]                 = useState(null)
+  const [activeTab,      setActiveTab]      = useState('resale')  // 'resale' | 'rental'
+  const [assetType,      setAssetType]      = useState(null)
+  const [configuration,  setConfiguration]  = useState([])
+  const [budget,         setBudget]         = useState(null)
+  const [sbua,           setSbua]           = useState(null)
+  const [sortBy,         setSortBy]         = useState(null)
+  const [page,           setPage]           = useState(1)
+  const [limit,          setLimit]          = useState(8)
 
-  const [gridPage, setGridPage]                   = useState(1)
-  const [gridItemsPerPage, setGridItemsPerPage]   = useState(8)
-  const [tablePage, setTablePage]                 = useState(1)
-  const [tableItemsPerPage, setTableItemsPerPage] = useState(9)
+  const isRental = activeTab === 'rental'
 
-  const isRental       = activeTab === 'rental'
-  const allProperties  = isRental ? RENTAL_PROPERTIES : RESALE_PROPERTIES
-  const allTableData   = isRental ? RENTAL_TABLE_DATA  : RESALE_TABLE_DATA
+  // Build query params and fetch
+  const buildParams = useCallback(() => {
+    const categoryObj = CATEGORIES.find(c => c.id === activeCategory)
+    const params = {
+      listingType: isRental ? 'RENTAL' : 'RESALE',
+      page,
+      limit,
+    }
+    // Category maps to assetType filter (multi-value not natively supported, use first or explicit assetType)
+    if (assetType) {
+      params.assetType = assetType
+    } else if (categoryObj?.assetFilter?.length === 1) {
+      params.assetType = categoryObj.assetFilter[0]
+    }
+    if (configuration.length > 0) {
+      // bhkTypes expects numeric bedroom count: '2BHK' → 2
+      params.bhkTypes = configuration.map(b => b.replace('BHK', ''))
+    }
+    if (budget?.min) params.budgetMin = budget.min
+    if (budget?.max) params.budgetMax = budget.max
+    if (sbua?.min)   params.sbuaMin   = sbua.min
+    if (sbua?.max)   params.sbuaMax   = sbua.max
+    if (sortBy)      params.sortBy    = sortBy
+    return params
+  }, [isRental, activeCategory, assetType, configuration, budget, sbua, sortBy, page, limit])
 
-  const filteredProperties = activeCategory === 'all'
-    ? allProperties
-    : allProperties.filter(p => p.category === activeCategory)
+  useEffect(() => {
+    dispatch(fetchProperties(buildParams()))
+  }, [dispatch, buildParams])
 
-  const gridTotalPages  = Math.ceil(filteredProperties.length / gridItemsPerPage)
-  const paginatedGrid   = filteredProperties.slice((gridPage - 1) * gridItemsPerPage, gridPage * gridItemsPerPage)
-  const tableTotalPages = Math.ceil(allTableData.length / tableItemsPerPage)
-  const paginatedTable  = allTableData.slice((tablePage - 1) * tableItemsPerPage, tablePage * tableItemsPerPage)
+  const handleTabChange = (tab) => {
+    setActiveTab(tab)
+    setPage(1)
+    setAssetType(null)
+    setConfiguration([])
+    setBudget(null)
+    setSbua(null)
+    setSortBy(null)
+  }
 
-  const handleTabChange      = (tab) => { setActiveTab(tab);      setGridPage(1); setTablePage(1) }
-  const handleCategoryChange = (cat) => { setActiveCategory(cat); setGridPage(1) }
+  const handleCategoryChange = (cat) => {
+    setActiveCategory(cat)
+    setPage(1)
+    setAssetType(null)
+  }
 
   const hasFilters = assetType || configuration.length > 0 || budget?.min || budget?.max || sbua?.min || sbua?.max || sortBy
 
@@ -469,11 +495,11 @@ const Dashboard = () => {
               <List className="w-3.5 h-3.5" /> Table
             </button>
           </div>
-          <AssetTypeDropdown selected={assetType} onChange={setAssetType} />
-          <ConfigurationDropdown selected={configuration} onChange={setConfiguration} />
-          <BudgetDropdown value={budget} onChange={setBudget} />
-          <SBUADropdown value={sbua} onChange={setSbua} />
-          <SortDropdown selected={sortBy} onChange={setSortBy} />
+          <AssetTypeDropdown selected={assetType} onChange={v => { setAssetType(v); setPage(1) }} />
+          <ConfigurationDropdown selected={configuration} onChange={v => { setConfiguration(v); setPage(1) }} />
+          <BudgetDropdown value={budget} onChange={v => { setBudget(v); setPage(1) }} />
+          <SBUADropdown value={sbua} onChange={v => { setSbua(v); setPage(1) }} />
+          <SortDropdown selected={sortBy} onChange={v => { setSortBy(v); setPage(1) }} />
         </div>
       </div>
 
@@ -483,7 +509,7 @@ const Dashboard = () => {
           <span className="text-xs text-gray-500 font-medium">Active filters:</span>
           {assetType && (
             <span className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">
-              {assetType}<button onClick={() => setAssetType(null)}><X className="w-3 h-3" /></button>
+              {getAssetLabel(assetType)}<button onClick={() => setAssetType(null)}><X className="w-3 h-3" /></button>
             </span>
           )}
           {configuration.map(c => (
@@ -493,17 +519,18 @@ const Dashboard = () => {
           ))}
           {(budget?.min || budget?.max) && (
             <span className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">
-              Budget: {budget.min || '0'} – {budget.max || '∞'}<button onClick={() => setBudget(null)}><X className="w-3 h-3" /></button>
+              Budget: {budget.min || '0'}–{budget.max || '∞'}<button onClick={() => setBudget(null)}><X className="w-3 h-3" /></button>
             </span>
           )}
           {(sbua?.min || sbua?.max) && (
             <span className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">
-              SBUA: {sbua.min} – {sbua.max}<button onClick={() => setSbua(null)}><X className="w-3 h-3" /></button>
+              SBUA: {sbua.min}–{sbua.max}<button onClick={() => setSbua(null)}><X className="w-3 h-3" /></button>
             </span>
           )}
           {sortBy && (
             <span className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">
-              {sortBy}<button onClick={() => setSortBy(null)}><X className="w-3 h-3" /></button>
+              {SORT_OPTIONS.find(s => s.value === sortBy)?.label || sortBy}
+              <button onClick={() => setSortBy(null)}><X className="w-3 h-3" /></button>
             </span>
           )}
         </div>
@@ -511,12 +538,21 @@ const Dashboard = () => {
 
       {/* ── Content ── */}
       <div className="p-6">
-        {viewMode === 'grid' ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+            <Loader2 className="w-10 h-10 animate-spin mb-3" style={{ color: RED }} />
+            <p className="text-sm font-medium">Loading properties…</p>
+          </div>
+        ) : listError ? (
+          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+            <p className="text-sm font-medium text-red-500">{listError}</p>
+          </div>
+        ) : viewMode === 'grid' ? (
           <>
-            {paginatedGrid.length > 0 ? (
+            {items.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {paginatedGrid.map((prop, i) => (
-                  <PropertyCard key={`${prop.id}-${i}`} prop={prop} mode={activeTab} />
+                {items.map(prop => (
+                  <PropertyCard key={prop._id} prop={prop} mode={activeTab} />
                 ))}
               </div>
             ) : (
@@ -525,9 +561,15 @@ const Dashboard = () => {
                 <p className="text-sm font-medium">No properties found</p>
               </div>
             )}
-            {filteredProperties.length > 0 && (
-              <Pagination currentPage={gridPage} totalPages={gridTotalPages} onPageChange={setGridPage}
-                totalItems={filteredProperties.length} itemsPerPage={gridItemsPerPage} onItemsPerPageChange={setGridItemsPerPage} />
+            {total > 0 && (
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                totalItems={total}
+                itemsPerPage={limit}
+                onItemsPerPageChange={n => { setLimit(n); setPage(1) }}
+              />
             )}
           </>
         ) : (
@@ -545,7 +587,6 @@ const Dashboard = () => {
                     <>
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Rent/Month</th>
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Deposit</th>
-                      <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Status</th>
                     </>
                   ) : (
                     <>
@@ -558,51 +599,65 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {paginatedTable.map((row, i) => (
-                  <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-xs font-mono font-bold text-[#E8431A]">{row.id}</td>
-                    <td className="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap">{row.name}</td>
-                    <td className="px-4 py-3 text-gray-600">{row.type}</td>
-                    <td className="px-4 py-3 text-gray-600">{row.sbua}</td>
-                    <td className="px-4 py-3 text-gray-400">{row.plot}</td>
-                    <td className="px-4 py-3 text-gray-600">{row.facing}</td>
-                    {isRental ? (
-                      <>
-                        <td className="px-4 py-3 font-semibold text-gray-800">{row.rent}</td>
-                        <td className="px-4 py-3 text-gray-600">{row.deposit}</td>
-                        <td className="px-4 py-3">
-                          <span className="text-xs bg-green-50 text-green-700 border border-green-200 rounded-full px-2 py-0.5 font-medium whitespace-nowrap">{row.status}</span>
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="px-4 py-3 font-semibold text-gray-800">{row.askPrice}</td>
-                        <td className="px-4 py-3 text-gray-600">{row.priceSqft}</td>
-                        <td className="px-4 py-3">
-                          <span className={`text-xs rounded-full px-2 py-0.5 font-medium whitespace-nowrap border ${row.handover === 'Ready' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
-                            {row.handover}
-                          </span>
-                        </td>
-                      </>
-                    )}
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <button onClick={e => e.stopPropagation()} className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-lg p-1.5 transition-colors">
-                          <Share2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => navigate(`/property/details/${row.id}`)} className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-lg p-1.5 transition-colors">
-                          <Info className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {items.map(row => {
+                  const b  = row.basicDetails    || {}
+                  const pd = row.propertyDetails || {}
+                  const possession = b.possession?.replace(/_/g, ' ') || '—'
+                  return (
+                    <tr
+                      key={row._id}
+                      onClick={() => navigate(`/property/details/${row._id}`)}
+                      className="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+                    >
+                      <td className="px-4 py-3 text-[#E8431A] font-semibold text-xs">{row.propertyId}</td>
+                      <td className="px-4 py-3 font-semibold text-gray-800">{b.name}</td>
+                      <td className="px-4 py-3 text-gray-600">{getAssetLabel(b.assetType)}</td>
+                      <td className="px-4 py-3 text-gray-600">{pd.sbua || '—'}</td>
+                      <td className="px-4 py-3 text-gray-400">{pd.plotArea || '—'}</td>
+                      <td className="px-4 py-3 text-gray-600">{pd.doorFacing?.replace(/_/g, ' ') || '—'}</td>
+                      {isRental ? (
+                        <>
+                          <td className="px-4 py-3 font-semibold text-gray-800">{formatPrice(pd.rentPerMonth, pd.rentUnit)}</td>
+                          <td className="px-4 py-3 text-gray-600">{formatPrice(pd.deposit, pd.depositUnit)}</td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="px-4 py-3 font-semibold text-gray-800">{formatPrice(pd.askPrice, pd.priceUnit)}</td>
+                          <td className="px-4 py-3 text-gray-600">{pd.pricePerSqft ? `₹${Number(pd.pricePerSqft).toLocaleString()}` : '—'}</td>
+                          <td className="px-4 py-3">
+                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${possession === 'READY TO MOVE' || possession === 'RESALE READY' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                              {possession}
+                            </span>
+                          </td>
+                        </>
+                      )}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <button onClick={e => e.stopPropagation()} className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-lg p-1.5 transition-colors">
+                            <Share2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => navigate(`/property/details/${row._id}`)} className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-lg p-1.5 transition-colors">
+                            <Info className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
-            <div className="border-t border-gray-100 px-4">
-              <Pagination currentPage={tablePage} totalPages={tableTotalPages} onPageChange={setTablePage}
-                totalItems={allTableData.length} itemsPerPage={tableItemsPerPage} onItemsPerPageChange={setTableItemsPerPage} />
-            </div>
+            {total > 0 && (
+              <div className="border-t border-gray-100 px-4">
+                <Pagination
+                  currentPage={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                  totalItems={total}
+                  itemsPerPage={limit}
+                  onItemsPerPageChange={n => { setLimit(n); setPage(1) }}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

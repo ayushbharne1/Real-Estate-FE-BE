@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import {
   fetchProperty, clearCurrent,
   selectCurrentProperty, selectDetailLoading, selectDetailError,
-} from '../../redux/slices/inventoryslice'
+} from '../../redux/slices/inventorySlice'
 import { propertyToFormValues } from './inventoryUtils'
 import InventoryForm from './Inventoryform'
 

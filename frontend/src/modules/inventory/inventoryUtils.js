@@ -1,12 +1,4 @@
 // src/modules/inventory/inventoryUtils.js
-// ─────────────────────────────────────────────────────────────────────────────
-// Central utility for the Add / Edit Inventory form.
-//   • getFieldConfig(listingType, assetType) → { step2, step3 }
-//   • buildValidationSchema(step, fieldConfig, isRentalLocked)
-//   • buildSubmitPayload(values)  → flat object for FormData
-//   • INITIAL_VALUES
-//   • RENTAL_NOT_AVAILABLE  set
-// ─────────────────────────────────────────────────────────────────────────────
 
 import * as Yup from 'yup'
 import {
@@ -21,7 +13,6 @@ import {
   POSSESSION_OPTIONS,
   BHK_OPTIONS,
   AMENITY_OPTIONS,
-  PRICE_UNIT_OPTIONS,
   COMMISSION_TYPE_OPTIONS,
   MAINTENANCE_OPTIONS,
   PREFERRED_TENANT_OPTIONS,
@@ -31,84 +22,92 @@ import {
 } from 'shared/constants/dropdown.js'
 import { AssetType, ListingType } from 'shared/enums/index.js'
 
-// ─── constants ────────────────────────────────────────────────────────────────
-
-export const AMENITIES_LIST = AMENITY_OPTIONS   // { value, label, icon }[]
+// ─── Asset type options filtered by listing type ──────────────────────────────
 
 // Rental is only available for Apartment + Villa
-export const RENTAL_AVAILABLE = new Set([AssetType.APARTMENT, AssetType.VILLA])
+const RENTAL_ASSET_VALUES = new Set([AssetType.APARTMENT, AssetType.VILLA])
+
+export const RESALE_ASSET_OPTIONS = ASSET_TYPE_OPTIONS   // all 10 types
+
+export const RENTAL_ASSET_OPTIONS = ASSET_TYPE_OPTIONS.filter(o =>
+  RENTAL_ASSET_VALUES.has(o.value)
+)
+
+/** Get filtered asset type options based on listing type */
+export function getAssetTypeOptions(listingType) {
+  return listingType === ListingType.RENTAL ? RENTAL_ASSET_OPTIONS : RESALE_ASSET_OPTIONS
+}
+
+export const AMENITIES_LIST = AMENITY_OPTIONS
 
 export const isRentalLocked = (listingType, assetType) =>
-  listingType === ListingType.RENTAL && !RENTAL_AVAILABLE.has(assetType)
+  listingType === ListingType.RENTAL && !RENTAL_ASSET_VALUES.has(assetType)
 
-// Apartment-type options for dropdown (shared: Apartment & Row House)
+// ─── field descriptor factories ───────────────────────────────────────────────
+
 const APT_TYPE_OPTIONS = [
-  { value: 'SIMPLEX',    label: 'Simplex' },
-  { value: 'DUPLEX',     label: 'Duplex' },
-  { value: 'TRIPLEX',    label: 'Triplex' },
-  { value: 'PENTHOUSE',  label: 'Penthouse' },
+  { value: 'SIMPLEX',   label: 'Simplex' },
+  { value: 'DUPLEX',    label: 'Duplex' },
+  { value: 'TRIPLEX',   label: 'Triplex' },
+  { value: 'PENTHOUSE', label: 'Penthouse' },
 ]
 
 const TOTAL_FLOORS_OPTIONS = Array.from({ length: 30 }, (_, i) => ({
   value: String(i + 1), label: String(i + 1),
 }))
 
-const BALCONY_FACING_OPTIONS = DOOR_FACING_OPTIONS   // same values
-
-// ─── field descriptor factories ───────────────────────────────────────────────
+const BALCONY_FACING_OPTIONS = DOOR_FACING_OPTIONS
 
 const F = {
-  text:      (label, required = false)            => ({ label, required, type: 'text' }),
-  number:    (label, suffix = '', required = false) => ({ label, required, type: 'number', suffix }),
-  dropdown:  (label, options, required = false)   => ({ label, required, type: 'dropdown', options }),
-  yesno:     (label)                              => ({ label, required: false, type: 'yesno' }),
-  price:     (label, required = true)             => ({ label, required, type: 'price' }),
-  config:    ()                                   => ({ label: 'Configuration (BHK + Bath + Balcony)', required: true, type: 'config' }),
-  amenities: ()                                   => ({ label: 'Amenities', required: false, type: 'amenities' }),
-  multiselect: (label, options, required = false) => ({ label, required, type: 'multiselect', options }),
+  text:       (label, required = false)             => ({ label, required, type: 'text' }),
+  number:     (label, suffix = '', required = false) => ({ label, required, type: 'number', suffix }),
+  dropdown:   (label, options, required = false)    => ({ label, required, type: 'dropdown', options }),
+  yesno:      (label)                               => ({ label, required: false, type: 'yesno' }),
+  price:      (label, required = true)              => ({ label, required, type: 'price' }),
+  config:     ()                                    => ({ label: 'Configuration (BHK + Bath + Balcony)', required: true, type: 'config' }),
+  amenities:  ()                                    => ({ label: 'Amenities', required: false, type: 'amenities' }),
+  multiselect:(label, options, required = false)    => ({ label, required, type: 'multiselect', options }),
 }
-
-// ─── shared field atoms ───────────────────────────────────────────────────────
 
 const S = {
-  aptType:      F.dropdown('Apartment Type', APT_TYPE_OPTIONS, true),
-  facing:       F.dropdown('Door Facing', DOOR_FACING_OPTIONS),
-  age:          F.dropdown('Age of Building', AGE_OF_BUILDING_OPTIONS, true),
-  floorNo:      F.dropdown('Floor Number', FLOOR_RANGE_OPTIONS),
-  totalFloors:  F.dropdown('Total Floors', TOTAL_FLOORS_OPTIONS),
-  structure:    F.dropdown('Structure', STRUCTURE_OPTIONS),
-  config:       F.config(),
-  furnishing:   F.dropdown('Furnishing', FURNISHING_OPTIONS, true),
-  furnOffice:   F.dropdown('Furnishing', [...FURNISHING_OFFICE_OPTIONS, ...FURNISHING_OPTIONS], true),
-  furnRetail:   F.dropdown('Furnishing', [...FURNISHING_RETAIL_OPTIONS, ...FURNISHING_OPTIONS], true),
-  sbua:         F.number('SBUA', 'sq.ft', true),
-  plotArea:     F.number('Plot Area', 'sq.ft', true),
-  uds:          F.number('UDS (Undivided Spaces)', 'sq.ft'),
-  priceSqft:    F.number('Price per Sqft', '₹'),
-  askPrice:     F.price('Ask Price'),
-  rent:         F.price('Rent per Month'),
-  deposit:      F.price('Deposit', false),
-  parking:      F.dropdown('Parking', PARKING_OPTIONS, true),
-  bKhata:       F.dropdown('Building Khata', KHATA_OPTIONS),
-  lKhata:       F.dropdown('Land Khata', KHATA_OPTIONS),
-  eKhata:       F.yesno('E-Khata'),
-  cornerUnit:   F.yesno('Corner Unit'),
-  biappa:       F.yesno('Bioppa Approved Khata'),
-  exclusive:    F.yesno('Exclusive'),
-  extraRooms:   F.multiselect('Extra Rooms', EXTRA_ROOM_OPTIONS),
-  balconyFacing:F.dropdown('Balcony Facing', BALCONY_FACING_OPTIONS),
-  seats:        F.number('No. of Seats', '', true),
-  totalRooms:   F.number('Total Rooms'),
-  waterSupply:  F.text('Water Supply'),
-  prefTenants:  F.dropdown('Preferred Tenants', PREFERRED_TENANT_OPTIONS, true),
-  maintenance:  F.dropdown('Maintenance', MAINTENANCE_OPTIONS),
-  commission:   F.dropdown('Commission Type', COMMISSION_TYPE_OPTIONS, true),
-  petAllowed:   F.yesno('Pet Allowed'),
-  nonVeg:       F.yesno('Non-Veg Allowed'),
-  amenities:    F.amenities(),
+  aptType:       F.dropdown('Apartment Type', APT_TYPE_OPTIONS, true),
+  facing:        F.dropdown('Door Facing', DOOR_FACING_OPTIONS),
+  age:           F.dropdown('Age of Building', AGE_OF_BUILDING_OPTIONS, true),
+  floorNo:       F.dropdown('Floor Number', FLOOR_RANGE_OPTIONS),
+  totalFloors:   F.dropdown('Total Floors', TOTAL_FLOORS_OPTIONS),
+  structure:     F.dropdown('Structure', STRUCTURE_OPTIONS),
+  config:        F.config(),
+  furnishing:    F.dropdown('Furnishing', FURNISHING_OPTIONS, true),
+  furnOffice:    F.dropdown('Furnishing', [...FURNISHING_OFFICE_OPTIONS, ...FURNISHING_OPTIONS], true),
+  furnRetail:    F.dropdown('Furnishing', [...FURNISHING_RETAIL_OPTIONS, ...FURNISHING_OPTIONS], true),
+  sbua:          F.number('SBUA', 'sq.ft', true),
+  plotArea:      F.number('Plot Area', 'sq.ft', true),
+  uds:           F.number('UDS (Undivided Spaces)', 'sq.ft'),
+  priceSqft:     F.number('Price per Sqft', '₹'),
+  askPrice:      F.price('Ask Price'),
+  rent:          F.price('Rent per Month'),
+  deposit:       F.price('Deposit', false),
+  parking:       F.dropdown('Parking', PARKING_OPTIONS, true),
+  bKhata:        F.dropdown('Building Khata', KHATA_OPTIONS),
+  lKhata:        F.dropdown('Land Khata', KHATA_OPTIONS),
+  eKhata:        F.yesno('E-Khata'),
+  cornerUnit:    F.yesno('Corner Unit'),
+  biappa:        F.yesno('Bioppa Approved Khata'),
+  exclusive:     F.yesno('Exclusive'),
+  extraRooms:    F.multiselect('Extra Rooms', EXTRA_ROOM_OPTIONS),
+  balconyFacing: F.dropdown('Balcony Facing', BALCONY_FACING_OPTIONS),
+  seats:         F.number('No. of Seats', '', true),
+  totalRooms:    F.number('Total Rooms'),
+  waterSupply:   F.text('Water Supply'),
+  prefTenants:   F.dropdown('Preferred Tenants', PREFERRED_TENANT_OPTIONS, true),
+  maintenance:   F.dropdown('Maintenance', MAINTENANCE_OPTIONS),
+  commission:    F.dropdown('Commission Type', COMMISSION_TYPE_OPTIONS, true),
+  petAllowed:    F.yesno('Pet Allowed'),
+  nonVeg:        F.yesno('Non-Veg Allowed'),
+  amenities:     F.amenities(),
 }
 
-// ─── RESALE field configs ─────────────────────────────────────────────────────
+// ─── RESALE configs ───────────────────────────────────────────────────────────
 
 const RESALE = {
   [AssetType.APARTMENT]: {
@@ -153,7 +152,7 @@ const RESALE = {
   },
 }
 
-// ─── RENTAL field configs ─────────────────────────────────────────────────────
+// ─── RENTAL configs ───────────────────────────────────────────────────────────
 
 const RENTAL = {
   [AssetType.APARTMENT]: {
@@ -166,45 +165,37 @@ const RENTAL = {
   },
 }
 
-// ─── main export ──────────────────────────────────────────────────────────────
+// ─── exports ──────────────────────────────────────────────────────────────────
 
-/**
- * Returns { step2: { [fieldKey]: FieldDef }, step3: { [fieldKey]: FieldDef } }
- * or null if no config found (e.g. locked rental type)
- */
 export function getFieldConfig(listingType, assetType) {
   if (!assetType) return null
   if (listingType === ListingType.RESALE) return RESALE[assetType] ?? null
   return RENTAL[assetType] ?? null
 }
 
-// ─── pricing field keys (shown with divider in step 2) ───────────────────────
 export const PRICING_KEYS = new Set(['rent', 'deposit', 'maintenance', 'commission'])
 
 // ─── validation ───────────────────────────────────────────────────────────────
 
 export const step1Schema = Yup.object({
-  name:       Yup.string().min(3, 'Min 3 characters').required('Property name is required'),
-  assetType:  Yup.string().required('Asset type is required'),
-  listingType:Yup.string().required('Listing type is required'),
-  address:    Yup.string().required('Address is required'),
-  state:      Yup.string().required('State is required'),
-  city:       Yup.string().required('City is required'),
-  pincode:    Yup.string().matches(/^\d{6}$/, 'Enter valid 6-digit pincode').required('Required'),
-  possession: Yup.string().required('Possession status is required'),
+  name:        Yup.string().min(3, 'Min 3 characters').required('Property name is required'),
+  assetType:   Yup.string().required('Asset type is required'),
+  listingType: Yup.string().required('Listing type is required'),
+  address:     Yup.string().required('Address is required'),
+  state:       Yup.string().required('State is required'),
+  city:        Yup.string().required('City is required'),
+  pincode:     Yup.string().matches(/^\d{6}$/, 'Enter valid 6-digit pincode').required('Required'),
+  possession:  Yup.string().required('Possession status is required'),
 })
 
-/** Build a Yup schema from a step2 or step3 field config map */
 export function buildStepSchema(fields = {}) {
   const shape = {}
   Object.entries(fields).forEach(([key, cfg]) => {
     if (!cfg.required) return
     switch (cfg.type) {
       case 'price':
-        // price inputs split into value + unit fields
         shape[`${key}Value`] = Yup.number()
-          .typeError('Must be a number')
-          .positive('Must be positive')
+          .typeError('Must be a number').positive('Must be positive')
           .required(`${cfg.label} is required`)
         break
       case 'config':
@@ -212,7 +203,6 @@ export function buildStepSchema(fields = {}) {
         break
       case 'amenities':
       case 'multiselect':
-        // not required validation
         break
       default:
         shape[key] = Yup.string().required(`${cfg.label} is required`)
@@ -221,7 +211,6 @@ export function buildStepSchema(fields = {}) {
   return Yup.object(shape)
 }
 
-/** Returns flat list of field names for a given step's field config (for touch-all-on-next) */
 export function getStepFieldNames(fields = {}) {
   return Object.entries(fields).flatMap(([key, cfg]) => {
     if (!cfg.required) return []
@@ -235,23 +224,16 @@ export function getStepFieldNames(fields = {}) {
 // ─── initial values ───────────────────────────────────────────────────────────
 
 export const INITIAL_VALUES = {
-  // Step 1 — Basic Details
   name: '', listingType: ListingType.RESALE, assetType: '',
   address: '', area: '', state: '', city: '', pincode: '', possession: '',
-
-  // Step 2 — all possible fields
   aptType: '', facing: '', age: '', floorNo: '', totalFloors: '', structure: '',
   bedrooms: '', bathrooms: '', balconies: '', furnishing: '', balconyFacing: '',
   sbua: '', plotArea: '', uds: '', priceSqft: '', seats: '', totalRooms: '', waterSupply: '',
   bKhata: '', lKhata: '', eKhata: '', extraRooms: [],
   cornerUnit: '', biappa: '', exclusive: '',
-
-  // Pricing
   askPriceValue: '', askPriceUnit: 'CRORES',
   rentValue: '',     rentUnit: 'LAKHS',
   depositValue: '',  depositUnit: 'LAKHS',
-
-  // Step 3 — More Details
   parking: '', prefTenants: '', maintenance: '', commission: '',
   petAllowed: '', nonVeg: '',
   amenities: [], description: '',
@@ -259,60 +241,45 @@ export const INITIAL_VALUES = {
 
 // ─── submit payload builder ───────────────────────────────────────────────────
 
-/**
- * Converts Formik values into the flat payload shape the backend expects.
- * Returns a plain object — caller wraps in FormData via buildFormData().
- */
 export function buildSubmitPayload(values) {
   return {
-    // Step 1
     name:        values.name,
     listingType: values.listingType,
     assetType:   values.assetType,
     possession:  values.possession,
     address:     values.address,
-    area:        values.area || undefined,
+    area:        values.area        || undefined,
     state:       values.state,
     city:        values.city,
     pincode:     values.pincode,
-
-    // Config
-    bedrooms:  values.bedrooms  || undefined,
-    bathrooms: values.bathrooms || undefined,
-    balconies: values.balconies || undefined,
-
-    // Step 2 — property details
-    seats:        values.seats        || undefined,
-    aptType:      values.aptType      || undefined,
-    facing:       values.facing       || undefined,
-    age:          values.age          || undefined,
-    floorNo:      values.floorNo      || undefined,
-    totalFloors:  values.totalFloors  || undefined,
-    structure:    values.structure    || undefined,
-    furnishing:   values.furnishing   || undefined,
-    balconyFacing:values.balconyFacing|| undefined,
-    sbua:         values.sbua         || undefined,
-    plotArea:     values.plotArea     || undefined,
-    uds:          values.uds          || undefined,
-    priceSqft:    values.priceSqft    || undefined,
-    totalRooms:   values.totalRooms   || undefined,
-    waterSupply:  values.waterSupply  || undefined,
-
-    // Resale pricing
-    askPrice:  values.askPriceValue || undefined,
-    priceUnit: values.askPriceUnit  || undefined,
-
-    // Rental pricing
-    rentPerMonth:   values.rentValue    || undefined,
-    rentUnit:       values.rentUnit     || undefined,
-    deposit:        values.depositValue || undefined,
-    depositUnit:    values.depositUnit  || undefined,
-    maintenance:    values.maintenance  || undefined,
-    commissionType: values.commission   || undefined,
-
-    // Step 3 — more details
-    bKhata:              values.bKhata      || undefined,   // → buildingKhata
-    lKhata:              values.lKhata      || undefined,   // → landKhata
+    bedrooms:    values.bedrooms    || undefined,
+    bathrooms:   values.bathrooms   || undefined,
+    balconies:   values.balconies   || undefined,
+    seats:         values.seats         || undefined,
+    aptType:       values.aptType       || undefined,
+    facing:        values.facing        || undefined,
+    age:           values.age           || undefined,
+    floorNo:       values.floorNo       || undefined,
+    totalFloors:   values.totalFloors   || undefined,
+    structure:     values.structure     || undefined,
+    furnishing:    values.furnishing    || undefined,
+    balconyFacing: values.balconyFacing || undefined,
+    sbua:          values.sbua          || undefined,
+    plotArea:      values.plotArea      || undefined,
+    uds:           values.uds           || undefined,
+    priceSqft:     values.priceSqft     || undefined,
+    totalRooms:    values.totalRooms    || undefined,
+    waterSupply:   values.waterSupply   || undefined,
+    askPrice:      values.askPriceValue || undefined,
+    priceUnit:     values.askPriceUnit  || undefined,
+    rentPerMonth:  values.rentValue     || undefined,
+    rentUnit:      values.rentUnit      || undefined,
+    deposit:       values.depositValue  || undefined,
+    depositUnit:   values.depositUnit   || undefined,
+    maintenance:   values.maintenance   || undefined,
+    commissionType:values.commission    || undefined,
+    bKhata:              values.bKhata      || undefined,
+    lKhata:              values.lKhata      || undefined,
     eKhata:              values.eKhata      || undefined,
     extraRooms:          values.extraRooms?.length ? values.extraRooms : undefined,
     cornerUnit:          values.cornerUnit  || undefined,
@@ -327,15 +294,10 @@ export function buildSubmitPayload(values) {
   }
 }
 
-/**
- * Populate Formik initial values from an existing property document (for Edit).
- * Maps backend nested structure → flat form values.
- */
 export function propertyToFormValues(property) {
   const b  = property.basicDetails    || {}
   const pd = property.propertyDetails || {}
   const md = property.moreDetails     || {}
-
   return {
     name:        b.name        || '',
     listingType: b.listingType || ListingType.RESALE,
@@ -346,12 +308,10 @@ export function propertyToFormValues(property) {
     state:       b.state       || '',
     city:        b.city        || '',
     pincode:     b.pincode     || '',
-
     bedrooms:  b.bedrooms  ?? '',
     bathrooms: b.bathrooms ?? '',
     balconies: b.balconies ?? '',
     seats:     b.seats     ?? '',
-
     aptType:       pd.apartmentType  || '',
     facing:        pd.doorFacing     || '',
     age:           pd.ageOfBuilding  || '',
@@ -366,16 +326,14 @@ export function propertyToFormValues(property) {
     priceSqft:     pd.pricePerSqft   ?? '',
     totalRooms:    pd.totalRooms     ?? '',
     waterSupply:   pd.waterSupply    || '',
-
-    askPriceValue: pd.askPrice     ?? '',
-    askPriceUnit:  pd.priceUnit    || 'CRORES',
-    rentValue:     pd.rentPerMonth ?? '',
-    rentUnit:      pd.rentUnit     || 'LAKHS',
-    depositValue:  pd.deposit      ?? '',
-    depositUnit:   pd.depositUnit  || 'LAKHS',
-    maintenance:   pd.maintenance  || '',
+    askPriceValue: pd.askPrice       ?? '',
+    askPriceUnit:  pd.priceUnit      || 'CRORES',
+    rentValue:     pd.rentPerMonth   ?? '',
+    rentUnit:      pd.rentUnit       || 'LAKHS',
+    depositValue:  pd.deposit        ?? '',
+    depositUnit:   pd.depositUnit    || 'LAKHS',
+    maintenance:   pd.maintenance    || '',
     commission:    pd.commissionType || '',
-
     bKhata:      md.buildingKhata       || '',
     lKhata:      md.landKhata           || '',
     eKhata:      md.eKhata !== undefined ? (md.eKhata ? 'Yes' : 'No') : '',
@@ -383,11 +341,11 @@ export function propertyToFormValues(property) {
     cornerUnit:  md.cornerUnit !== undefined ? (md.cornerUnit ? 'Yes' : 'No') : '',
     biappa:      md.bioppaApprovedKhata !== undefined ? (md.bioppaApprovedKhata ? 'Yes' : 'No') : '',
     exclusive:   md.exclusive !== undefined ? (md.exclusive ? 'Yes' : 'No') : '',
-    parking:     md.parking     || '',
-    prefTenants: md.preferredTenant || '',
+    parking:     md.parking          || '',
+    prefTenants: md.preferredTenant  || '',
     petAllowed:  md.petAllowed !== undefined ? (md.petAllowed ? 'Yes' : 'No') : '',
     nonVeg:      md.nonVegAllowed !== undefined ? (md.nonVegAllowed ? 'Yes' : 'No') : '',
-    amenities:   md.amenities   || [],
-    description: md.description || '',
+    amenities:   md.amenities        || [],
+    description: md.description      || '',
   }
 }
