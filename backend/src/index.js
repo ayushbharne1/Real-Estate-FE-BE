@@ -15,7 +15,7 @@ const app = express();
 
 // ── Middleware ────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false })); // disabled for Swagger UI
-app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173" }));
+app.use(cors({origin:'*'} ));// allow all origins
 app.use(express.json());
 app.use(cookieParser());
 
