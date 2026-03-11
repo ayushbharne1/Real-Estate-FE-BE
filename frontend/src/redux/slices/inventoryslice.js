@@ -1,11 +1,12 @@
 // src/redux/slices/inventorySlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import {
-  fetchProperties as apiFetchProperties,
-  fetchProperty   as apiFetchProperty,
-  createProperty  as apiCreateProperty,
-  updateProperty  as apiUpdateProperty,
-  deleteProperty  as apiDeleteProperty,
+  fetchProperties       as apiFetchProperties,
+  fetchProperty         as apiFetchProperty,
+  fetchSimilarProperties as apiFetchSimilar,
+  createProperty        as apiCreateProperty,
+  updateProperty        as apiUpdateProperty,
+  deleteProperty        as apiDeleteProperty,
 } from '../../api/inventoryApi'
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
@@ -13,56 +14,48 @@ import {
 export const fetchProperties = createAsyncThunk(
   'inventory/fetchProperties',
   async (params = {}, { rejectWithValue }) => {
-    try {
-      return await apiFetchProperties(params)
-    } catch (err) {
-      return rejectWithValue(err)
-    }
+    try { return await apiFetchProperties(params) }
+    catch (err) { return rejectWithValue(err) }
   }
 )
 
 export const fetchProperty = createAsyncThunk(
   'inventory/fetchProperty',
   async (id, { rejectWithValue }) => {
-    try {
-      return await apiFetchProperty(id)
-    } catch (err) {
-      return rejectWithValue(err)
-    }
+    try { return await apiFetchProperty(id) }
+    catch (err) { return rejectWithValue(err) }
+  }
+)
+
+export const fetchSimilar = createAsyncThunk(
+  'inventory/fetchSimilar',
+  async (id, { rejectWithValue }) => {
+    try { return await apiFetchSimilar(id) }
+    catch (err) { return rejectWithValue(err) }
   }
 )
 
 export const createProperty = createAsyncThunk(
   'inventory/createProperty',
   async (formData, { rejectWithValue }) => {
-    try {
-      return await apiCreateProperty(formData)
-    } catch (err) {
-      return rejectWithValue(err)
-    }
+    try { return await apiCreateProperty(formData) }
+    catch (err) { return rejectWithValue(err) }
   }
 )
 
 export const updateProperty = createAsyncThunk(
   'inventory/updateProperty',
   async ({ id, formData }, { rejectWithValue }) => {
-    try {
-      return await apiUpdateProperty(id, formData)
-    } catch (err) {
-      return rejectWithValue(err)
-    }
+    try { return await apiUpdateProperty(id, formData) }
+    catch (err) { return rejectWithValue(err) }
   }
 )
 
 export const deleteProperty = createAsyncThunk(
   'inventory/deleteProperty',
   async (id, { rejectWithValue }) => {
-    try {
-      await apiDeleteProperty(id)
-      return id   // return id so reducer can remove it from list
-    } catch (err) {
-      return rejectWithValue(err)
-    }
+    try { await apiDeleteProperty(id); return id }
+    catch (err) { return rejectWithValue(err) }
   }
 )
 
@@ -72,11 +65,11 @@ const inventorySlice = createSlice({
   name: 'inventory',
   initialState: {
     // list
-    items:      [],
-    total:      0,
-    page:       1,
-    limit:      20,
-    totalPages: 0,
+    items:       [],
+    total:       0,
+    page:        1,
+    limit:       20,
+    totalPages:  0,
     listLoading: false,
     listError:   null,
 
@@ -84,6 +77,11 @@ const inventorySlice = createSlice({
     current:       null,
     detailLoading: false,
     detailError:   null,
+
+    // similar properties
+    similar:        [],
+    similarLoading: false,
+    similarError:   null,
 
     // create / update / delete
     saving:      false,
@@ -104,15 +102,18 @@ const inventorySlice = createSlice({
       state.deleteError = null
     },
     clearCurrent(state) {
-      state.current      = null
-      state.detailError  = null
+      state.current       = null
+      state.detailError   = null
       state.detailLoading = false
+      state.similar       = []
+      state.similarError  = null
     },
     clearErrors(state) {
-      state.listError   = null
-      state.detailError = null
-      state.saveError   = null
-      state.deleteError = null
+      state.listError    = null
+      state.detailError  = null
+      state.saveError    = null
+      state.deleteError  = null
+      state.similarError = null
     },
   },
   extraReducers: builder => {
@@ -125,11 +126,11 @@ const inventorySlice = createSlice({
       })
       .addCase(fetchProperties.fulfilled, (state, { payload }) => {
         state.listLoading = false
-        state.items      = payload.items
-        state.total      = payload.total
-        state.page       = payload.page
-        state.limit      = payload.limit
-        state.totalPages = payload.totalPages
+        state.items       = payload.items
+        state.total       = payload.total
+        state.page        = payload.page
+        state.limit       = payload.limit
+        state.totalPages  = payload.totalPages
       })
       .addCase(fetchProperties.rejected, (state, { payload }) => {
         state.listLoading = false
@@ -152,6 +153,21 @@ const inventorySlice = createSlice({
         state.detailError   = payload?.message || 'Failed to load property'
       })
 
+    // ── fetchSimilar ───────────────────────────────────────────
+    builder
+      .addCase(fetchSimilar.pending, state => {
+        state.similarLoading = true
+        state.similarError   = null
+      })
+      .addCase(fetchSimilar.fulfilled, (state, { payload }) => {
+        state.similarLoading = false
+        state.similar        = payload
+      })
+      .addCase(fetchSimilar.rejected, (state, { payload }) => {
+        state.similarLoading = false
+        state.similarError   = payload?.message || 'Failed to load similar properties'
+      })
+
     // ── createProperty ─────────────────────────────────────────
     builder
       .addCase(createProperty.pending, state => {
@@ -162,7 +178,6 @@ const inventorySlice = createSlice({
       .addCase(createProperty.fulfilled, (state, { payload }) => {
         state.saving      = false
         state.saveSuccess = true
-        // prepend to list if loaded
         state.items       = [payload, ...state.items]
         state.total       += 1
       })
@@ -182,7 +197,6 @@ const inventorySlice = createSlice({
         state.saving      = false
         state.saveSuccess = true
         state.current     = payload
-        // update in list if present
         const idx = state.items.findIndex(i => i._id === payload._id)
         if (idx !== -1) state.items[idx] = payload
       })
@@ -227,6 +241,10 @@ export const selectListError        = s => s.inventory.listError
 export const selectCurrentProperty  = s => s.inventory.current
 export const selectDetailLoading    = s => s.inventory.detailLoading
 export const selectDetailError      = s => s.inventory.detailError
+
+export const selectSimilar          = s => s.inventory.similar
+export const selectSimilarLoading   = s => s.inventory.similarLoading
+export const selectSimilarError     = s => s.inventory.similarError
 
 export const selectSaving           = s => s.inventory.saving
 export const selectSaveError        = s => s.inventory.saveError

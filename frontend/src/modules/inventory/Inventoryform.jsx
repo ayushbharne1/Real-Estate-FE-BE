@@ -6,7 +6,7 @@ import {
   createProperty, updateProperty,
   clearSaveState,
   selectSaving, selectSaveError, selectSaveSuccess,
-} from '../../redux/slices/inventoryslice'
+} from '../../redux/slices/inventorySlice'
 import { buildFormData } from '../../api/inventoryApi'
 import {
   getFieldConfig, buildStepSchema, getStepFieldNames,
@@ -15,9 +15,10 @@ import {
 import {
   Step1, Step2, Step3,
   NotAvailableNotice, FormSidebar, SuccessModal,
-} from './Inventorysteps'
+} from './InventorySteps'
 import { LISTING_TYPE_OPTIONS } from 'shared/constants/dropdown.js'
 import { ListingType } from 'shared/enums/index.js'
+import { getAssetTypeOptions } from './inventoryUtils'
 
 const RED = '#E8431A'
 const STEP_TITLES = ['Add Inventory', 'Property Details', 'More Details']
@@ -152,17 +153,31 @@ export default function InventoryForm({
               <h1 className="text-2xl font-black text-gray-900">{titles[step]}</h1>
 
               {step === 0 && (
-                <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
-                  {LISTING_TYPE_OPTIONS.map(opt => (
-                    <button key={opt.value} type="button"
-                      onClick={() => formik.setFieldValue('listingType', opt.value)}
-                      className="px-5 py-2 text-sm font-semibold transition-colors"
-                      style={formik.values.listingType === opt.value
-                        ? { background: RED, color: '#fff' }
-                        : { background: '#fff', color: '#374151' }}>
-                      {opt.label}
-                    </button>
-                  ))}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
+                    {LISTING_TYPE_OPTIONS.map(opt => (
+                      <button key={opt.value} type="button"
+                        onClick={() => {
+                          formik.setFieldValue('listingType', opt.value)
+                          // Reset assetType if it's not valid for the new listing type
+                          const valid = getAssetTypeOptions(opt.value).map(o => o.value)
+                          if (!valid.includes(formik.values.assetType)) {
+                            formik.setFieldValue('assetType', '')
+                            formik.setFieldError('assetType', undefined)
+                            formik.setFieldTouched('assetType', false, false)
+                          }
+                        }}
+                        className="px-5 py-2 text-sm font-semibold transition-colors"
+                        style={formik.values.listingType === opt.value
+                          ? { background: RED, color: '#fff' }
+                          : { background: '#fff', color: '#374151' }}>
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  {listingType === ListingType.RENTAL && (
+                    <span className="text-xs text-gray-400">Apartment & Villa only</span>
+                  )}
                 </div>
               )}
 

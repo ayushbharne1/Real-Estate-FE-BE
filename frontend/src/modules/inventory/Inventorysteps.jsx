@@ -10,7 +10,6 @@ import {
 } from './InventoryFormFields'
 import { POSSESSION_OPTIONS } from 'shared/constants/dropdown.js'
 import { getAssetTypeOptions, PRICING_KEYS } from './inventoryUtils'
-import { ListingType } from 'shared/enums/index.js'
 
 const RED = '#E8431A'
 const IN_STATES = State.getStatesOfCountry('IN')
@@ -30,17 +29,6 @@ export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = 
   const listingType  = formik.values.listingType
   // ✅ Asset type options filtered dynamically by selected listing type
   const assetOptions = getAssetTypeOptions(listingType)
-
-  // When listing type changes, reset assetType if the current selection is no longer valid
-  const handleListingTypeChange = (val) => {
-    formik.setFieldValue('listingType', val)
-    const validValues = getAssetTypeOptions(val).map(o => o.value)
-    if (!validValues.includes(formik.values.assetType)) {
-      formik.setFieldValue('assetType', '')
-      formik.setFieldError('assetType', undefined)
-      formik.setFieldTouched('assetType', false, false)
-    }
-  }
 
   const selState   = IN_STATES.find(s => s.name === formik.values.state)
   const cities     = selState ? City.getCitiesOfState('IN', selState.isoCode).map(c => c.name) : []
@@ -95,29 +83,6 @@ export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = 
             formik={formik}
           />
         </div>
-      </div>
-
-      {/* Listing type toggle (also in header but duplicated here for clarity on mobile) */}
-      <div className="flex items-center gap-3">
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Listing Type</span>
-        <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
-          {[
-            { value: ListingType.RESALE, label: 'Resale' },
-            { value: ListingType.RENTAL, label: 'Rental' },
-          ].map(opt => (
-            <button key={opt.value} type="button"
-              onClick={() => handleListingTypeChange(opt.value)}
-              className="px-5 py-2 text-sm font-semibold transition-colors"
-              style={listingType === opt.value
-                ? { background: RED, color: '#fff' }
-                : { background: '#fff', color: '#374151' }}>
-              {opt.label}
-            </button>
-          ))}
-        </div>
-        {listingType === ListingType.RENTAL && (
-          <span className="text-xs text-gray-400">Only Apartment & Villa available for rental</span>
-        )}
       </div>
 
       {/* Photos + Video */}
