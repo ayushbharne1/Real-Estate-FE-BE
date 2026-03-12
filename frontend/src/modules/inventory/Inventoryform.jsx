@@ -6,7 +6,7 @@ import {
   createProperty, updateProperty,
   clearSaveState,
   selectSaving, selectSaveError, selectSaveSuccess,
-} from '../../redux/slices/inventorySlice'
+} from '../../redux/slices/inventoryslice'
 import { buildFormData } from '../../api/inventoryApi'
 import {
   getFieldConfig, buildStepSchema, getStepFieldNames,
