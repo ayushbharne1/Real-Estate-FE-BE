@@ -7,7 +7,7 @@ import {
   clearSaveState,
   selectSaving, selectSaveError, selectSaveSuccess,
 } from '../../redux/slices/inventorySlice'
-import { buildFormData } from '../../api/inventoryApi'
+import { buildFormData } from '../../api/inventoryapi'
 import {
   getFieldConfig, buildStepSchema, getStepFieldNames,
   step1Schema, buildSubmitPayload, isRentalLocked, INITIAL_VALUES,

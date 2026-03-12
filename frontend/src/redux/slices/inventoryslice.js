@@ -7,7 +7,7 @@ import {
   createProperty        as apiCreateProperty,
   updateProperty        as apiUpdateProperty,
   deleteProperty        as apiDeleteProperty,
-} from '../../api/inventoryApi'
+} from  '../../api/inventoryapi'
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
 
