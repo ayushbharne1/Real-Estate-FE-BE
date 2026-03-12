@@ -15,7 +15,7 @@ import {
 import {
   Step1, Step2, Step3,
   NotAvailableNotice, FormSidebar, SuccessModal,
-} from './InventorySteps'
+} from './Inventorysteps'
 import { LISTING_TYPE_OPTIONS } from 'shared/constants/dropdown.js'
 import { ListingType } from 'shared/enums/index.js'
 import { getAssetTypeOptions } from './inventoryUtils'
