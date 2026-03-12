@@ -7,7 +7,7 @@ import {
   selectCurrentProperty, selectDetailLoading, selectDetailError,
   selectSimilar, selectSimilarLoading,
   selectDeleting, selectDeleteError,
-} from '../../redux/slices/inventorySlice'
+} from '../../redux/slices/inventoryslice'
 import {
   MapPin, ChevronLeft, Share2, Trash2, Pencil, UserCheck,
   Bed, Bath, Expand, Calendar, ClipboardCheck, CheckCircle2,
