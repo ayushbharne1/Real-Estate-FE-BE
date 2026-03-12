@@ -6,6 +6,7 @@ import { MapPin, AlertCircle, Check } from 'lucide-react'
 import {
   Label, FieldError, TextInput, Dropdown, PricingDivider,
   PhotoUpload, VideoUpload, AmenitiesInput, renderField,
+  MapPickerModal,
   inputBase, focusStyle, blurStyle,
 } from './inventoryformfields'
 import { POSSESSION_OPTIONS } from 'shared/constants/dropdown.js'
@@ -25,15 +26,16 @@ function makeRows(entries) {
 // ─────────────────────────────────────────────────────────────────────────────
 export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = [], existingVideoUrl = null }) => {
   const [pincodeStatus, setPincodeStatus] = useState('idle')
+  const [showMap,       setShowMap]       = useState(false)
 
   const listingType  = formik.values.listingType
-  // ✅ Asset type options filtered dynamically by selected listing type
   const assetOptions = getAssetTypeOptions(listingType)
 
-  const selState   = IN_STATES.find(s => s.name === formik.values.state)
-  const cities     = selState ? City.getCitiesOfState('IN', selState.isoCode).map(c => c.name) : []
+  const selState    = IN_STATES.find(s => s.name === formik.values.state)
+  const cities      = selState ? City.getCitiesOfState('IN', selState.isoCode).map(c => c.name) : []
   const cityOptions = cities.map(c => ({ value: c, label: c }))
 
+  // ── Pincode auto-fill via postal API ─────────────────────────────────────
   const handlePin = async e => {
     const val = e.target.value.replace(/\D/g, '').slice(0, 6)
     formik.setFieldValue('pincode', val)
@@ -56,108 +58,167 @@ export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = 
           formik.setFieldValue('state', po.State)
           formik.setFieldValue('city',  po.District)
         }
-        // Clear pincode error after auto-fill
         formik.setFieldError('pincode', undefined)
         formik.setFieldTouched('pincode', false, false)
         setPincodeStatus('found')
-      } else { setPincodeStatus('error') }
-    } catch { setPincodeStatus('error') }
+      } else {
+        setPincodeStatus('error')
+      }
+    } catch {
+      setPincodeStatus('error')
+    }
+  }
+
+  // ── Map confirm — fills address, pincode, state, city ────────────────────
+  // Nominatim state names may differ slightly from country-state-city library
+  // (e.g. "Odisha" vs "Orissa") so we do a fuzzy normalised match.
+  const handleMapConfirm = ({ address, pincode, city, state }) => {
+    if (address) formik.setFieldValue('address', address)
+
+    if (pincode) {
+      formik.setFieldValue('pincode', pincode)
+      formik.setFieldError('pincode', undefined)
+      formik.setFieldTouched('pincode', false, false)
+      setPincodeStatus('found')
+    }
+
+    if (state) {
+      const norm    = s => s.toLowerCase().replace(/\s+/g, '')
+      const matched = IN_STATES.find(s =>
+        norm(s.name) === norm(state) ||
+        norm(s.name).includes(norm(state)) ||
+        norm(state).includes(norm(s.name))
+      )
+      const stateName = matched?.name || state
+      formik.setFieldValue('state', stateName)
+
+      if (city) {
+        if (matched) {
+          const stateCities = City.getCitiesOfState('IN', matched.isoCode).map(c => c.name)
+          const matchedCity = stateCities.find(c =>
+            norm(c) === norm(city) ||
+            norm(city).includes(norm(c)) ||
+            norm(c).includes(norm(city))
+          )
+          formik.setFieldValue('city', matchedCity || city)
+        } else {
+          formik.setFieldValue('city', city)
+        }
+      }
+    } else if (city) {
+      formik.setFieldValue('city', city)
+    }
+
+    setShowMap(false)
   }
 
   return (
-    <div className="space-y-5">
-      {/* Name + Asset Type */}
-      <div className="grid grid-cols-2 gap-5">
-        <div>
-          <Label required>Name of Property</Label>
-          {/* TextInput renders its own FieldError */}
-          <TextInput name="name" placeholder="Eg. Prestige Camden Gardens" formik={formik} />
-        </div>
-        <div>
-          <Label required>Select Asset Type</Label>
-          {/* ✅ Dynamic options based on listingType. Dropdown renders its own FieldError. */}
-          <Dropdown
-            name="assetType"
-            placeholder="Select Asset Type"
-            options={assetOptions}
-            formik={formik}
-          />
-        </div>
-      </div>
-
-      {/* Photos + Video */}
-      <div className="grid grid-cols-2 gap-5">
-        <div>
-          <Label>Add Photos <span className="text-gray-400 font-normal normal-case">(max 10)</span></Label>
-          <PhotoUpload onChange={onPhotosChange} existingUrls={existingImages} />
-        </div>
-        <div>
-          <Label>Add Video <span className="text-gray-400 font-normal normal-case">(max 1, 100MB)</span></Label>
-          <VideoUpload onChange={onVideoChange} existingUrl={existingVideoUrl} />
-        </div>
-      </div>
-
-      {/* Address */}
-      <div>
-        <Label required>Address</Label>
-        <TextInput name="address" placeholder="Full property address" formik={formik} />
-      </div>
-
-      {/* Pincode, State, City, Map */}
-      <div className="grid grid-cols-4 gap-3 items-start">
-        <div>
-          <Label required>Pincode</Label>
-          <div className="relative">
-            <input type="text" name="pincode" placeholder="6-digit" maxLength={6}
-              value={formik.values.pincode} onChange={handlePin} onBlur={formik.handleBlur}
-              className={inputBase}
-              style={formik.touched.pincode && formik.errors.pincode ? { borderColor: RED } : {}}
-              onFocus={e => Object.assign(e.target.style, focusStyle)} />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-              {pincodeStatus === 'loading' && <span className="inline-block w-3.5 h-3.5 border-2 border-gray-300 border-t-orange-500 rounded-full animate-spin" />}
-              {pincodeStatus === 'found'   && <Check className="w-3.5 h-3.5 text-green-500" />}
-              {pincodeStatus === 'error'   && <AlertCircle className="w-3.5 h-3.5" style={{ color: RED }} />}
-            </span>
+    <>
+      <div className="space-y-5">
+        {/* Name + Asset Type */}
+        <div className="grid grid-cols-2 gap-5">
+          <div>
+            <Label required>Name of Property</Label>
+            <TextInput name="name" placeholder="Eg. Prestige Camden Gardens" formik={formik} />
           </div>
-          {pincodeStatus === 'found' && <p className="text-xs mt-1 text-green-600">Auto-filled ✓</p>}
-          {pincodeStatus === 'error' && <p className="text-xs mt-1" style={{ color: RED }}>Not found</p>}
-          {/* Manual FieldError for pincode — this is a raw input, not using TextInput */}
-          <FieldError name="pincode" formik={formik} />
+          <div>
+            <Label required>Select Asset Type</Label>
+            <Dropdown
+              name="assetType"
+              placeholder="Select Asset Type"
+              options={assetOptions}
+              formik={formik}
+            />
+          </div>
         </div>
+
+        {/* Photos + Video */}
+        <div className="grid grid-cols-2 gap-5">
+          <div>
+            <Label>Add Photos <span className="text-gray-400 font-normal normal-case">(max 10)</span></Label>
+            <PhotoUpload onChange={onPhotosChange} existingUrls={existingImages} />
+          </div>
+          <div>
+            <Label>Add Video <span className="text-gray-400 font-normal normal-case">(max 1, 100MB)</span></Label>
+            <VideoUpload onChange={onVideoChange} existingUrl={existingVideoUrl} />
+          </div>
+        </div>
+
+        {/* Address */}
         <div>
-          <Label required>State</Label>
-          {/* Dropdown renders its own FieldError */}
-          <Dropdown name="state" placeholder="State"
-            options={IN_STATES.map(s => ({ value: s.name, label: s.name }))}
-            formik={formik}
-            onSelect={() => { formik.setFieldValue('city', '') }} />
+          <Label required>Address</Label>
+          <TextInput name="address" placeholder="Full property address" formik={formik} />
         </div>
-        <div>
-          <Label required>City</Label>
-          <Dropdown name="city"
-            placeholder={cityOptions.length ? 'City' : 'Select state first'}
-            options={cityOptions}
-            formik={formik} />
+
+        {/* Pincode / State / City / Open Map */}
+        <div className="grid grid-cols-4 gap-3 items-start">
+          <div>
+            <Label required>Pincode</Label>
+            <div className="relative">
+              <input type="text" name="pincode" placeholder="6-digit" maxLength={6}
+                value={formik.values.pincode} onChange={handlePin} onBlur={formik.handleBlur}
+                className={inputBase}
+                style={formik.touched.pincode && formik.errors.pincode ? { borderColor: RED } : {}}
+                onFocus={e => Object.assign(e.target.style, focusStyle)} />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                {pincodeStatus === 'loading' && <span className="inline-block w-3.5 h-3.5 border-2 border-gray-300 border-t-orange-500 rounded-full animate-spin" />}
+                {pincodeStatus === 'found'   && <Check className="w-3.5 h-3.5 text-green-500" />}
+                {pincodeStatus === 'error'   && <AlertCircle className="w-3.5 h-3.5" style={{ color: RED }} />}
+              </span>
+            </div>
+            {pincodeStatus === 'found' && <p className="text-xs mt-1 text-green-600">Auto-filled ✓</p>}
+            {pincodeStatus === 'error' && <p className="text-xs mt-1" style={{ color: RED }}>Not found</p>}
+            <FieldError name="pincode" formik={formik} />
+          </div>
+
+          <div>
+            <Label required>State</Label>
+            <Dropdown name="state" placeholder="State"
+              options={IN_STATES.map(s => ({ value: s.name, label: s.name }))}
+              formik={formik}
+              onSelect={() => formik.setFieldValue('city', '')} />
+          </div>
+
+          <div>
+            <Label required>City</Label>
+            <Dropdown name="city"
+              placeholder={cityOptions.length ? 'City' : 'Select state first'}
+              options={cityOptions}
+              formik={formik} />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowMap(true)}
+            className="border-2 rounded-xl px-3 py-2.5 text-sm font-semibold flex items-center justify-center gap-1.5 mt-5 hover:opacity-80 whitespace-nowrap transition-all active:scale-95"
+            style={{ borderColor: RED, color: RED }}
+          >
+            <MapPin className="w-3.5 h-3.5" /> Open Map
+          </button>
         </div>
-        <button type="button"
-          className="border-2 rounded-xl px-3 py-2.5 text-sm font-semibold flex items-center justify-center gap-1.5 mt-5 hover:opacity-80 whitespace-nowrap transition-colors"
-          style={{ borderColor: RED, color: RED }}>
-          <MapPin className="w-3.5 h-3.5" /> Open Map
-        </button>
+
+        {/* Area + Possession */}
+        <div className="grid grid-cols-2 gap-5">
+          <div>
+            <Label>Area / Locality</Label>
+            <TextInput name="area" placeholder="Eg. Whitefield, Koramangala" formik={formik} />
+          </div>
+          <div>
+            <Label required>Select Possession</Label>
+            <Dropdown name="possession" placeholder="Select Possession" options={POSSESSION_OPTIONS} formik={formik} />
+          </div>
+        </div>
       </div>
 
-      {/* Area + Possession */}
-      <div className="grid grid-cols-2 gap-5">
-        <div>
-          <Label>Area / Locality</Label>
-          <TextInput name="area" placeholder="Eg. Whitefield, Koramangala" formik={formik} />
-        </div>
-        <div>
-          <Label required>Select Possession</Label>
-          <Dropdown name="possession" placeholder="Select Possession" options={POSSESSION_OPTIONS} formik={formik} />
-        </div>
-      </div>
-    </div>
+      {/* Map modal — outside the form grid to avoid z-index clipping */}
+      {showMap && (
+        <MapPickerModal
+          initialAddress={formik.values.address || ''}
+          onClose={() => setShowMap(false)}
+          onConfirm={handleMapConfirm}
+        />
+      )}
+    </>
   )
 }
 
@@ -183,7 +244,6 @@ export const Step2 = ({ formik, fieldConfig }) => {
           {row.map(([key, cfg]) => (
             <div key={key} className={cfg.type === 'config' ? 'col-span-2' : ''}>
               <Label required={cfg.required}>{cfg.label}</Label>
-              {/* renderField returns component that includes its own FieldError — NO extra wrapper */}
               {renderField(key, cfg, formik)}
             </div>
           ))}
@@ -219,7 +279,7 @@ export const Step3 = ({ formik, fieldConfig }) => {
     </div>
   )
 
-  const fields      = fieldConfig.step3
+  const fields       = fieldConfig.step3
   const hasAmenities = 'amenities' in fields
   const others       = Object.entries(fields).filter(([k]) => k !== 'amenities')
 
