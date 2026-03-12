@@ -1,10 +1,33 @@
 // src/modules/inventory/InventoryFormFields.jsx
 
 import { useState, useRef, useEffect } from 'react'
-import { ChevronDown, Check, AlertCircle, Upload, X } from 'lucide-react'
+import { ChevronDown, Check, AlertCircle, Upload, X, MapPin, Search, Loader2, Navigation } from 'lucide-react'
 import { BHK_OPTIONS, AMENITY_OPTIONS } from 'shared/constants/dropdown.js'
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
 const RED = '#E8431A'
+
+// ─── Fix Leaflet default icon URLs broken by Vite's bundler ──────────────────
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconUrl:       new URL('leaflet/dist/images/marker-icon.png',    import.meta.url).href,
+  iconRetinaUrl: new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).href,
+  shadowUrl:     new URL('leaflet/dist/images/marker-shadow.png',  import.meta.url).href,
+})
+
+// Custom branded orange pin
+const orangeIcon = L.divIcon({
+  className: '',
+  html: `<svg width="32" height="42" viewBox="0 0 32 42" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 0C7.163 0 0 7.163 0 16c0 10 16 26 16 26S32 26 32 16C32 7.163 24.837 0 16 0z"
+      fill="${RED}" stroke="white" stroke-width="2"/>
+    <circle cx="16" cy="16" r="6" fill="white"/>
+  </svg>`,
+  iconSize:   [32, 42],
+  iconAnchor: [16, 42],
+})
 
 export const inputBase  = 'w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm placeholder-gray-300 outline-none bg-white transition-all'
 export const focusStyle = { borderColor: RED, boxShadow: `0 0 0 3px ${RED}18` }
@@ -17,8 +40,7 @@ export const Label = ({ children, required }) => (
   </label>
 )
 
-// ─── FieldError — single source of truth, used ONLY here, never duplicated ───
-// renderField does NOT call FieldError — each component renders its own.
+// ─── FieldError ───────────────────────────────────────────────────────────────
 export const FieldError = ({ name, formik }) => {
   const touched = formik.touched[name]
   const error   = formik.errors[name]
@@ -63,7 +85,6 @@ export const NumberInput = ({ name, placeholder, suffix, formik }) => {
 }
 
 // ─── Dropdown ─────────────────────────────────────────────────────────────────
-// Fix: on select → setFieldValue + setFieldError(name, undefined) to clear error
 export const Dropdown = ({ name, placeholder, options = [], formik, onSelect }) => {
   const [open, setOpen] = useState(false)
   const ref = useRef()
@@ -79,7 +100,6 @@ export const Dropdown = ({ name, placeholder, options = [], formik, onSelect }) 
 
   const select = o => {
     formik.setFieldValue(name, o.value)
-    // ✅ Clear the error immediately after a valid selection
     formik.setFieldError(name, undefined)
     formik.setFieldTouched(name, false, false)
     onSelect?.(o.value)
@@ -112,7 +132,6 @@ export const Dropdown = ({ name, placeholder, options = [], formik, onSelect }) 
           </div>
         )}
       </div>
-      {/* ✅ FieldError rendered ONCE here inside the component — NOT again in renderField */}
       <FieldError name={name} formik={formik} />
     </div>
   )
@@ -188,7 +207,6 @@ export const ConfigInput = ({ formik }) => (
   <div>
     <div className="flex gap-2">
       <div className="flex-1">
-        {/* Dropdown already renders its own FieldError */}
         <Dropdown name="bedrooms" placeholder="BHK" options={BHK_OPTIONS} formik={formik} />
       </div>
       {[{ name: 'bathrooms', ph: 'Bathrooms' }, { name: 'balconies', ph: 'Balconies' }].map(({ name, ph }) => (
@@ -201,11 +219,10 @@ export const ConfigInput = ({ formik }) => (
         </div>
       ))}
     </div>
-    {/* bedrooms FieldError already shown inside Dropdown above */}
   </div>
 )
 
-// ─── Multi-select (Extra Rooms etc.) ─────────────────────────────────────────
+// ─── Multi-select ─────────────────────────────────────────────────────────────
 export const MultiSelect = ({ name, options = [], formik }) => {
   const selected = formik.values[name] || []
   const toggle = v => {
@@ -244,11 +261,10 @@ export const PricingDivider = () => (
 export const AmenitiesInput = ({ formik }) => {
   const [customInput, setCustomInput] = useState('')
   const [extras, setExtras]           = useState([])
-
   const all = [...AMENITY_OPTIONS, ...extras.map(v => ({ value: v, label: v }))]
 
   const toggle = v => {
-    const cur  = formik.values.amenities || []
+    const cur = formik.values.amenities || []
     formik.setFieldValue('amenities', cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v])
   }
 
@@ -297,8 +313,6 @@ export const AmenitiesInput = ({ formik }) => {
 }
 
 // ─── renderField ──────────────────────────────────────────────────────────────
-// ✅ Each component renders its OWN FieldError internally.
-//    This function must NOT add any extra <FieldError> wrapper — no duplicates.
 export function renderField(key, cfg, formik) {
   switch (cfg.type) {
     case 'text':        return <TextInput    name={key} placeholder={`Enter ${cfg.label}`} formik={formik} />
@@ -308,7 +322,7 @@ export function renderField(key, cfg, formik) {
     case 'price':       return <PriceInput   fieldKey={key} formik={formik} />
     case 'config':      return <ConfigInput  formik={formik} />
     case 'multiselect': return <MultiSelect  name={key} options={cfg.options} formik={formik} />
-    case 'amenities':   return null   // rendered separately in Step3
+    case 'amenities':   return null
     default:            return <TextInput    name={key} placeholder={`Enter ${cfg.label}`} formik={formik} />
   }
 }
@@ -411,6 +425,301 @@ export const VideoUpload = ({ onChange, existingUrl = null }) => {
           </div>
       }
       <input ref={ref} type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden" onChange={add} />
+    </div>
+  )
+}
+
+// ─── Map internals (must live inside <MapContainer>) ─────────────────────────
+
+// Listens for map clicks and reports latlng up
+function MapClickHandler({ onMapClick }) {
+  useMapEvents({ click: e => onMapClick(e.latlng) })
+  return null
+}
+
+// Smoothly flies to a new position whenever `position` changes
+function FlyController({ position }) {
+  const map = useMap()
+  useEffect(() => {
+    if (position) map.flyTo(position, 15, { animate: true, duration: 1 })
+  }, [position, map])
+  return null
+}
+
+// ─── Nominatim API helpers ────────────────────────────────────────────────────
+const NOMINATIM_HEADERS = { 'Accept-Language': 'en' }
+
+async function reverseGeocode(lat, lon) {
+  const r = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
+    { headers: NOMINATIM_HEADERS }
+  )
+  return r.json()
+}
+
+async function forwardGeocode(query) {
+  const r = await fetch(
+    `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=6&countrycodes=in`,
+    { headers: NOMINATIM_HEADERS }
+  )
+  return r.json()
+}
+
+// ─── Map Picker Modal ─────────────────────────────────────────────────────────
+export const MapPickerModal = ({ onClose, onConfirm, initialAddress = '' }) => {
+  const [markerPos,   setMarkerPos]   = useState(null)
+  const [flyTarget,   setFlyTarget]   = useState(null)
+  const [displayAddr, setDisplayAddr] = useState('')
+  const [searchText,  setSearchText]  = useState(initialAddress)
+  const [suggestions, setSuggestions] = useState([])
+  const [searching,   setSearching]   = useState(false)
+  const [confirming,  setConfirming]  = useState(false)
+  const debounceRef = useRef(null)
+
+  // Geocode initial address on first open
+  useEffect(() => {
+    if (!initialAddress.trim()) return
+    forwardGeocode(initialAddress)
+      .then(results => {
+        if (!results?.[0]) return
+        const pos = { lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon) }
+        setMarkerPos(pos)
+        setFlyTarget(pos)
+        setDisplayAddr(results[0].display_name)
+      })
+      .catch(() => {})
+  }, []) // run once on mount
+
+  // Drop/move marker + reverse geocode on map click
+  const handleMapClick = async (latlng) => {
+    setMarkerPos(latlng)
+    try {
+      const data = await reverseGeocode(latlng.lat, latlng.lng)
+      if (data?.display_name) {
+        setDisplayAddr(data.display_name)
+        setSearchText(data.display_name)
+      }
+    } catch {}
+  }
+
+  // Reverse geocode after dragging the marker
+  const handleMarkerDragEnd = async (e) => {
+    const latlng = e.target.getLatLng()
+    setMarkerPos(latlng)
+    try {
+      const data = await reverseGeocode(latlng.lat, latlng.lng)
+      if (data?.display_name) {
+        setDisplayAddr(data.display_name)
+        setSearchText(data.display_name)
+      }
+    } catch {}
+  }
+
+  // Debounced search-as-you-type
+  const handleSearchChange = (e) => {
+    const val = e.target.value
+    setSearchText(val)
+    setSuggestions([])
+    if (!val.trim()) return
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true)
+      try {
+        setSuggestions(await forwardGeocode(val) || [])
+      } catch {
+        setSuggestions([])
+      } finally {
+        setSearching(false)
+      }
+    }, 400)
+  }
+
+  const selectSuggestion = (item) => {
+    const pos = { lat: parseFloat(item.lat), lng: parseFloat(item.lon) }
+    setSuggestions([])
+    setSearchText(item.display_name)
+    setDisplayAddr(item.display_name)
+    setMarkerPos(pos)
+    setFlyTarget(pos)
+  }
+
+  const handleMyLocation = () => {
+    if (!navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      const pos = { lat: coords.latitude, lng: coords.longitude }
+      setMarkerPos(pos)
+      setFlyTarget(pos)
+      try {
+        const data = await reverseGeocode(pos.lat, pos.lng)
+        if (data?.display_name) {
+          setDisplayAddr(data.display_name)
+          setSearchText(data.display_name)
+        }
+      } catch {}
+    })
+  }
+
+  const handleConfirm = async () => {
+    if (!markerPos) return
+    setConfirming(true)
+    try {
+      const data = await reverseGeocode(markerPos.lat, markerPos.lng)
+      const a = data?.address || {}
+      const streetParts = [
+        a.house_number,
+        a.road || a.pedestrian || a.footway || a.path,
+        a.neighbourhood || a.suburb || a.quarter,
+      ].filter(Boolean)
+      const streetAddr = streetParts.length
+        ? streetParts.join(', ')
+        : (data?.display_name || '').split(',').slice(0, 3).join(',').trim()
+
+      onConfirm({
+        address: streetAddr || data?.display_name || '',
+        pincode: a.postcode || '',
+        city:    a.city || a.town || a.village || a.county || '',
+        state:   a.state || '',
+      })
+    } catch {
+      setConfirming(false)
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden w-full"
+        style={{ maxWidth: 700, height: 580 }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* ── Header ── */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+          <div>
+            <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <MapPin className="w-4 h-4" style={{ color: RED }} />
+              Pick Location on Map
+            </h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Search an address, click the map, or drag the pin
+            </p>
+          </div>
+          <button type="button" onClick={onClose}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* ── Search bar ── */}
+        <div className="px-4 py-3 border-b border-gray-100 flex-shrink-0 relative">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchText}
+              onChange={handleSearchChange}
+              placeholder="Search for an address in India…"
+              className={`${inputBase} pl-9 pr-10`}
+              onFocus={e => Object.assign(e.target.style, focusStyle)}
+              onBlur={e => {
+                Object.assign(e.target.style, blurStyle)
+                // Small delay so onMouseDown on a suggestion fires first
+                setTimeout(() => setSuggestions([]), 150)
+              }}
+            />
+            {searching && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" />
+            )}
+          </div>
+
+          {suggestions.length > 0 && (
+            <div className="absolute left-4 right-4 top-full bg-white border border-gray-100 rounded-xl shadow-2xl z-[10000] max-h-48 overflow-y-auto mt-1">
+              {suggestions.map((s, i) => (
+                <button key={i} type="button"
+                  onMouseDown={() => selectSuggestion(s)}
+                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-orange-50 transition-colors border-b border-gray-50 last:border-0 flex items-start gap-2">
+                  <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-gray-400" />
+                  <span className="text-gray-700 leading-snug">{s.display_name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Map ── */}
+        <div className="flex-1 relative min-h-0">
+          <MapContainer
+            center={[20.5937, 78.9629]}
+            zoom={5}
+            style={{ width: '100%', height: '100%' }}
+            zoomControl
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              maxZoom={19}
+            />
+            <MapClickHandler onMapClick={handleMapClick} />
+            <FlyController position={flyTarget} />
+            {markerPos && (
+              <Marker
+                position={markerPos}
+                icon={orangeIcon}
+                draggable
+                eventHandlers={{ dragend: handleMarkerDragEnd }}
+              />
+            )}
+          </MapContainer>
+
+          {/* My Location overlay button */}
+          <button
+            type="button"
+            onClick={handleMyLocation}
+            className="absolute bottom-4 right-4 z-[1000] bg-white rounded-xl shadow-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 flex items-center gap-1.5 transition-colors"
+          >
+            <Navigation className="w-3.5 h-3.5" style={{ color: RED }} />
+            My Location
+          </button>
+
+          {/* Hint overlay when no pin is placed yet */}
+          {!markerPos && (
+            <div className="absolute inset-x-0 bottom-14 flex justify-center pointer-events-none z-[999]">
+              <span className="bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow text-xs text-gray-500 font-medium flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5" style={{ color: RED }} />
+                Click anywhere on the map to drop a pin
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* ── Footer ── */}
+        <div className="px-5 py-4 border-t border-gray-100 flex-shrink-0 flex items-center justify-between gap-3">
+          <p className="text-xs flex-1 min-w-0 truncate">
+            {displayAddr
+              ? <span className="text-gray-600">{displayAddr}</span>
+              : <span className="text-gray-400">No location selected yet</span>}
+          </p>
+          <div className="flex gap-2 flex-shrink-0">
+            <button type="button" onClick={onClose}
+              className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={!markerPos || confirming}
+              className="px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40 flex items-center gap-2"
+              style={{ background: RED }}
+            >
+              {confirming && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              {confirming ? 'Filling in…' : 'Use this location'}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
