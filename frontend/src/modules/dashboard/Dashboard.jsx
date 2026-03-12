@@ -15,7 +15,7 @@ import {
   selectInventoryPages,
   selectListLoading,
   selectListError,
-} from '../../redux/slices/inventorySlice'
+} from '../../redux/slices/inventoryslice'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = [
