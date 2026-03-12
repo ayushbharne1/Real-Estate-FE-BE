@@ -7,7 +7,7 @@ import {
   Label, FieldError, TextInput, Dropdown, PricingDivider,
   PhotoUpload, VideoUpload, AmenitiesInput, renderField,
   inputBase, focusStyle, blurStyle,
-} from './Inventoryformfields'
+} from './inventoryformfields'
 import { POSSESSION_OPTIONS } from 'shared/constants/dropdown.js'
 import { getAssetTypeOptions, PRICING_KEYS } from './inventoryUtils'
 
