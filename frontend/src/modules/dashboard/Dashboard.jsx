@@ -6,7 +6,7 @@ import {
   Grid, List, ChevronDown, MapPin, Share2,
   Info, ChevronLeft, ChevronRight, ArrowUpDown,
   Building2, LayoutGrid, Home, Landmark, TreePine,
-  Warehouse, Store, X, Loader2
+  Warehouse, Store, X, Loader2, Copy, Check,
 } from 'lucide-react'
 import {
   fetchProperties,
@@ -15,7 +15,7 @@ import {
   selectInventoryPages,
   selectListLoading,
   selectListError,
-} from '../../redux/slices/inventorySlice'
+} from '../../redux/slices/inventoryslice'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -78,15 +78,170 @@ function getAssetLabel(assetType) {
   return ASSET_TYPES.find(a => a.value === assetType)?.label || assetType || '—'
 }
 
+function labelify(str) {
+  if (!str) return '—'
+  return str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
+// ── Build share message ───────────────────────────────────────────────────────
+function buildShareMessage(prop) {
+  const b  = prop?.basicDetails    || {}
+  const pd = prop?.propertyDetails || {}
+  const md = prop?.moreDetails     || {}
+  const isRental  = b.listingType === 'RENTAL'
+  const fullAddr  = [b.address, b.area, b.city, b.state, b.pincode].filter(Boolean).join(', ')
+
+  const price = isRental
+    ? formatPrice(pd.rentPerMonth, pd.rentUnit)
+    : formatPrice(pd.askPrice, pd.priceUnit)
+
+  const lines = []
+  lines.push(`🏠 *${b.name}* [${prop.propertyId}]`)
+  lines.push(`📍 ${fullAddr || '—'}`)
+  lines.push('')
+  lines.push(`🏷️ *Type:* ${isRental ? 'Rental' : 'Resale'} | ${labelify(b.assetType)}`)
+  if (isRental) {
+    lines.push(`💰 *Rent:* ${price}/month`)
+    if (pd.deposit) lines.push(`🔐 *Deposit:* ${formatPrice(pd.deposit, pd.depositUnit)}`)
+  } else {
+    lines.push(`💰 *Ask Price:* ${price}`)
+    if (pd.pricePerSqft) lines.push(`📐 *Price/Sq.ft:* ₹${Number(pd.pricePerSqft).toLocaleString()}`)
+  }
+  lines.push('')
+  const cfg = []
+  if (b.bedrooms  > 0) cfg.push(`🛏️ ${b.bedrooms} Bed`)
+  if (b.bathrooms > 0) cfg.push(`🚿 ${b.bathrooms} Bath`)
+  if (b.balconies > 0) cfg.push(`🏡 ${b.balconies} Balcony`)
+  if (cfg.length) lines.push(cfg.join('  |  '))
+  if (pd.sbua)       lines.push(`📏 *SBUA:* ${pd.sbua} sq.ft`)
+  if (pd.doorFacing) lines.push(`🧭 *Facing:* ${labelify(pd.doorFacing)}`)
+  if (pd.furnishing) lines.push(`🪑 *Furnishing:* ${labelify(pd.furnishing)}`)
+  if (md.amenities?.length > 0) {
+    lines.push('')
+    lines.push(`✨ *Amenities:* ${md.amenities.map(labelify).join(' • ')}`)
+  }
+  if (md.description) { lines.push(''); lines.push(`📝 ${md.description}`) }
+  lines.push('')
+  lines.push(`---`)
+  lines.push(`📞 *InfiniteRealty* — Contact us for more details!`)
+  const propUrl = `${window.location.origin}/property/details/${prop._id}`
+  lines.push(`🔗 ${propUrl}`)
+  return lines.join('\n')
+}
+
+// ── Share Modal ───────────────────────────────────────────────────────────────
+const ShareModal = ({ prop, onClose }) => {
+  const [copied, setCopied] = useState(false)
+  const message    = buildShareMessage(prop)
+  const encodedMsg = encodeURIComponent(message)
+  const propUrl    = `${window.location.origin}/property/details/${prop._id}`
+
+  const shareOptions = [
+    {
+      label: 'WhatsApp',
+      bg: '#dcf8c6',
+      icon: <svg viewBox="0 0 24 24" className="w-6 h-6" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>,
+      url: `https://wa.me/?text=${encodedMsg}`,
+    },
+    {
+      label: 'Telegram',
+      bg: '#d0eaf8',
+      icon: <svg viewBox="0 0 24 24" className="w-6 h-6" fill="#0088cc"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>,
+      url: `https://t.me/share/url?url=${encodeURIComponent(propUrl)}&text=${encodedMsg}`,
+    },
+    {
+      label: 'SMS',
+      bg: '#ede9fe',
+      icon: <svg viewBox="0 0 24 24" className="w-6 h-6" fill="#6366f1"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg>,
+      url: `sms:?body=${encodedMsg}`,
+    },
+    {
+      label: 'Email',
+      bg: '#fde8e7',
+      icon: <svg viewBox="0 0 24 24" className="w-6 h-6" fill="#ea4335"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>,
+      url: `mailto:?subject=${encodeURIComponent(`Property: ${prop?.basicDetails?.name || ''}`)}&body=${encodedMsg}`,
+    },
+  ]
+
+  const handleCopy = async () => {
+    try { await navigator.clipboard.writeText(message) }
+    catch {
+      const ta = document.createElement('textarea')
+      ta.value = message; document.body.appendChild(ta); ta.select()
+      document.execCommand('copy'); document.body.removeChild(ta)
+    }
+    setCopied(true); setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div>
+            <h3 className="text-base font-bold text-gray-900">Share Property</h3>
+            <p className="text-xs text-gray-400 mt-0.5">{prop?.basicDetails?.name}</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+
+        {/* Message preview */}
+        <div className="px-5 pt-4">
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Message Preview</p>
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 max-h-40 overflow-y-auto">
+            <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed">{message}</pre>
+          </div>
+        </div>
+
+        {/* Platforms */}
+        <div className="px-5 pt-4">
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Share via</p>
+          <div className="grid grid-cols-4 gap-3">
+            {shareOptions.map(opt => (
+              <a key={opt.label} href={opt.url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-1.5 group">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm" style={{ background: opt.bg }}>
+                  {opt.icon}
+                </div>
+                <span className="text-[10px] font-medium text-gray-500">{opt.label}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="px-5 py-4 mt-3 flex gap-3">
+          <button
+            onClick={handleCopy}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all ${
+              copied ? 'border-green-400 bg-green-50 text-green-600' : 'border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            {copied ? 'Copied!' : 'Copy Message'}
+          </button>
+          {typeof navigator !== 'undefined' && navigator.share && (
+            <button
+              onClick={async () => { try { await navigator.share({ title: prop?.basicDetails?.name, text: message, url: propUrl }) } catch {} }}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold bg-[#E8431A] text-white hover:bg-[#cf3b16] transition-colors"
+            >
+              <Share2 className="w-4 h-4" /> Share
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 const Chip = ({ label }) => (
-  <span className="text-xs border border-gray-200 rounded-full px-3 py-1 text-gray-500 whitespace-nowrap bg-gray-50">
-    {label}
-  </span>
+  <span className="text-xs border border-gray-200 rounded-full px-3 py-1 text-gray-500 whitespace-nowrap bg-gray-50">{label}</span>
 )
 
-const PropertyCard = ({ prop, mode }) => {
+const PropertyCard = ({ prop, mode, onShare }) => {
   const navigate  = useNavigate()
   const isRental  = mode === 'rental'
   const b         = prop.basicDetails || {}
@@ -94,22 +249,15 @@ const PropertyCard = ({ prop, mode }) => {
   const img       = b.primaryImage || b.images?.[0] || 'https://via.placeholder.com/400x300?text=No+Image'
   const bhk       = getBHKLabel(b.bedrooms)
   const facing    = pd.doorFacing?.replace(/_/g, ' ') || null
-
-  const priceLabel  = isRental
-    ? formatPrice(pd.rentPerMonth, pd.rentUnit)
-    : formatPrice(pd.askPrice, pd.priceUnit)
+  const priceLabel = isRental ? formatPrice(pd.rentPerMonth, pd.rentUnit) : formatPrice(pd.askPrice, pd.priceUnit)
   const depositLabel = isRental ? formatPrice(pd.deposit, pd.depositUnit) : null
 
   return (
-    <div
-      onClick={() => navigate(`/property/details/${prop._id}`)}
-      className="bg-white rounded-md overflow-hidden shadow-md border border-gray-300 hover:shadow-lg transition-all duration-200 cursor-pointer group"
-    >
+    <div onClick={() => navigate(`/property/details/${prop._id}`)}
+      className="bg-white rounded-md overflow-hidden shadow-md border border-gray-300 hover:shadow-lg transition-all duration-200 cursor-pointer group">
       <div className="relative overflow-hidden">
         <img src={img} alt={b.name} className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300" />
-        <span className="absolute top-3 left-3 bg-[#E8431A] text-white text-xs font-bold px-2.5 py-1 rounded-md tracking-wide">
-          {prop.propertyId}
-        </span>
+        <span className="absolute top-3 left-3 bg-[#E8431A] text-white text-xs font-bold px-2.5 py-1 rounded-md tracking-wide">{prop.propertyId}</span>
         <span className={`absolute bottom-3 left-3 text-white text-[10px] font-bold px-2 py-0.5 rounded-md ${isRental ? 'bg-blue-600' : 'bg-gray-700'}`}>
           {isRental ? 'Rental' : 'Resale'}
         </span>
@@ -122,45 +270,26 @@ const PropertyCard = ({ prop, mode }) => {
         </div>
         <p className="font-bold text-gray-900 text-sm leading-snug mb-1 truncate">{b.name}</p>
         <p className="flex items-center gap-1 text-xs text-gray-400 mb-3">
-          <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: RED }} />
-          {b.area || b.city || '—'}
+          <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: RED }} />{b.area || b.city || '—'}
         </p>
         <div className="flex items-center justify-between border-t border-gray-100 pt-2.5 gap-2">
           <div className="flex items-center justify-around flex-1 border border-gray-300 rounded-sm py-2 px-1 gap-1">
             {isRental ? (
               <>
-                <div className="text-center">
-                  <p className="text-xs font-bold text-gray-900">{priceLabel}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">Rent</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs font-bold text-gray-900">{depositLabel || '—'}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">Deposit</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs font-bold text-gray-900">{formatSqft(pd.sbua)}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">SBUA</p>
-                </div>
+                <div className="text-center"><p className="text-xs font-bold text-gray-900">{priceLabel}</p><p className="text-[10px] text-gray-400 mt-0.5">Rent</p></div>
+                <div className="text-center"><p className="text-xs font-bold text-gray-900">{depositLabel || '—'}</p><p className="text-[10px] text-gray-400 mt-0.5">Deposit</p></div>
+                <div className="text-center"><p className="text-xs font-bold text-gray-900">{formatSqft(pd.sbua)}</p><p className="text-[10px] text-gray-400 mt-0.5">SBUA</p></div>
               </>
             ) : (
               <>
-                <div className="text-center">
-                  <p className="text-xs font-bold text-gray-900">{formatPriceSqft(pd.pricePerSqft)}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">Price/Sq.ft</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs font-bold text-gray-900">{formatSqft(pd.sbua)}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">SBUA</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs font-bold text-gray-900">{priceLabel}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">Ask Price</p>
-                </div>
+                <div className="text-center"><p className="text-xs font-bold text-gray-900">{formatPriceSqft(pd.pricePerSqft)}</p><p className="text-[10px] text-gray-400 mt-0.5">Price/Sq.ft</p></div>
+                <div className="text-center"><p className="text-xs font-bold text-gray-900">{formatSqft(pd.sbua)}</p><p className="text-[10px] text-gray-400 mt-0.5">SBUA</p></div>
+                <div className="text-center"><p className="text-xs font-bold text-gray-900">{priceLabel}</p><p className="text-[10px] text-gray-400 mt-0.5">Ask Price</p></div>
               </>
             )}
           </div>
           <button
-            onClick={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); onShare(prop) }}
             className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-md px-2.5 py-2 flex flex-col items-center gap-0.5 text-[10px] font-semibold transition-colors flex-shrink-0"
           >
             <Share2 className="w-3.5 h-3.5" /> Share
@@ -171,7 +300,7 @@ const PropertyCard = ({ prop, mode }) => {
   )
 }
 
-// ── Dropdown components ───────────────────────────────────────────────────────
+// ── Dropdown components (unchanged) ──────────────────────────────────────────
 
 const AssetTypeDropdown = ({ selected, onChange }) => {
   const [open, setOpen] = useState(false)
@@ -183,20 +312,15 @@ const AssetTypeDropdown = ({ selected, onChange }) => {
   }, [])
   return (
     <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${selected ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}
-      >
+      <button onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${selected ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}>
         <Building2 className="w-4 h-4" /> Asset Type <ChevronDown className="w-3.5 h-3.5" />
       </button>
       {open && (
         <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-2 max-h-72 overflow-y-auto">
           {ASSET_TYPES.map(({ label, value, Icon }) => (
-            <button
-              key={value}
-              onClick={() => { onChange(selected === value ? null : value); setOpen(false) }}
-              className={`w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selected === value ? 'text-[#E8431A] font-semibold bg-orange-50' : 'text-gray-700'}`}
-            >
+            <button key={value} onClick={() => { onChange(selected === value ? null : value); setOpen(false) }}
+              className={`w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selected === value ? 'text-[#E8431A] font-semibold bg-orange-50' : 'text-gray-700'}`}>
               <span className="flex items-center gap-2"><Icon className="w-4 h-4" />{label}</span>
             </button>
           ))}
@@ -216,21 +340,16 @@ const ConfigurationDropdown = ({ selected, onChange }) => {
   }, [])
   return (
     <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${selected.length > 0 ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}
-      >
+      <button onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${selected.length > 0 ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}>
         <Home className="w-4 h-4" /> Configuration <ChevronDown className="w-3.5 h-3.5" />
       </button>
       {open && (
         <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-3">
           <div className="flex gap-2 flex-wrap mb-3">
             {BHK_OPTIONS.map(bhk => (
-              <button
-                key={bhk}
-                onClick={() => onChange(prev => prev.includes(bhk) ? prev.filter(x => x !== bhk) : [...prev, bhk])}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${selected.includes(bhk) ? 'bg-[#E8431A] text-white border-[#E8431A]' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
-              >
+              <button key={bhk} onClick={() => onChange(prev => prev.includes(bhk) ? prev.filter(x => x !== bhk) : [...prev, bhk])}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${selected.includes(bhk) ? 'bg-[#E8431A] text-white border-[#E8431A]' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
                 {bhk}
               </button>
             ))}
@@ -257,22 +376,21 @@ const BudgetDropdown = ({ value, onChange }) => {
   }, [])
   return (
     <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}
-      >
+      <button onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}>
         Budget <ChevronDown className="w-3.5 h-3.5" />
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-4">
+        <div className="absolute top-full right-0 mt-1 w-64 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-4">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Budget Range</p>
           <div className="flex items-center gap-2 mb-4">
-            <input value={min} onChange={e => setMin(e.target.value)} placeholder="Min" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A]" />
-            <span className="text-gray-400 text-sm">to</span>
-            <input value={max} onChange={e => setMax(e.target.value)} placeholder="Max" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A]" />
+            <input value={min} onChange={e => setMin(e.target.value)} placeholder="Min" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors" />
+            <span className="text-gray-400 text-sm flex-shrink-0">to</span>
+            <input value={max} onChange={e => setMax(e.target.value)} placeholder="Max" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors" />
           </div>
           <div className="flex gap-2 justify-end">
-            <button onClick={() => { onChange(null); setMin(''); setMax(''); setOpen(false) }} className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Cancel</button>
-            <button onClick={() => { if (min || max) onChange({ min, max }); setOpen(false) }} className="text-xs px-3 py-1.5 rounded-lg bg-[#E8431A] text-white hover:bg-[#cf3b16]">Apply</button>
+            <button onClick={() => { onChange(null); setMin(''); setMax(''); setOpen(false) }} className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
+            <button onClick={() => { if (min || max) onChange({ min, max }); setOpen(false) }} className="text-xs px-3 py-1.5 rounded-lg bg-[#E8431A] text-white hover:bg-[#cf3b16] transition-colors">Apply</button>
           </div>
         </div>
       )}
@@ -292,20 +410,22 @@ const SBUADropdown = ({ value, onChange }) => {
   }, [])
   return (
     <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}
-      >
+      <button onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}>
         SBUA <ChevronDown className="w-3.5 h-3.5" />
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-4">
+        <div className="absolute top-full right-0 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-4">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">SBUA Range (sq.ft)</p>
           <div className="flex items-center gap-2 mb-4">
-            <input value={min} onChange={e => setMin(e.target.value)} placeholder="0" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A]" />
-            <span className="text-gray-400 text-sm">to</span>
-            <input value={max} onChange={e => setMax(e.target.value)} placeholder="1000" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A]" />
+            <input value={min} onChange={e => setMin(e.target.value)} placeholder="0" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors" />
+            <span className="text-gray-400 text-sm flex-shrink-0">to</span>
+            <input value={max} onChange={e => setMax(e.target.value)} placeholder="1000" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors" />
           </div>
-          <button onClick={() => { onChange({ min, max }); setOpen(false) }} className="w-full text-xs py-2 rounded-lg bg-[#E8431A] text-white hover:bg-[#cf3b16]">Apply</button>
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => { onChange(null); setMin('0'); setMax('1000'); setOpen(false) }} className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
+            <button onClick={() => { onChange({ min, max }); setOpen(false) }} className="text-xs px-3 py-1.5 rounded-lg bg-[#E8431A] text-white hover:bg-[#cf3b16] transition-colors">Apply</button>
+          </div>
         </div>
       )}
     </div>
@@ -322,10 +442,8 @@ const SortDropdown = ({ selected, onChange }) => {
   }, [])
   return (
     <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${selected ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-500 hover:border-gray-400'}`}
-      >
+      <button onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${selected ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-500 hover:border-gray-400'}`}>
         <ArrowUpDown className="w-4 h-4" />
       </button>
       {open && (
@@ -359,15 +477,9 @@ const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, itemsPe
         {visiblePages.map((p, i) =>
           i > 0 && visiblePages[i - 1] !== p - 1 ? (
             [<span key={`e-${i}`} className="w-8 h-8 flex items-center justify-center text-gray-400 text-sm">…</span>,
-            <button key={p} onClick={() => onPageChange(p)}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === p ? 'bg-[#E8431A] text-white shadow-sm' : 'border border-gray-200 text-gray-600 hover:bg-gray-100'}`}>
-              {p}
-            </button>]
+            <button key={p} onClick={() => onPageChange(p)} className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === p ? 'bg-[#E8431A] text-white shadow-sm' : 'border border-gray-200 text-gray-600 hover:bg-gray-100'}`}>{p}</button>]
           ) : (
-            <button key={p} onClick={() => onPageChange(p)}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === p ? 'bg-[#E8431A] text-white shadow-sm' : 'border border-gray-200 text-gray-600 hover:bg-gray-100'}`}>
-              {p}
-            </button>
+            <button key={p} onClick={() => onPageChange(p)} className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === p ? 'bg-[#E8431A] text-white shadow-sm' : 'border border-gray-200 text-gray-600 hover:bg-gray-100'}`}>{p}</button>
           )
         )}
         <button onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages}
@@ -379,7 +491,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, itemsPe
         <span>Per page:</span>
         <select value={itemsPerPage} onChange={e => { onItemsPerPageChange(Number(e.target.value)); onPageChange(1) }}
           className="border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-700 outline-none focus:border-[#E8431A] cursor-pointer">
-          {[4, 8, 12, 16].map(n => <option key={n} value={n}>{n}</option>)}
+          {[10, 20, 30, 40, 50].map(n => <option key={n} value={n}>{n}</option>)}
         </select>
       </div>
     </div>
@@ -399,35 +511,24 @@ const Dashboard = () => {
 
   const [viewMode,       setViewMode]       = useState('grid')
   const [activeCategory, setActiveCategory] = useState('all')
-  const [activeTab,      setActiveTab]      = useState('resale')  // 'resale' | 'rental'
+  const [activeTab,      setActiveTab]      = useState('resale')
   const [assetType,      setAssetType]      = useState(null)
   const [configuration,  setConfiguration]  = useState([])
   const [budget,         setBudget]         = useState(null)
   const [sbua,           setSbua]           = useState(null)
   const [sortBy,         setSortBy]         = useState(null)
   const [page,           setPage]           = useState(1)
-  const [limit,          setLimit]          = useState(8)
+  const [limit,          setLimit]          = useState(10)
+  const [shareprop,      setShareprop]      = useState(null) // share modal
 
   const isRental = activeTab === 'rental'
 
-  // Build query params and fetch
   const buildParams = useCallback(() => {
     const categoryObj = CATEGORIES.find(c => c.id === activeCategory)
-    const params = {
-      listingType: isRental ? 'RENTAL' : 'RESALE',
-      page,
-      limit,
-    }
-    // Category maps to assetType filter (multi-value not natively supported, use first or explicit assetType)
-    if (assetType) {
-      params.assetType = assetType
-    } else if (categoryObj?.assetFilter?.length === 1) {
-      params.assetType = categoryObj.assetFilter[0]
-    }
-    if (configuration.length > 0) {
-      // bhkTypes expects numeric bedroom count: '2BHK' → 2
-      params.bhkTypes = configuration.map(b => b.replace('BHK', ''))
-    }
+    const params = { listingType: isRental ? 'RENTAL' : 'RESALE', page, limit }
+    if (assetType) { params.assetType = assetType }
+    else if (categoryObj?.assetFilter?.length === 1) { params.assetType = categoryObj.assetFilter[0] }
+    if (configuration.length > 0) params.bhkTypes = configuration.map(b => b.replace('BHK', ''))
     if (budget?.min) params.budgetMin = budget.min
     if (budget?.max) params.budgetMax = budget.max
     if (sbua?.min)   params.sbuaMin   = sbua.min
@@ -436,45 +537,29 @@ const Dashboard = () => {
     return params
   }, [isRental, activeCategory, assetType, configuration, budget, sbua, sortBy, page, limit])
 
-  useEffect(() => {
-    dispatch(fetchProperties(buildParams()))
-  }, [dispatch, buildParams])
+  useEffect(() => { dispatch(fetchProperties(buildParams())) }, [dispatch, buildParams])
 
-  const handleTabChange = (tab) => {
-    setActiveTab(tab)
-    setPage(1)
-    setAssetType(null)
-    setConfiguration([])
-    setBudget(null)
-    setSbua(null)
-    setSortBy(null)
-  }
-
-  const handleCategoryChange = (cat) => {
-    setActiveCategory(cat)
-    setPage(1)
-    setAssetType(null)
-  }
-
+  const handleTabChange = (tab) => { setActiveTab(tab); setPage(1); setAssetType(null); setConfiguration([]); setBudget(null); setSbua(null); setSortBy(null) }
+  const handleCategoryChange = (cat) => { setActiveCategory(cat); setPage(1); setAssetType(null) }
   const hasFilters = assetType || configuration.length > 0 || budget?.min || budget?.max || sbua?.min || sbua?.max || sortBy
 
   return (
-    <div className="bg-gray-50" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
+    <div className="bg-white min-h-[80vh]" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
+
+      {/* ── Share Modal ── */}
+      {shareprop && <ShareModal prop={shareprop} onClose={() => setShareprop(null)} />}
 
       {/* ── Sticky Header ── */}
       <div className="mx-2 sticky top-0 z-10 bg-white border-b border-gray-100 px-6 flex items-center justify-between gap-4" style={{ overflow: 'visible' }}>
         <div className="flex items-center gap-6 flex-shrink-0">
           {CATEGORIES.map(({ id, label, Icon }) => (
             <button key={id} onClick={() => handleCategoryChange(id)}
-              className={`flex flex-col items-center gap-0.5 text-xs font-medium py-3 transition-colors whitespace-nowrap border-b-2 ${
-                activeCategory === id ? 'text-[#E8431A] border-[#E8431A]' : 'text-gray-500 hover:text-gray-700 border-transparent'
-              }`}>
+              className={`flex flex-col items-center gap-0.5 text-xs font-medium py-3 transition-colors whitespace-nowrap border-b-2 ${activeCategory === id ? 'text-[#E8431A] border-[#E8431A]' : 'text-gray-500 hover:text-gray-700 border-transparent'}`}>
               <Icon className={`w-5 h-5 ${activeCategory === id ? 'text-[#E8431A]' : 'text-gray-400'}`} />
               {label}
             </button>
           ))}
         </div>
-
         <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden flex-shrink-0">
           {['resale', 'rental'].map(t => (
             <button key={t} onClick={() => handleTabChange(t)}
@@ -483,15 +568,12 @@ const Dashboard = () => {
             </button>
           ))}
         </div>
-
         <div className="flex items-center gap-2">
           <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-            <button onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'grid' ? 'bg-[#E8431A] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+            <button onClick={() => setViewMode('grid')} className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'grid' ? 'bg-[#E8431A] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
               <Grid className="w-3.5 h-3.5" /> Grid
             </button>
-            <button onClick={() => setViewMode('table')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'table' ? 'bg-[#E8431A] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+            <button onClick={() => setViewMode('table')} className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'table' ? 'bg-[#E8431A] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
               <List className="w-3.5 h-3.5" /> Table
             </button>
           </div>
@@ -507,32 +589,11 @@ const Dashboard = () => {
       {hasFilters && (
         <div className="px-6 py-2 bg-white border-b border-gray-100 flex items-center gap-2 flex-wrap">
           <span className="text-xs text-gray-500 font-medium">Active filters:</span>
-          {assetType && (
-            <span className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">
-              {getAssetLabel(assetType)}<button onClick={() => setAssetType(null)}><X className="w-3 h-3" /></button>
-            </span>
-          )}
-          {configuration.map(c => (
-            <span key={c} className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">
-              {c}<button onClick={() => setConfiguration(prev => prev.filter(x => x !== c))}><X className="w-3 h-3" /></button>
-            </span>
-          ))}
-          {(budget?.min || budget?.max) && (
-            <span className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">
-              Budget: {budget.min || '0'}–{budget.max || '∞'}<button onClick={() => setBudget(null)}><X className="w-3 h-3" /></button>
-            </span>
-          )}
-          {(sbua?.min || sbua?.max) && (
-            <span className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">
-              SBUA: {sbua.min}–{sbua.max}<button onClick={() => setSbua(null)}><X className="w-3 h-3" /></button>
-            </span>
-          )}
-          {sortBy && (
-            <span className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">
-              {SORT_OPTIONS.find(s => s.value === sortBy)?.label || sortBy}
-              <button onClick={() => setSortBy(null)}><X className="w-3 h-3" /></button>
-            </span>
-          )}
+          {assetType && <span className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">{getAssetLabel(assetType)}<button onClick={() => setAssetType(null)}><X className="w-3 h-3" /></button></span>}
+          {configuration.map(c => <span key={c} className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">{c}<button onClick={() => setConfiguration(prev => prev.filter(x => x !== c))}><X className="w-3 h-3" /></button></span>)}
+          {(budget?.min || budget?.max) && <span className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">Budget: {budget.min || '0'}–{budget.max || '∞'}<button onClick={() => setBudget(null)}><X className="w-3 h-3" /></button></span>}
+          {(sbua?.min || sbua?.max) && <span className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">SBUA: {sbua.min}–{sbua.max}<button onClick={() => setSbua(null)}><X className="w-3 h-3" /></button></span>}
+          {sortBy && <span className="flex items-center gap-1 text-xs bg-orange-50 text-[#E8431A] border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">{SORT_OPTIONS.find(s => s.value === sortBy)?.label || sortBy}<button onClick={() => setSortBy(null)}><X className="w-3 h-3" /></button></span>}
         </div>
       )}
 
@@ -544,16 +605,12 @@ const Dashboard = () => {
             <p className="text-sm font-medium">Loading properties…</p>
           </div>
         ) : listError ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-            <p className="text-sm font-medium text-red-500">{listError}</p>
-          </div>
+          <div className="flex flex-col items-center justify-center py-20"><p className="text-sm font-medium text-red-500">{listError}</p></div>
         ) : viewMode === 'grid' ? (
           <>
             {items.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {items.map(prop => (
-                  <PropertyCard key={prop._id} prop={prop} mode={activeTab} />
-                ))}
+                {items.map(prop => <PropertyCard key={prop._id} prop={prop} mode={activeTab} onShare={setShareprop} />)}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-gray-400">
@@ -561,41 +618,26 @@ const Dashboard = () => {
                 <p className="text-sm font-medium">No properties found</p>
               </div>
             )}
-            {total > 0 && (
-              <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                totalItems={total}
-                itemsPerPage={limit}
-                onItemsPerPageChange={n => { setLimit(n); setPage(1) }}
-              />
-            )}
+            {total > 0 && <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} totalItems={total} itemsPerPage={limit} onItemsPerPageChange={n => { setLimit(n); setPage(1) }} />}
           </>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-auto">
+          <div className="bg-white rounded-xl shadow-sm border border-orange-200 overflow-auto">
             <table className="w-full min-w-max text-sm">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50">
-                  <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Property ID</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Property Name</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Asset Type</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">SBUA (Sqft)</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Plot Size</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Facing</th>
+                <tr className="border-b border-orange-200 bg-orange-100">
+                  <th className="text-left px-4 py-3 text-gray-900 font-semibold text-xs uppercase tracking-wide">Sr No.</th>
+                  <th className="text-left px-4 py-3 text-gray-900 font-semibold text-xs uppercase tracking-wide">Property ID</th>
+                  <th className="text-left px-4 py-3 text-gray-900 font-semibold text-xs uppercase tracking-wide">Property Name</th>
+                  <th className="text-left px-4 py-3 text-gray-900 font-semibold text-xs uppercase tracking-wide">Asset Type</th>
+                  <th className="text-left px-4 py-3 text-gray-900 font-semibold text-xs uppercase tracking-wide">SBUA (Sqft)</th>
+                  <th className="text-left px-4 py-3 text-gray-900 font-semibold text-xs uppercase tracking-wide">Plot Size</th>
+                  <th className="text-left px-4 py-3 text-gray-900 font-semibold text-xs uppercase tracking-wide">Facing</th>
                   {isRental ? (
-                    <>
-                      <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Rent/Month</th>
-                      <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Deposit</th>
-                    </>
+                    <><th className="text-left px-4 py-3 text-gray-900 font-semibold text-xs uppercase tracking-wide">Rent/Month</th><th className="text-left px-4 py-3 text-gray-900 font-semibold text-xs uppercase tracking-wide">Deposit</th></>
                   ) : (
-                    <>
-                      <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Ask Price</th>
-                      <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Price/Sqft</th>
-                      <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Handover</th>
-                    </>
+                    <><th className="text-left px-4 py-3 text-gray-900 font-semibold text-xs uppercase tracking-wide">Ask Price</th><th className="text-left px-4 py-3 text-gray-900 font-semibold text-xs uppercase tracking-wide">Price/Sqft</th><th className="text-left px-4 py-3 text-gray-900 font-semibold text-xs uppercase tracking-wide">Handover</th></>
                   )}
-                  <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Actions</th>
+                  <th className="text-left px-4 py-3 text-gray-900 font-semibold text-xs uppercase tracking-wide">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -604,11 +646,8 @@ const Dashboard = () => {
                   const pd = row.propertyDetails || {}
                   const possession = b.possession?.replace(/_/g, ' ') || '—'
                   return (
-                    <tr
-                      key={row._id}
-                      onClick={() => navigate(`/property/details/${row._id}`)}
-                      className="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
-                    >
+                    <tr key={row._id} onClick={() => navigate(`/property/details/${row._id}`)} className="border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer">
+                      <td className="px-4 py-3 text-gray-600">{(page - 1) * limit + items.indexOf(row) + 1}</td>
                       <td className="px-4 py-3 text-[#E8431A] font-semibold text-xs">{row.propertyId}</td>
                       <td className="px-4 py-3 font-semibold text-gray-800">{b.name}</td>
                       <td className="px-4 py-3 text-gray-600">{getAssetLabel(b.assetType)}</td>
@@ -616,10 +655,7 @@ const Dashboard = () => {
                       <td className="px-4 py-3 text-gray-400">{pd.plotArea || '—'}</td>
                       <td className="px-4 py-3 text-gray-600">{pd.doorFacing?.replace(/_/g, ' ') || '—'}</td>
                       {isRental ? (
-                        <>
-                          <td className="px-4 py-3 font-semibold text-gray-800">{formatPrice(pd.rentPerMonth, pd.rentUnit)}</td>
-                          <td className="px-4 py-3 text-gray-600">{formatPrice(pd.deposit, pd.depositUnit)}</td>
-                        </>
+                        <><td className="px-4 py-3 font-semibold text-gray-800">{formatPrice(pd.rentPerMonth, pd.rentUnit)}</td><td className="px-4 py-3 text-gray-600">{formatPrice(pd.deposit, pd.depositUnit)}</td></>
                       ) : (
                         <>
                           <td className="px-4 py-3 font-semibold text-gray-800">{formatPrice(pd.askPrice, pd.priceUnit)}</td>
@@ -633,7 +669,7 @@ const Dashboard = () => {
                       )}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <button onClick={e => e.stopPropagation()} className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-lg p-1.5 transition-colors">
+                          <button onClick={e => { e.stopPropagation(); setShareprop(row) }} className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-lg p-1.5 transition-colors">
                             <Share2 className="w-3.5 h-3.5" />
                           </button>
                           <button onClick={() => navigate(`/property/details/${row._id}`)} className="bg-[#E8431A] hover:bg-[#cf3b16] text-white rounded-lg p-1.5 transition-colors">
@@ -646,18 +682,7 @@ const Dashboard = () => {
                 })}
               </tbody>
             </table>
-            {total > 0 && (
-              <div className="border-t border-gray-100 px-4">
-                <Pagination
-                  currentPage={page}
-                  totalPages={totalPages}
-                  onPageChange={setPage}
-                  totalItems={total}
-                  itemsPerPage={limit}
-                  onItemsPerPageChange={n => { setLimit(n); setPage(1) }}
-                />
-              </div>
-            )}
+            {total > 0 && <div className="border-t border-gray-100 px-4"><Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} totalItems={total} itemsPerPage={limit} onItemsPerPageChange={n => { setLimit(n); setPage(1) }} /></div>}
           </div>
         )}
       </div>
