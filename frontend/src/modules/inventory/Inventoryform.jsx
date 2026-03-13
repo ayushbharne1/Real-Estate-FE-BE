@@ -41,9 +41,6 @@ export default function InventoryForm({
   const [done, setDone]               = useState([])
   const [showSuccess, setShowSuccess] = useState(false)
 
-  // ── Derived type state — must be declared BEFORE useFormik ───
-  // We keep local copies so validationSchema (used inside useFormik)
-  // can depend on them without creating a circular reference.
   const [listingType, setListingType] = useState(
     initialValues?.listingType ?? ListingType.RESALE
   )
@@ -52,15 +49,17 @@ export default function InventoryForm({
   const locked      = isRentalLocked(listingType, assetType)
   const fieldConfig = useMemo(() => getFieldConfig(listingType, assetType), [listingType, assetType])
 
-  // ── validationSchema — declared BEFORE useFormik ─────────────
-  const validationSchema = useMemo(() => {
+  // ── validationSchema — only used for the current step ────────
+  // IMPORTANT: We do NOT change validationSchema dynamically based on step
+  // for the submit handler — submit always validates all steps manually.
+  // The per-step schema is only used by handleNext validation.
+  const currentStepSchema = useMemo(() => {
     if (step === 0) return step1Schema
     if (locked) return null
     const fields = step === 1 ? fieldConfig?.step2 : fieldConfig?.step3
     return buildStepSchema(fields || {})
   }, [step, fieldConfig, locked])
 
-  // Media lives outside Formik (binary files, not serialisable)
   const mediaRef = useRef({
     newImageFiles:  [],
     existingImages: existingImages,
@@ -68,12 +67,13 @@ export default function InventoryForm({
     removeVideo:    false,
   })
 
-  // ── useFormik — validationSchema now in scope ─────────────────
   const formik = useFormik({
     initialValues:      initialValues ?? INITIAL_VALUES,
-    validationSchema,
-    validateOnChange:   false,
+    // FIX: validateOnChange true so errors clear as user types
+    validateOnChange:   true,
     validateOnBlur:     true,
+    // FIX: No validationSchema here — we validate manually per-step
+    // to prevent auto-validation triggering on step change
     enableReinitialize: true,
     onSubmit: async values => {
       const payload = buildSubmitPayload(values)
@@ -98,14 +98,11 @@ export default function InventoryForm({
     },
   })
 
-  // Sync local state from formik values so schema stays correct
+  // Sync local state from formik values
   useEffect(() => { setListingType(formik.values.listingType) }, [formik.values.listingType])
   useEffect(() => { setAssetType(formik.values.assetType)     }, [formik.values.assetType])
 
-  // Show success modal when slice reports success
   useEffect(() => { if (saveSuccess) setShowSuccess(true) }, [saveSuccess])
-
-  // Cleanup slice state on unmount
   useEffect(() => () => { dispatch(clearSaveState()) }, [dispatch])
 
   // ── Step navigation ──────────────────────────────────────────
@@ -120,10 +117,27 @@ export default function InventoryForm({
       fieldNames = getStepFieldNames(fields || {})
     }
 
-    fieldNames.forEach(n => formik.setFieldTouched(n, true, false))
-    const errors = await formik.validateForm()
-    if (!fieldNames.some(n => errors[n])) {
-      markDone(step); setStep(s => s + 1)
+    // Touch only the current step's fields
+    const touchObj = {}
+    fieldNames.forEach(n => { touchObj[n] = true })
+    await formik.setTouched({ ...formik.touched, ...touchObj }, false)
+
+    // Validate only current step fields using currentStepSchema
+    if (!currentStepSchema) {
+      markDone(step); setStep(s => s + 1); return
+    }
+
+    try {
+      const stepValues = {}
+      fieldNames.forEach(n => { stepValues[n] = formik.values[n] })
+      await currentStepSchema.validate(stepValues, { abortEarly: false })
+      markDone(step)
+      setStep(s => s + 1)
+    } catch (validationError) {
+      // Set errors for failed fields
+      const errors = {}
+      validationError.inner?.forEach(e => { if (e.path) errors[e.path] = e.message })
+      formik.setErrors({ ...formik.errors, ...errors })
     }
   }
 
@@ -159,7 +173,6 @@ export default function InventoryForm({
                       <button key={opt.value} type="button"
                         onClick={() => {
                           formik.setFieldValue('listingType', opt.value)
-                          // Reset assetType if it's not valid for the new listing type
                           const valid = getAssetTypeOptions(opt.value).map(o => o.value)
                           if (!valid.includes(formik.values.assetType)) {
                             formik.setFieldValue('assetType', '')
