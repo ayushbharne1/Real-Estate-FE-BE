@@ -24,16 +24,14 @@ import { AssetType, ListingType } from 'shared/enums/index.js'
 
 // ─── Asset type options filtered by listing type ──────────────────────────────
 
-// Rental is only available for Apartment + Villa
 const RENTAL_ASSET_VALUES = new Set([AssetType.APARTMENT, AssetType.VILLA])
 
-export const RESALE_ASSET_OPTIONS = ASSET_TYPE_OPTIONS   // all 10 types
+export const RESALE_ASSET_OPTIONS = ASSET_TYPE_OPTIONS
 
 export const RENTAL_ASSET_OPTIONS = ASSET_TYPE_OPTIONS.filter(o =>
   RENTAL_ASSET_VALUES.has(o.value)
 )
 
-/** Get filtered asset type options based on listing type */
 export function getAssetTypeOptions(listingType) {
   return listingType === ListingType.RENTAL ? RENTAL_ASSET_OPTIONS : RESALE_ASSET_OPTIONS
 }
@@ -57,6 +55,12 @@ const TOTAL_FLOORS_OPTIONS = Array.from({ length: 30 }, (_, i) => ({
 }))
 
 const BALCONY_FACING_OPTIONS = DOOR_FACING_OPTIONS
+
+// FIX: Building Khata and Land Khata use Yes/No like e-Khata
+const YES_NO_OPTIONS = [
+  { value: 'Yes', label: 'Yes' },
+  { value: 'No',  label: 'No' },
+]
 
 const F = {
   text: (label, required = false) => ({ label, required, type: 'text' }),
@@ -88,8 +92,9 @@ const S = {
   rent: F.price('Rent per Month'),
   deposit: F.price('Deposit', false),
   parking: F.dropdown('Parking', PARKING_OPTIONS, true),
-  bKhata: F.dropdown('Building Khata', KHATA_OPTIONS),
-  lKhata: F.dropdown('Land Khata', KHATA_OPTIONS),
+  // FIX: Building Khata & Land Khata now use Yes/No (consistent with e-Khata)
+  bKhata: F.dropdown('Building Khata', YES_NO_OPTIONS),
+  lKhata: F.dropdown('Land Khata', YES_NO_OPTIONS),
   eKhata: F.yesno('E-Khata'),
   cornerUnit: F.yesno('Corner Unit'),
   biappa: F.yesno('Bioppa Approved Khata'),
@@ -138,13 +143,15 @@ const RESALE = {
     step2: { facing: S.facing, sbua: S.sbua, priceSqft: S.priceSqft, askPrice: S.askPrice },
     step3: { amenities: S.amenities },
   },
+  // FIX: Move eKhata from step2 to step3 for COMMERCIAL_PROPERTY
   [AssetType.COMMERCIAL_PROPERTY]: {
-    step2: { facing: S.facing, structure: S.structure, totalRooms: S.totalRooms, waterSupply: S.waterSupply, sbua: S.sbua, priceSqft: S.priceSqft, askPrice: S.askPrice, eKhata: S.eKhata },
-    step3: { amenities: S.amenities },
+    step2: { facing: S.facing, structure: S.structure, totalRooms: S.totalRooms, waterSupply: S.waterSupply, sbua: S.sbua, priceSqft: S.priceSqft, askPrice: S.askPrice },
+    step3: { eKhata: S.eKhata, amenities: S.amenities },
   },
+  // FIX: Move bKhata from step2 to step3 for OFFICE_SPACE
   [AssetType.OFFICE_SPACE]: {
-    step2: { seats: S.seats, facing: S.facing, age: S.age, floorNo: S.floorNo, furnishing: S.furnOffice, sbua: S.sbua, priceSqft: S.priceSqft, askPrice: S.askPrice, bKhata: S.bKhata },
-    step3: { lKhata: S.lKhata, cornerUnit: S.cornerUnit, exclusive: S.exclusive, parking: S.parking, amenities: S.amenities },
+    step2: { seats: S.seats, facing: S.facing, age: S.age, floorNo: S.floorNo, furnishing: S.furnOffice, sbua: S.sbua, priceSqft: S.priceSqft, askPrice: S.askPrice },
+    step3: { bKhata: S.bKhata, lKhata: S.lKhata, cornerUnit: S.cornerUnit, exclusive: S.exclusive, parking: S.parking, amenities: S.amenities },
   },
   [AssetType.RETAIL_SPACE]: {
     step2: { facing: S.facing, totalFloors: S.totalFloors, floorNo: S.floorNo, age: S.age, furnishing: S.furnRetail, sbua: S.sbua, plotArea: S.plotArea, priceSqft: S.priceSqft, askPrice: S.askPrice },
@@ -278,8 +285,11 @@ export function buildSubmitPayload(values) {
     depositUnit: values.depositUnit || undefined,
     maintenance: values.maintenance || undefined,
     commissionType: values.commission || undefined,
+    // FIX: bKhata and lKhata are now Yes/No strings — pass directly
     buildingKhata: values.bKhata || undefined,
     landKhata: values.lKhata || undefined,
+    // FIX: eKhata, cornerUnit, petAllowed, nonVeg — pass the string directly,
+    // the backend _parseBool handles 'Yes'/'No' → true/false
     eKhata: values.eKhata || undefined,
     extraRooms: values.extraRooms?.length ? values.extraRooms : undefined,
     cornerUnit: values.cornerUnit || undefined,
@@ -334,17 +344,18 @@ export function propertyToFormValues(property) {
     depositUnit: pd.depositUnit || 'LAKHS',
     maintenance: pd.maintenance || '',
     commission: pd.commissionType || '',
+    // FIX: bKhata/lKhata are stored as Yes/No strings in DB now
     bKhata: md.buildingKhata || '',
     lKhata: md.landKhata || '',
-    eKhata: md.eKhata !== undefined ? (md.eKhata ? 'Yes' : 'No') : '',
+    eKhata: md.eKhata !== undefined && md.eKhata !== null ? (md.eKhata ? 'Yes' : 'No') : '',
     extraRooms: md.extraRooms || [],
-    cornerUnit: md.cornerUnit !== undefined ? (md.cornerUnit ? 'Yes' : 'No') : '',
-    biappa: md.bioppaApprovedKhata !== undefined ? (md.bioppaApprovedKhata ? 'Yes' : 'No') : '',
-    exclusive: md.exclusive !== undefined ? (md.exclusive ? 'Yes' : 'No') : '',
+    cornerUnit: md.cornerUnit !== undefined && md.cornerUnit !== null ? (md.cornerUnit ? 'Yes' : 'No') : '',
+    biappa: md.bioppaApprovedKhata !== undefined && md.bioppaApprovedKhata !== null ? (md.bioppaApprovedKhata ? 'Yes' : 'No') : '',
+    exclusive: md.exclusive !== undefined && md.exclusive !== null ? (md.exclusive ? 'Yes' : 'No') : '',
     parking: md.parking || '',
     prefTenants: md.preferredTenant || '',
-    petAllowed: md.petAllowed !== undefined ? (md.petAllowed ? 'Yes' : 'No') : '',
-    nonVeg: md.nonVegAllowed !== undefined ? (md.nonVegAllowed ? 'Yes' : 'No') : '',
+    petAllowed: md.petAllowed !== undefined && md.petAllowed !== null ? (md.petAllowed ? 'Yes' : 'No') : '',
+    nonVeg: md.nonVegAllowed !== undefined && md.nonVegAllowed !== null ? (md.nonVegAllowed ? 'Yes' : 'No') : '',
     amenities: md.amenities || [],
     description: md.description || '',
   }

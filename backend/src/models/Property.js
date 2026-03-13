@@ -1,3 +1,4 @@
+// backend/src/models/Property.js
 import mongoose from "mongoose";
 import {
   ListingType, AssetType, DoorFacing, AgeOfBuilding, FloorRange,
@@ -24,8 +25,8 @@ const propertySchema = new mongoose.Schema(
       videoUrl:     { type: String },
 
       // Address
-      address:      { type: String, required: true },  // full formatted string
-      area:         { type: String },                  // locality / micromarket e.g. "Whitefield"
+      address:      { type: String, required: true },
+      area:         { type: String },
       state:        { type: String, required: true },
       city:         { type: String, required: true },
       pincode:      { type: String, required: true },
@@ -35,11 +36,11 @@ const propertySchema = new mongoose.Schema(
       // Possession
       possession: { type: String, enum: Object.values(PossessionStatus), required: true },
 
-      // Configuration (BHK) — Not for: Plot, Commercial Space, Commercial Property, Retail Space
+      // Configuration (BHK)
       bedrooms:  { type: Number, default: 0 },
       bathrooms: { type: Number, default: 0 },
       balconies: { type: Number, default: 0 },
-      seats:     { type: Number },  // Office Space only — No. of Seats
+      seats:     { type: Number },  // Office Space only
     },
 
     // ═════════════════════════════════════════════════════════
@@ -49,26 +50,19 @@ const propertySchema = new mongoose.Schema(
       // ── Common ─────────────────────────────────────────────
       doorFacing:    { type: String, enum: [...Object.values(DoorFacing), null] },
       furnishing:    { type: String, enum: Object.values(FurnishingStatus) },
-                     // FURNISHED / SEMI_FURNISHED / UNFURNISHED for most types
-                     // PLUG_AND_PLAY for Office Space
-                     // WARM_SHELL   for Retail Space
-                     // Not applicable for Plot
       ageOfBuilding: { type: String, enum: Object.values(AgeOfBuilding) },
-                     // Not applicable for Plot
       floorNumber:   { type: String, enum: [...Object.values(FloorRange), null] },
-                     // Apartment, Row House, Office Space, Retail Space
 
       // ── Area fields ────────────────────────────────────────
-      sbua:     { type: Number },  // Super Built-Up Area — NOT for Plot
-      plotArea: { type: Number },  // Plot, Villament (unique), Retail Space (unique)
-      uds:      { type: Number },  // Undivided Spaces — Villament only
+      sbua:     { type: Number },
+      plotArea: { type: Number },
+      uds:      { type: Number },
 
       // ── Apartment / Row House ──────────────────────────────
-      apartmentType: { type: String },  // e.g. Simplex, Duplex
+      apartmentType: { type: String },
       balconyFacing: { type: String, enum: [...Object.values(DoorFacing), null] },
-                     // Row House only (unique field)
 
-      // ── Villa / IH / Row House / Villament / Comm. Property / Rental Villa ──
+      // ── Villa / IH / Row House / Villament / Comm. Property / Rental Villa
       structure: { type: String, enum: Object.values(StructureType) },
 
       // ── Commercial Property unique ─────────────────────────
@@ -80,13 +74,13 @@ const propertySchema = new mongoose.Schema(
 
       // ── Pricing — Resale ───────────────────────────────────
       pricePerSqft: { type: Number },
-      askPrice:     { type: Number },   // required for RESALE
+      askPrice:     { type: Number },
       priceUnit:    { type: String, enum: Object.values(PriceUnit), default: PriceUnit.LAKHS },
 
       // ── Pricing — Rental ───────────────────────────────────
-      rentPerMonth:   { type: Number },  // required for RENTAL
+      rentPerMonth:   { type: Number },
       rentUnit:       { type: String, enum: Object.values(PriceUnit), default: PriceUnit.LAKHS },
-      deposit:        { type: Number },  // Apartment Rental only — Villa Rental has no deposit
+      deposit:        { type: Number },
       depositUnit:    { type: String, enum: Object.values(PriceUnit), default: PriceUnit.LAKHS },
       maintenance:    { type: String, enum: Object.values(MaintenanceType) },
       commissionType: { type: String, enum: Object.values(CommissionType) },
@@ -96,36 +90,32 @@ const propertySchema = new mongoose.Schema(
     // STEP 3 — More Details
     // ═════════════════════════════════════════════════════════
     moreDetails: {
-      // ── Resale — Apartment ─────────────────────────────────
-      buildingKhata: { type: String, enum: [...Object.values(KhataType), null] },
-                     // Apartment (Resale), Row House (Resale)
-      landKhata:     { type: String, enum: [...Object.values(KhataType), null] },
-                     // Apartment (Resale), Office Space (Resale)
+      // FIX: buildingKhata and landKhata now store "Yes"/"No" strings
+      // (changed from A/B KhataType enum — consistent with e-Khata UI pattern)
+      buildingKhata: { type: String, enum: ['Yes', 'No', ...Object.values(KhataType), null] },
+      landKhata:     { type: String, enum: ['Yes', 'No', ...Object.values(KhataType), null] },
       eKhata:        { type: Boolean },
-                     // Apartment (Resale), Row House (Resale)
       extraRooms:    [{ type: String, enum: Object.values(ExtraRoom) }],
-                     // Apartment (Resale) only
 
       // ── Resale — Row House ─────────────────────────────────
-      cornerUnit:          { type: Boolean },  // Row House, Office Space
-      bioppaApprovedKhata: { type: Boolean },  // Row House only
+      cornerUnit:          { type: Boolean },
+      bioppaApprovedKhata: { type: Boolean },
 
       // ── Resale — Office Space ──────────────────────────────
       exclusive: { type: Boolean },
 
-      // ── Parking — all Resale types ─────────────────────────
+      // ── Parking ────────────────────────────────────────────
       parking: { type: String, enum: Object.values(ParkingType) },
 
-      // ── Rental — all ───────────────────────────────────────
+      // ── Rental ─────────────────────────────────────────────
       preferredTenant: { type: String, enum: Object.values(PreferredTenant) },
       petAllowed:      { type: Boolean },
       nonVegAllowed:   { type: Boolean },
 
-      // ── Amenities — all types except Plot ──────────────────
-      // Plain [String] — no enum, supports standard + custom entries freely
+      // ── Amenities ──────────────────────────────────────────
       amenities: [{ type: String }],
 
-      // ── Description — all types ────────────────────────────
+      // ── Description ────────────────────────────────────────
       description: { type: String, required: true },
     },
 
