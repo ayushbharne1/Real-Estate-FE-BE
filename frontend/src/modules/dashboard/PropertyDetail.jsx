@@ -12,7 +12,7 @@ import {
   MapPin, ChevronLeft, Share2, Trash2, Pencil, UserCheck,
   Bed, Bath, Expand, Calendar, ClipboardCheck, CheckCircle2,
   Loader2, Play, X, ZoomIn, ChevronRight, Copy, Check,
-  MessageCircle, Send,, ChevronDown, Play
+  MessageCircle, Send, ChevronDown,
 } from 'lucide-react'
 
 const RED = '#E8431A'
