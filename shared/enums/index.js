@@ -70,12 +70,12 @@ const PossessionStatus = Object.freeze({
 });
 
 const BHKType = Object.freeze({
-  STUDIO:    "STUDIO",
-  ONE_BHK:   "1BHK",
-  TWO_BHK:   "2BHK",
-  THREE_BHK: "3BHK",
-  FOUR_BHK:  "4BHK",
-  FIVE_BHK:  "5BHK",
+  STUDIO:    0,
+  ONE_BHK:   1,
+  TWO_BHK:   2,
+  THREE_BHK: 3,
+  FOUR_BHK:  4,
+  FIVE_BHK:  5,
 });
 
 const Amenity = Object.freeze({

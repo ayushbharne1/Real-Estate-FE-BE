@@ -365,9 +365,24 @@ function _parseJson(value, fallback = []) {
   return fallback;
 }
 
+// PATCH FILE: backend/src/controllers/inventoryController.js
+// Only the helper functions and relevant sections need changing.
+// Replace the _parseBool function at the bottom of the file:
+
+// OLD:
+// function _parseBool(value) {
+//   if (typeof value === "boolean") return value;
+//   return value === "true" || value === "1";
+// }
+
+// NEW (handles Yes/No from frontend dropdowns):
 function _parseBool(value) {
   if (typeof value === "boolean") return value;
-  return value === "true" || value === "1";
+  if (typeof value === "string") {
+    const v = value.toLowerCase();
+    return v === "true" || v === "1" || v === "yes";
+  }
+  return false;
 }
 
 function _cloudinaryPublicId(url) {

@@ -8,7 +8,7 @@ import {
   PhotoUpload, VideoUpload, AmenitiesInput, renderField,
   MapPickerModal,
   inputBase, focusStyle, blurStyle,
-} from './InventoryFormFields'
+} from './inventoryformfields'
 import { POSSESSION_OPTIONS } from 'shared/constants/dropdown.js'
 import { getAssetTypeOptions, PRICING_KEYS } from './inventoryUtils'
 

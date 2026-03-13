@@ -52,13 +52,16 @@ const SORT_OPTIONS = [
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const RED = '#E8431A'
-
+ 
 function formatPrice(value, unit) {
-  if (!value) return '—'
+  if (value == null || value === '') return '—'
   const num = Number(value)
-  if (unit === 'CRORES' || num >= 100) return `₹${(num / 100).toFixed(2)} Cr`
-  if (unit === 'LAKHS' || num < 100)   return `₹${num.toFixed(2)} L`
-  return `₹${num}`
+  if (isNaN(num) || num === 0) return '—'
+  // FIX: If unit is CRORES, value is stored in crores — display directly
+  if (unit === 'CRORES') return `₹${num.toFixed(2)} Cr`
+  // LAKHS: if >= 100 lakhs, show as Cr
+  if (num >= 100) return `₹${(num / 100).toFixed(2)} Cr`
+  return `₹${num.toFixed(2)} L`
 }
 
 function formatSqft(val) {
