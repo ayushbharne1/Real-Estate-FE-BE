@@ -10,9 +10,11 @@ import {
 } from 'lucide-react'
 import {
   fetchProperties,
+  fetchAssetTypeCounts,
   selectInventoryList,
   selectInventoryTotal,
   selectInventoryPages,
+  selectAssetCounts,
   selectListLoading,
   selectListError,
 } from '../../redux/slices/inventoryslice'
@@ -211,7 +213,7 @@ const PropertyCard = ({ prop, mode, onShare }) => {
 
 // ── Dropdown components ───────────────────────────────────────────────────────
 
-const AssetTypeDropdown = ({ selected, onChange }) => {
+const AssetTypeDropdown = ({ selected, onChange, counts = {} }) => {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   useEffect(() => {
@@ -227,10 +229,13 @@ const AssetTypeDropdown = ({ selected, onChange }) => {
       </button>
       {open && (
         <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-2 max-h-72 overflow-y-auto">
-          {ASSET_TYPES.map(({ label, value, Icon }) => (
+          {ASSET_TYPES.map(({ label, value }) => (
             <button key={value} onClick={() => { onChange(selected === value ? null : value); setOpen(false) }}
               className={`w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selected === value ? 'text-[#E8431A] font-semibold bg-orange-50' : 'text-gray-700'}`}>
-              <span className="flex items-center gap-2"><Icon className="w-4 h-4" />{label}</span>
+              <span>{label}</span>
+              <span className={`text-sm font-medium ${selected === value ? 'text-[#E8431A]' : 'text-gray-400'}`}>
+                {counts[value] != null ? String(counts[value]).padStart(2, '0') : '—'}
+              </span>
             </button>
           ))}
         </div>
@@ -238,7 +243,6 @@ const AssetTypeDropdown = ({ selected, onChange }) => {
     </div>
   )
 }
-
 const ConfigurationDropdown = ({ selected, onChange }) => {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -478,6 +482,7 @@ const Dashboard = () => {
   const totalPages = useSelector(selectInventoryPages)
   const loading    = useSelector(selectListLoading)
   const listError  = useSelector(selectListError)
+  const assetCounts = useSelector(selectAssetCounts)
 
   const [viewMode,        setViewMode]        = useState('grid')
   const [activeCategory,  setActiveCategory]  = useState('all')
@@ -506,6 +511,11 @@ const Dashboard = () => {
     window.addEventListener('navbar:search', handler)
     return () => window.removeEventListener('navbar:search', handler)
   }, [])
+
+
+useEffect(() => {
+  dispatch(fetchAssetTypeCounts(activeTab === 'rental' ? 'RENTAL' : 'RESALE'))
+}, [activeTab, dispatch])
 
   // Debounce typed search
   const handleSearchInput = (val) => {
@@ -580,7 +590,7 @@ const Dashboard = () => {
               <List className="w-3.5 h-3.5" /> Table
             </button>
           </div>
-          <AssetTypeDropdown selected={assetType} onChange={v => { setAssetType(v); setPage(1) }} />
+         <AssetTypeDropdown selected={assetType} onChange={v => { setAssetType(v); setPage(1) }} counts={assetCounts} />
           <ConfigurationDropdown selected={configuration} onChange={v => { setConfiguration(v); setPage(1) }} />
           <BudgetDropdown value={budget} onChange={v => { setBudget(v); setPage(1) }} />
           <SBUADropdown value={sbua} onChange={v => { setSbua(v); setPage(1) }} />

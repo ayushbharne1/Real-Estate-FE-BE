@@ -95,6 +95,17 @@ export async function deleteProperty(id) {
   }
 }
 
+export async function fetchAssetTypeCounts(listingType) {
+  try {
+    const { data } = await api.get('/api/inventory/asset-type-counts', {
+      params: listingType ? { listingType } : {},
+    });
+    return data.data;
+  } catch (err) {
+    throw _normalise(err);
+  }
+}
+
 function _normalise(err) {
   const json = err.response?.data || {}
   return {

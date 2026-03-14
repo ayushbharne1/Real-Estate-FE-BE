@@ -7,6 +7,7 @@ import {
   createProperty        as apiCreateProperty,
   updateProperty        as apiUpdateProperty,
   deleteProperty        as apiDeleteProperty,
+   fetchAssetTypeCounts as apiFetchAssetTypeCounts,
 } from  '../../api/inventoryApi'
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
@@ -59,6 +60,14 @@ export const deleteProperty = createAsyncThunk(
   }
 )
 
+export const fetchAssetTypeCounts = createAsyncThunk(
+  'inventory/fetchAssetTypeCounts',
+  async (listingType, { rejectWithValue }) => {
+    try { return await apiFetchAssetTypeCounts(listingType) }
+    catch (err) { return rejectWithValue(err) }
+  }
+)
+
 // ─── Slice ────────────────────────────────────────────────────────────────────
 
 const inventorySlice = createSlice({
@@ -90,6 +99,9 @@ const inventorySlice = createSlice({
 
     deleting:    false,
     deleteError: null,
+
+    // asset type counts
+    assetCounts: {},
   },
   reducers: {
     clearSaveState(state) {
@@ -221,6 +233,12 @@ const inventorySlice = createSlice({
         state.deleting    = false
         state.deleteError = payload?.message || 'Failed to delete property'
       })
+
+    // assets counts
+    builder
+      .addCase(fetchAssetTypeCounts.fulfilled, (state, { payload }) => {
+        state.assetCounts = payload
+      })
   },
 })
 
@@ -252,3 +270,5 @@ export const selectSaveSuccess      = s => s.inventory.saveSuccess
 
 export const selectDeleting         = s => s.inventory.deleting
 export const selectDeleteError      = s => s.inventory.deleteError
+
+export const selectAssetCounts = s => s.inventory.assetCounts
