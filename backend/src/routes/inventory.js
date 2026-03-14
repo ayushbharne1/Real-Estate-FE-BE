@@ -2,7 +2,7 @@ import express from "express";
 const router = express.Router();
 import {
   createProperty, getProperties, getProperty, getSimilar,
-  updateProperty, deleteProperty,
+  updateProperty, deleteProperty,getAssetTypeCounts,
 } from "../controllers/inventoryController.js";
 import { protect }              from "../middleware/auth.js";
 import { uploadProperty }       from "../config/cloudinary.js";
@@ -152,6 +152,24 @@ router.post("/", protect, uploadProperty, createProperty);
  *       200: { description: Paginated list of properties }
  */
 router.get("/", protect, validateQuery(dashboardQuerySchema), getProperties);
+
+// ─────────────────────────────────────────────────────────────
+//  GET /api/inventory/asset-type-counts
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * @swagger
+ * /api/inventory/asset-type-counts:
+ *   get:
+ *     summary: Get asset type counts
+ *     tags: [Inventory]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of asset type counts
+ */
+router.get("/asset-type-counts", protect, getAssetTypeCounts);
 
 // ─────────────────────────────────────────────────────────────
 // GET /api/inventory/:id
@@ -306,5 +324,6 @@ router.put("/:id", protect, uploadProperty, updateProperty);
  *       401: { description: Unauthorized }
  */
 router.delete("/:id", protect, deleteProperty);
+
 
 export default router;

@@ -421,3 +421,24 @@ function _cloudinaryPublicId(url) {
     return null;
   }
 }
+
+
+// GET /api/inventory/asset-type-counts
+export const getAssetTypeCounts = async (req, res) => {
+  try {
+    const { listingType } = req.query;
+    const filter = { isActive: true };
+    if (listingType) filter["basicDetails.listingType"] = listingType;
+
+    const counts = await Property.aggregate([
+      { $match: filter },
+      { $group: { _id: "$basicDetails.assetType", count: { $sum: 1 } } },
+    ]);
+
+    const result = {};
+    counts.forEach(({ _id, count }) => { if (_id) result[_id] = count; });
+    success(res, result);
+  } catch (err) {
+    error(res, err.message);
+  }
+};
