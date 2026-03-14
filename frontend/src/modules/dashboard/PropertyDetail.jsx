@@ -70,20 +70,20 @@ function buildShareMessage(property) {
 
   const lines = []
 
-  lines.push(`🏠 *${b.name}* [${property.propertyId}]`)
-  lines.push(`📍 ${fullAddr || '—'}`)
+  lines.push(` *${b.name}* [${property.propertyId}]`)
+  lines.push(` ${fullAddr || '—'}`)
   lines.push('')
 
   // Listing type badge
-  lines.push(`🏷️ *Type:* ${isRental ? 'Rental' : 'Resale'} | ${labelify(b.assetType)}`)
+  lines.push(` *Type:* ${isRental ? 'Rental' : 'Resale'} | ${labelify(b.assetType)}`)
 
   // Price
   if (isRental) {
-    lines.push(`💰 *Rent:* ${price}/month`)
+    lines.push(` *Rent:* ${price}/month`)
     if (pd.deposit) lines.push(`🔐 *Deposit:* ${formatPrice(pd.deposit, pd.depositUnit)}`)
     if (pd.maintenance) lines.push(`🔧 *Maintenance:* ${labelify(pd.maintenance)}`)
   } else {
-    lines.push(`💰 *Ask Price:* ${price}`)
+    lines.push(` *Ask Price:* ${price}`)
     if (pd.pricePerSqft) lines.push(`📐 *Price/Sq.ft:* ₹${Number(pd.pricePerSqft).toLocaleString()}`)
   }
 
@@ -91,20 +91,20 @@ function buildShareMessage(property) {
 
   // Configuration
   const configLines = []
-  if (b.bedrooms  > 0) configLines.push(`🛏️ ${b.bedrooms} Bedroom${b.bedrooms > 1 ? 's' : ''}`)
-  if (b.bathrooms > 0) configLines.push(`🚿 ${b.bathrooms} Bathroom${b.bathrooms > 1 ? 's' : ''}`)
-  if (b.balconies > 0) configLines.push(`🏡 ${b.balconies} Balcon${b.balconies > 1 ? 'ies' : 'y'}`)
+  if (b.bedrooms  > 0) configLines.push(` ${b.bedrooms} Bedroom${b.bedrooms > 1 ? 's' : ''}`)
+  if (b.bathrooms > 0) configLines.push(` ${b.bathrooms} Bathroom${b.bathrooms > 1 ? 's' : ''}`)
+  if (b.balconies > 0) configLines.push(` ${b.balconies} Balcon${b.balconies > 1 ? 'ies' : 'y'}`)
   if (configLines.length > 0) lines.push(configLines.join('  |  '))
 
   // Property specs
   const specsLines = []
-  if (pd.sbua)          specsLines.push(`📏 *SBUA:* ${formatSqft(pd.sbua)}`)
-  if (pd.plotArea)      specsLines.push(`📏 *Plot Area:* ${formatSqft(pd.plotArea)}`)
-  if (pd.doorFacing)    specsLines.push(`🧭 *Facing:* ${labelify(pd.doorFacing)}`)
-  if (pd.furnishing)    specsLines.push(`🪑 *Furnishing:* ${labelify(pd.furnishing)}`)
-  if (pd.ageOfBuilding) specsLines.push(`🏗️ *Age:* ${labelify(pd.ageOfBuilding)}`)
-  if (pd.floorNumber)   specsLines.push(`🏢 *Floor:* ${labelify(pd.floorNumber)}`)
-  if (pd.apartmentType) specsLines.push(`🏠 *Apt Type:* ${labelify(pd.apartmentType)}`)
+  if (pd.sbua)          specsLines.push(` *SBUA:* ${formatSqft(pd.sbua)}`)
+  if (pd.plotArea)      specsLines.push(` *Plot Area:* ${formatSqft(pd.plotArea)}`)
+  if (pd.doorFacing)    specsLines.push(` *Facing:* ${labelify(pd.doorFacing)}`)
+  if (pd.furnishing)    specsLines.push(` *Furnishing:* ${labelify(pd.furnishing)}`)
+  if (pd.ageOfBuilding) specsLines.push(` *Age:* ${labelify(pd.ageOfBuilding)}`)
+  if (pd.floorNumber)   specsLines.push(` *Floor:* ${labelify(pd.floorNumber)}`)
+  if (pd.apartmentType) specsLines.push(` *Apt Type:* ${labelify(pd.apartmentType)}`)
   if (specsLines.length > 0) {
     lines.push('')
     specsLines.forEach(l => lines.push(l))
@@ -112,13 +112,13 @@ function buildShareMessage(property) {
 
   // More details
   const moreLines = []
-  if (md.parking)          moreLines.push(`🚗 *Parking:* ${labelify(md.parking)}`)
-  if (md.buildingKhata != null) moreLines.push(`📋 *B-Khata:* ${md.buildingKhata ? 'Yes' : 'No'}`)
-  if (md.eKhata != null)   moreLines.push(`📋 *E-Khata:* ${md.eKhata ? 'Yes' : 'No'}`)
-  if (md.cornerUnit != null) moreLines.push(`📐 *Corner Unit:* ${md.cornerUnit ? 'Yes' : 'No'}`)
-  if (md.petAllowed != null) moreLines.push(`🐾 *Pet Allowed:* ${md.petAllowed ? 'Yes' : 'No'}`)
-  if (md.extraRooms?.length > 0) moreLines.push(`🏠 *Extra Rooms:* ${md.extraRooms.map(labelify).join(', ')}`)
-  if (md.preferredTenant)  moreLines.push(`👤 *Preferred Tenant:* ${labelify(md.preferredTenant)}`)
+  if (md.parking)          moreLines.push(` *Parking:* ${labelify(md.parking)}`)
+  if (md.buildingKhata != null) moreLines.push(` *B-Khata:* ${md.buildingKhata ? 'Yes' : 'No'}`)
+  if (md.eKhata != null)   moreLines.push(` *E-Khata:* ${md.eKhata ? 'Yes' : 'No'}`)
+  if (md.cornerUnit != null) moreLines.push(` *Corner Unit:* ${md.cornerUnit ? 'Yes' : 'No'}`)
+  if (md.petAllowed != null) moreLines.push(` *Pet Allowed:* ${md.petAllowed ? 'Yes' : 'No'}`)
+  if (md.extraRooms?.length > 0) moreLines.push(` *Extra Rooms:* ${md.extraRooms.map(labelify).join(', ')}`)
+  if (md.preferredTenant)  moreLines.push(` *Preferred Tenant:* ${labelify(md.preferredTenant)}`)
   if (moreLines.length > 0) {
     lines.push('')
     moreLines.forEach(l => lines.push(l))
@@ -127,26 +127,26 @@ function buildShareMessage(property) {
   // Amenities
   if (md.amenities?.length > 0) {
     lines.push('')
-    lines.push(`✨ *Amenities:* ${md.amenities.map(labelify).join(' • ')}`)
+    lines.push(` *Amenities:* ${md.amenities.map(labelify).join(' • ')}`)
   }
 
   // Possession
   if (b.possession) {
     lines.push('')
-    lines.push(`🗓️ *Possession:* ${labelify(b.possession)}`)
+    lines.push(` *Possession:* ${labelify(b.possession)}`)
   }
 
   // Description
   if (md.description) {
     lines.push('')
-    lines.push(`📝 *Description:*`)
+    lines.push(` *Description:*`)
     lines.push(md.description)
   }
 
   lines.push('')
   lines.push(`---`)
-  lines.push(`📞 *InfiniteRealty* — For more details, contact us!`)
-  lines.push(`🔗 ${window.location.href}`)
+  lines.push(` *InfiniteRealty* — For more details, contact us!`)
+  lines.push(` ${window.location.href}`)
 
   return lines.join('\n')
 }
@@ -727,7 +727,20 @@ const PropertyDetail = () => {
                 <ActionBtn onClick={() => setShareProperty(property)} title="Share property">
                   <Share2 className="w-3.5 h-3.5" />
                 </ActionBtn>
-                <ActionBtn onClick={() => {}}><UserCheck className="w-3.5 h-3.5" /></ActionBtn>
+
+<ActionBtn
+  onClick={() => {
+    const url = b.googleMapUrl
+      ? b.googleMapUrl
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+          [b.address, b.area, b.city, b.state, b.pincode].filter(Boolean).join(', ')
+        )}`
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }}
+  title="Open in Google Maps"
+>
+  <MapPin className="w-3.5 h-3.5" />
+</ActionBtn>
                 <ActionBtn variant="danger" onClick={() => setShowDeleteConfirm(true)}><Trash2 className="w-3.5 h-3.5" /></ActionBtn>
                 <ActionBtn onClick={() => navigate(`/inventory/edit/${id}`)}><Pencil className="w-3.5 h-3.5" /></ActionBtn>
               </div>

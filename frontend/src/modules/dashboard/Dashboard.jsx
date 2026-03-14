@@ -145,7 +145,7 @@ const ShareModal = ({ prop, onClose }) => {
   )
 }
 
-// ── PropertyCard — original style ─────────────────────────────────────────────
+// ── PropertyCard ──────────────────────────────────────────────────────────────
 const Chip = ({ label }) => (
   <span className="text-xs border border-gray-200 rounded-full px-3 py-1 text-gray-500 whitespace-nowrap bg-gray-50">{label}</span>
 )
@@ -167,7 +167,7 @@ const PropertyCard = ({ prop, mode, onShare }) => {
       <div className="relative overflow-hidden">
         <img src={img} alt={b.name} className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300" />
         <span className="absolute top-3 left-3 bg-[#E8431A] text-white text-xs font-bold px-2.5 py-1 rounded-md tracking-wide">{prop.propertyId}</span>
-        <span className={`absolute bottom-3 left-3 text-white text-[10px] font-bold px-2 py-0.5 rounded-md ${isRental ? 'bg-blue-600' : 'bg-gray-700'}`}>
+        <span className={`absolute top-3 right-3 text-white text-[10px] font-bold px-2 py-0.5 rounded-md ${isRental ? 'bg-[#E8431A]' : 'bg-[#E8431A]'}`}>
           {isRental ? 'Rental' : 'Resale'}
         </span>
       </div>
@@ -274,7 +274,7 @@ const ConfigurationDropdown = ({ selected, onChange }) => {
   )
 }
 
-// FIX 2: changed `left-0` → `right-0` on the panel so it doesn't overflow the right viewport edge
+// ── Budget Dropdown (fixed) ───────────────────────────────────────────────────
 const BudgetDropdown = ({ value, onChange }) => {
   const [open, setOpen] = useState(false)
   const [min, setMin]   = useState('')
@@ -301,38 +301,65 @@ const BudgetDropdown = ({ value, onChange }) => {
 
   const cancel = () => {
     onChange(null)
+    setMin('')
+    setMax('')
     setOpen(false)
   }
 
   return (
     <div ref={ref} className="relative">
-      <button onClick={open ? () => setOpen(false) : handleOpen}
-        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}>
+      <button
+        onClick={open ? () => setOpen(false) : handleOpen}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${
+          value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'
+        }`}
+      >
         Budget <ChevronDown className="w-3.5 h-3.5" />
       </button>
+
       {open && (
-        <div className="absolute top-full right-0 mt-1 w-64 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-4">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Budget Range (Lakhs)</p>
-          <div className="flex items-center gap-2 mb-4">
-            <input
-              value={min}
-              onChange={e => setMin(e.target.value)}
-              placeholder="Min"
-              type="number"
-              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors"
-            />
-            <span className="text-gray-400 text-sm flex-shrink-0">to</span>
-            <input
-              value={max}
-              onChange={e => setMax(e.target.value)}
-              placeholder="Max"
-              type="number"
-              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors"
-            />
+        <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 p-5">
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+            Budget Range <span className="font-normal normal-case text-gray-400">(in Lakhs)</span>
+          </p>
+          <div className="flex items-end gap-3 mb-4">
+            <div className="flex-1">
+              <label className="text-[10px] text-gray-400 font-semibold mb-1.5 block uppercase tracking-wide">Min</label>
+              <input
+                value={min}
+                onChange={e => setMin(e.target.value)}
+                placeholder="e.g. 50"
+                type="number"
+                min="0"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#E8431A] focus:ring-2 focus:ring-orange-50 transition-all bg-gray-50 placeholder-gray-300"
+              />
+            </div>
+            <div className="pb-2.5 text-gray-300 font-bold text-lg select-none">—</div>
+            <div className="flex-1">
+              <label className="text-[10px] text-gray-400 font-semibold mb-1.5 block uppercase tracking-wide">Max</label>
+              <input
+                value={max}
+                onChange={e => setMax(e.target.value)}
+                placeholder="e.g. 500"
+                type="number"
+                min="0"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#E8431A] focus:ring-2 focus:ring-orange-50 transition-all bg-gray-50 placeholder-gray-300"
+              />
+            </div>
           </div>
-          <div className="flex gap-2 justify-end">
-            <button onClick={cancel} className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Clear</button>
-            <button onClick={apply} className="text-xs px-3 py-1.5 rounded-lg bg-[#E8431A] text-white hover:bg-[#cf3b16] transition-colors">Apply</button>
+          <div className="flex gap-2">
+            <button
+              onClick={cancel}
+              className="flex-1 text-sm font-semibold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              Clear
+            </button>
+            <button
+              onClick={apply}
+              className="flex-1 text-sm font-semibold py-2.5 rounded-xl bg-[#E8431A] text-white hover:bg-[#cf3b16] transition-colors"
+            >
+              Apply
+            </button>
           </div>
         </div>
       )}
@@ -340,7 +367,7 @@ const BudgetDropdown = ({ value, onChange }) => {
   )
 }
 
-// FIX 3: changed `left-0` → `right-0` on the panel so it doesn't overflow the right viewport edge
+// ── SBUA Dropdown (fixed) ─────────────────────────────────────────────────────
 const SBUADropdown = ({ value, onChange }) => {
   const [open, setOpen] = useState(false)
   const [min, setMin]   = useState('')
@@ -367,38 +394,65 @@ const SBUADropdown = ({ value, onChange }) => {
 
   const cancel = () => {
     onChange(null)
+    setMin('')
+    setMax('')
     setOpen(false)
   }
 
   return (
     <div ref={ref} className="relative">
-      <button onClick={open ? () => setOpen(false) : handleOpen}
-        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}>
+      <button
+        onClick={open ? () => setOpen(false) : handleOpen}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${
+          value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'
+        }`}
+      >
         SBUA <ChevronDown className="w-3.5 h-3.5" />
       </button>
+
       {open && (
-        <div className="absolute top-full right-0 mt-1 w-64 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-4">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">SBUA Range (Sq.ft)</p>
-          <div className="flex items-center gap-2 mb-4">
-            <input
-              value={min}
-              onChange={e => setMin(e.target.value)}
-              placeholder="Min"
-              type="number"
-              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors"
-            />
-            <span className="text-gray-400 text-sm flex-shrink-0">to</span>
-            <input
-              value={max}
-              onChange={e => setMax(e.target.value)}
-              placeholder="Max"
-              type="number"
-              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#E8431A] transition-colors"
-            />
+        <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 p-5">
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+            SBUA Range <span className="font-normal normal-case text-gray-400">(Sq.ft)</span>
+          </p>
+          <div className="flex items-end gap-3 mb-4">
+            <div className="flex-1">
+              <label className="text-[10px] text-gray-400 font-semibold mb-1.5 block uppercase tracking-wide">Min</label>
+              <input
+                value={min}
+                onChange={e => setMin(e.target.value)}
+                placeholder="e.g. 500"
+                type="number"
+                min="0"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#E8431A] focus:ring-2 focus:ring-orange-50 transition-all bg-gray-50 placeholder-gray-300"
+              />
+            </div>
+            <div className="pb-2.5 text-gray-300 font-bold text-lg select-none">—</div>
+            <div className="flex-1">
+              <label className="text-[10px] text-gray-400 font-semibold mb-1.5 block uppercase tracking-wide">Max</label>
+              <input
+                value={max}
+                onChange={e => setMax(e.target.value)}
+                placeholder="e.g. 5000"
+                type="number"
+                min="0"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#E8431A] focus:ring-2 focus:ring-orange-50 transition-all bg-gray-50 placeholder-gray-300"
+              />
+            </div>
           </div>
-          <div className="flex gap-2 justify-end">
-            <button onClick={cancel} className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Clear</button>
-            <button onClick={apply} className="text-xs px-3 py-1.5 rounded-lg bg-[#E8431A] text-white hover:bg-[#cf3b16] transition-colors">Apply</button>
+          <div className="flex gap-2">
+            <button
+              onClick={cancel}
+              className="flex-1 text-sm font-semibold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              Clear
+            </button>
+            <button
+              onClick={apply}
+              className="flex-1 text-sm font-semibold py-2.5 rounded-xl bg-[#E8431A] text-white hover:bg-[#cf3b16] transition-colors"
+            >
+              Apply
+            </button>
           </div>
         </div>
       )}
@@ -550,9 +604,7 @@ const Dashboard = () => {
 
       {shareprop && <ShareModal prop={shareprop} onClose={() => setShareprop(null)} />}
 
-      {/* ── Sticky Header ──
-          FIX 1: removed `mx-2`, added `left-0 w-full` so the bar stays
-          pinned horizontally even when the table view causes body scroll. */}
+      {/* ── Sticky Header ── */}
       <div className="sticky top-0 left-0 w-full z-10 bg-white border-b border-gray-100 px-6 flex items-center justify-between gap-4" style={{ overflow: 'visible' }}>
         <div className="flex items-center gap-6 flex-shrink-0">
           {CATEGORIES.map(({ id, label, Icon }) => (
@@ -563,7 +615,9 @@ const Dashboard = () => {
             </button>
           ))}
         </div>
-        <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+
+        <div className="flex items-center gap-2">
+                  <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden flex-shrink-0">
           {['resale', 'rental'].map(t => (
             <button key={t} onClick={() => handleTabChange(t)}
               className={`px-4 py-1.5 text-sm font-medium capitalize transition-colors ${activeTab === t ? 'bg-[#E8431A] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
@@ -571,7 +625,6 @@ const Dashboard = () => {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2">
           <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
             <button onClick={() => setViewMode('grid')} className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'grid' ? 'bg-[#E8431A] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
               <Grid className="w-3.5 h-3.5" /> Grid
