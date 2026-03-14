@@ -49,10 +49,6 @@ export default function InventoryForm({
   const locked      = isRentalLocked(listingType, assetType)
   const fieldConfig = useMemo(() => getFieldConfig(listingType, assetType), [listingType, assetType])
 
-  // ── validationSchema — only used for the current step ────────
-  // IMPORTANT: We do NOT change validationSchema dynamically based on step
-  // for the submit handler — submit always validates all steps manually.
-  // The per-step schema is only used by handleNext validation.
   const currentStepSchema = useMemo(() => {
     if (step === 0) return step1Schema
     if (locked) return null
@@ -69,13 +65,11 @@ export default function InventoryForm({
 
   const formik = useFormik({
     initialValues:      initialValues ?? INITIAL_VALUES,
-    // FIX: validateOnChange true so errors clear as user types
     validateOnChange:   true,
     validateOnBlur:     true,
-    // FIX: No validationSchema here — we validate manually per-step
-    // to prevent auto-validation triggering on step change
     enableReinitialize: true,
     onSubmit: async values => {
+      // This only runs when the submit button (type="submit") is clicked on step 2
       const payload = buildSubmitPayload(values)
       const media   = mediaRef.current
 
@@ -105,8 +99,12 @@ export default function InventoryForm({
   useEffect(() => { if (saveSuccess) setShowSuccess(true) }, [saveSuccess])
   useEffect(() => () => { dispatch(clearSaveState()) }, [dispatch])
 
-  // ── Step navigation ──────────────────────────────────────────
-  const handleNext = async () => {
+  // ── Step navigation — NEVER triggers formik.submitForm() ────────────────────
+  const handleNext = async (e) => {
+    // Prevent any bubbling that could reach the form's submit handler
+    if (e && e.preventDefault) e.preventDefault()
+    if (e && e.stopPropagation) e.stopPropagation()
+
     if (locked) { markDone(step); setStep(s => s + 1); return }
 
     let fieldNames
@@ -117,12 +115,10 @@ export default function InventoryForm({
       fieldNames = getStepFieldNames(fields || {})
     }
 
-    // Touch only the current step's fields
     const touchObj = {}
     fieldNames.forEach(n => { touchObj[n] = true })
     await formik.setTouched({ ...formik.touched, ...touchObj }, false)
 
-    // Validate only current step fields using currentStepSchema
     if (!currentStepSchema) {
       markDone(step); setStep(s => s + 1); return
     }
@@ -134,7 +130,6 @@ export default function InventoryForm({
       markDone(step)
       setStep(s => s + 1)
     } catch (validationError) {
-      // Set errors for failed fields
       const errors = {}
       validationError.inner?.forEach(e => { if (e.path) errors[e.path] = e.message })
       formik.setErrors({ ...formik.errors, ...errors })
