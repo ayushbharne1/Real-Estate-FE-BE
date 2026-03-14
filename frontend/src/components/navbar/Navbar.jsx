@@ -12,8 +12,8 @@ const LogoIcon = () => (
 
 const Navbar = () => {
   const [query, setQuery] = useState('')
-  const navigate   = useNavigate()
-  const location   = useLocation()
+  const navigate = useNavigate()
+  const location = useLocation()
   const debounceRef = useRef(null)
 
   const fireSearch = (q) => {
@@ -60,25 +60,27 @@ const Navbar = () => {
         <LogoIcon />
       </div>
 
-      {/* Center – Search */}
-      <div className="flex-1 mx-10 max-w-lg">
-        <div className="flex items-center border-2 border-gray-300 rounded-md overflow-hidden">
-          <input
-            type="text"
-            value={query}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Search properties…"
-            className="flex-1 px-3 py-2 text-sm text-gray-600 placeholder-gray-400 outline-none"
-          />
-          <button
-            onClick={() => { clearTimeout(debounceRef.current); fireSearch(query) }}
-            className="bg-[#E8431A] hover:bg-[#cf3b16] transition-colors px-3 py-2 flex items-center justify-center rounded-md m-1"
-          >
-            <Search className="w-4 h-4 text-white" strokeWidth={2.5} />
-          </button>
+      {/* Center – Search (dashboard only) */}
+      {location.pathname === '/' && (
+        <div className="flex-1 mx-10 max-w-lg">
+          <div className="flex items-center border-2 border-gray-300 rounded-md overflow-hidden">
+            <input
+              type="text"
+              value={query}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Search properties…"
+              className="flex-1 px-3 py-2 text-sm text-gray-600 placeholder-gray-400 outline-none"
+            />
+            <button
+              onClick={() => { clearTimeout(debounceRef.current); fireSearch(query) }}
+              className="bg-[#E8431A] hover:bg-[#cf3b16] transition-colors px-3 py-2 flex items-center justify-center rounded-md m-1"
+            >
+              <Search className="w-4 h-4 text-white" strokeWidth={2.5} />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Right */}
       <div className="flex items-center gap-3 flex-shrink-0">
