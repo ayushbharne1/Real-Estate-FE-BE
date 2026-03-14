@@ -19,10 +19,12 @@ const ProtectedRoutes = () => [
   <Route key="main" path="/" element={<AuthGuard />}>
     <Route index element={<Dashboard />} />
     <Route path="property/details/:id" element={<PropertyDetail />} />
-    <Route path="add"        element={<AddInventory />} />
-    <Route path="edit/:id"   element={<EditInventory />} />
-    <Route path="profile"    element={<Profile />} />
-    <Route path="premium"    element={<Premium />} />
+    <Route path="add"                  element={<AddInventory />} />
+    <Route path="edit/:id"             element={<EditInventory />} />
+    {/* Also support /inventory/edit/:id used by Dashboard and PropertyDetail */}
+    <Route path="inventory/edit/:id"   element={<EditInventory />} />
+    <Route path="profile"              element={<Profile />} />
+    <Route path="premium"              element={<Premium />} />
   </Route>,
 ]
 
