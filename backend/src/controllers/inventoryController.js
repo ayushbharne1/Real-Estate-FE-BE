@@ -123,11 +123,30 @@ export const getProperties = async (req, res) => {
       sortBy, page = 1, limit = 20,
     } = req.query;
 
-    const filter = { isActive: true };
+   const filter = { isActive: true };
     if (listingType) filter["basicDetails.listingType"] = listingType;
     if (assetType)   filter["basicDetails.assetType"]   = assetType;
-    if (search)      filter["basicDetails.name"]        = { $regex: search, $options: "i" };
-    if (bhkTypes?.length) filter["basicDetails.bedrooms"] = { $in: bhkTypes.map(Number) };
+ 
+    // Enhanced search: name, city, area, propertyId, assetType text
+    if (search) {
+      filter["$or"] = [
+        { "basicDetails.name":      { $regex: search, $options: "i" } },
+        { "basicDetails.city":      { $regex: search, $options: "i" } },
+        { "basicDetails.area":      { $regex: search, $options: "i" } },
+        { "basicDetails.address":   { $regex: search, $options: "i" } },
+        { "basicDetails.assetType": { $regex: search, $options: "i" } },
+        { "propertyId":             { $regex: search, $options: "i" } },
+      ];
+    }
+ 
+    const rawBhk = req.query['bhkTypes[]'] || req.query.bhkTypes
+    const bhkArray = rawBhk
+      ? (Array.isArray(rawBhk) ? rawBhk : [rawBhk])
+      : []
+    if (bhkArray.length > 0) {
+      filter["basicDetails.bedrooms"] = { $in: bhkArray.map(Number) }
+    }
+ 
     if (budgetMin || budgetMax) {
       filter["propertyDetails.askPrice"] = {};
       if (budgetMin) filter["propertyDetails.askPrice"].$gte = Number(budgetMin);
@@ -168,18 +187,26 @@ export const getProperty = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// GET /api/inventory/:id/similar
+// GET /api/inventory/:id/similar  — FIXED: assetType only, no city filter
 // ─────────────────────────────────────────────────────────────
 export const getSimilar = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
     if (!property) return error(res, "Property not found", 404);
-    const items = await Property.find({
+
+    const assetType = property.basicDetails?.assetType;
+
+    const filter = {
       _id:                      { $ne: property._id },
-      "basicDetails.assetType": property.basicDetails.assetType,
-      "basicDetails.city":      property.basicDetails.city,
       isActive:                 true,
-    }).limit(4);
+    };
+
+    // Only filter by assetType — never by city, so results always exist
+    if (assetType) {
+      filter["basicDetails.assetType"] = assetType;
+    }
+
+    const items = await Property.find(filter).limit(4);
     success(res, items);
   } catch (err) {
     error(res, err.message);
