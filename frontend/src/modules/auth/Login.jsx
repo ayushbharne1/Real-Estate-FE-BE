@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
+import { useFormik } from 'formik'
+import { toFormikValidationSchema } from 'zod-formik-adapter'
 import {
   loginUser,
   clearErrors,
@@ -12,6 +14,7 @@ import {
   selectIsAuthenticated,
 } from '../../redux/slices/authSlice'
 import companyLogo from '../../assets/logo.svg'
+import { loginSchema } from 'shared/schemas/index.js'
 
 // ── Inline field error ────────────────────────────────────────────────────────
 const FieldError = ({ message }) =>
@@ -24,8 +27,8 @@ const FieldError = ({ message }) =>
 
 // ── Login Page ─────────────────────────────────────────────────────────────────
 const Login = () => {
-  const dispatch   = useDispatch()
-  const navigate   = useNavigate()
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   // Redux state
   const loading         = useSelector(selectAuthLoading)
@@ -33,65 +36,55 @@ const Login = () => {
   const fieldErrors     = useSelector(selectFieldErrors)
   const isAuthenticated = useSelector(selectIsAuthenticated)
 
-  // Local form state
-  const [identifier,    setIdentifier]    = useState('')
-  const [password, setPassword] = useState('')
-  const [showPass, setShowPass] = useState(false)
-
-  // Client-side validation errors
-  const [localErrors, setLocalErrors] = useState({ identifier: '', password: '' })
-
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) navigate('/', { replace: true })
   }, [isAuthenticated, navigate])
 
-  // Clear Redux errors when user starts typing
-  const handleIdentifierChange = (e) => {
-    setIdentifier(e.target.value)
-    setLocalErrors(prev => ({ ...prev, identifier: '' }))
-    if (serverError || fieldErrors?.identifier) dispatch(clearErrors())
-  }
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value)
-    setLocalErrors(prev => ({ ...prev, password: '' }))
-    if (serverError || fieldErrors?.password) dispatch(clearErrors())
-  }
+  const formik = useFormik({
+    initialValues: {
+      identifier: '',
+      password: '',
+    },
+    validationSchema: toFormikValidationSchema(loginSchema),
+    validateOnBlur: true,
+    validateOnChange: false, // only validate on blur / submit to avoid noise while typing
+    onSubmit: async (values) => {
+      // Clear any lingering Redux errors before a fresh attempt
+      dispatch(clearErrors())
 
-  // Client-side validate before dispatching
-  const validate = () => {
-    const errors = { identifier: '', password: '' }
-    if (!identifier.trim()) {
-      errors.identifier = 'Email or username is required'
-    } 
-    if (!password) {
-      errors.password = 'Password is required'
-    } else if (password.length < 6) {
-      errors.password = 'Password must be at least 6 characters'
-    }
-    setLocalErrors(errors)
-    return !errors.identifier && !errors.password
-  }
+      const result = await dispatch(loginUser(values))
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!validate()) return
+      if (loginUser.fulfilled.match(result)) {
+        toast.success(`Welcome back, ${result.payload.admin?.name || 'Admin'}!`)
+        navigate('/', { replace: true })
+      } else {
+        const msg = result.payload?.message
+        if (msg) toast.error(msg)
+      }
+    },
+  })
 
-    const result = await dispatch(loginUser({ identifier, password }))
-
-    if (loginUser.fulfilled.match(result)) {
-      toast.success(`Welcome back, ${result.payload.admin?.name || 'Admin'}!`)
-      navigate('/', { replace: true })
-    } else {
-      // fieldErrors from slice will render inline; also show a toast for general errors
-      const msg = result.payload?.message
-      if (msg) toast.error(msg)
-    }
+  // Clear Redux field errors when the user starts editing a field
+  const handleFieldChange = (e) => {
+    formik.handleChange(e)
+    if (serverError || fieldErrors?.[e.target.name]) dispatch(clearErrors())
   }
 
-  // Merge server field errors on top of local ones
-  const IdentifierError    = localErrors.identifier    || fieldErrors?.identifier?.[0]    || ''
-  const passwordError = localErrors.password || fieldErrors?.password?.[0] || ''
+  // Merge Formik + server-side field errors (server errors take lower priority)
+  const identifierError =
+    (formik.touched.identifier && formik.errors.identifier) ||
+    fieldErrors?.identifier?.[0] ||
+    ''
+
+  const passwordError =
+    (formik.touched.password && formik.errors.password) ||
+    fieldErrors?.password?.[0] ||
+    ''
+
+  // Show a general banner only for non-field server errors
+  const showServerBanner =
+    serverError && !fieldErrors?.identifier && !fieldErrors?.password
 
   return (
     <div className="min-h-screen flex bg-white font-sans">
@@ -129,56 +122,72 @@ const Login = () => {
             <span className="text-[#E8431A] font-bold text-xl">LOGIN</span>
           </div>
 
-          {/* General server error banner (non-field errors) */}
-          {serverError && !fieldErrors?.identifier && !fieldErrors?.password && (
+          {/* General server error banner */}
+          {showServerBanner && (
             <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6 text-sm text-red-600">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               {serverError}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+          <form onSubmit={formik.handleSubmit} className="space-y-6" noValidate>
 
             {/* Identifier */}
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">
+              <label htmlFor="identifier" className="text-sm font-medium text-gray-700">
                 Email or Username <span className="text-[#E8431A]">*</span>
               </label>
               <input
+                id="identifier"
+                name="identifier"
                 type="text"
-                value={identifier}
-                onChange={handleIdentifierChange}
+                value={formik.values.identifier}
+                onChange={handleFieldChange}
+                onBlur={formik.handleBlur}
                 placeholder="admin@example.com or admin123"
                 autoComplete="username"
                 className={`w-full px-0 py-2 border-0 border-b-2 text-gray-800 text-sm focus:outline-none transition-colors bg-transparent ${
-                  IdentifierError ? 'border-red-400' : 'border-gray-200 focus:border-[#E8431A]'
+                  identifierError
+                    ? 'border-red-400'
+                    : 'border-gray-200 focus:border-[#E8431A]'
                 }`}
               />
-              <FieldError message={IdentifierError} />
+              <FieldError message={identifierError} />
             </div>
 
             {/* Password */}
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="text-sm font-medium text-gray-700">
                 Password <span className="text-[#E8431A]">*</span>
               </label>
               <div className="relative">
                 <input
-                  type={showPass ? 'text' : 'password'}
-                  value={password}
-                  onChange={handlePasswordChange}
+                  id="password"
+                  name="password"
+                  type={formik.values._showPass ? 'text' : 'password'}
+                  value={formik.values.password}
+                  onChange={handleFieldChange}
+                  onBlur={formik.handleBlur}
                   autoComplete="current-password"
                   className={`w-full px-0 py-2 border-0 border-b-2 text-gray-800 text-sm focus:outline-none transition-colors bg-transparent pr-8 ${
-                    passwordError ? 'border-red-400' : 'border-gray-200 focus:border-[#E8431A]'
+                    passwordError
+                      ? 'border-red-400'
+                      : 'border-gray-200 focus:border-[#E8431A]'
                   }`}
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPass(s => !s)}
+                  onClick={() =>
+                    formik.setFieldValue('_showPass', !formik.values._showPass)
+                  }
                   className="absolute right-0 bottom-2 text-gray-400 hover:text-gray-600 transition-colors"
                   tabIndex={-1}
+                  aria-label={formik.values._showPass ? 'Hide password' : 'Show password'}
                 >
-                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {formik.values._showPass
+                    ? <EyeOff className="w-4 h-4" />
+                    : <Eye className="w-4 h-4" />
+                  }
                 </button>
               </div>
               <FieldError message={passwordError} />
@@ -187,10 +196,10 @@ const Login = () => {
             {/* Submit */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || formik.isSubmitting}
               className="w-full bg-[#E8431A] hover:bg-[#d03b15] disabled:opacity-60 disabled:cursor-not-allowed text-white font-medium py-3.5 px-4 rounded-md transition-colors flex items-center justify-center gap-2 text-sm mt-10"
             >
-              {loading ? (
+              {loading || formik.isSubmitting ? (
                 <>
                   <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                   Logging in…
