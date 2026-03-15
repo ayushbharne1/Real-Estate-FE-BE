@@ -16,6 +16,7 @@ import EditInventory from "../modules/inventory/Editinventory";
 import Profile from "../modules/profile/Profile";
 import Premium from "../modules/premium/Premium";
 import Customer from "../modules/customer/Customer";
+import AddCustomerForm from "../modules/customer/AddCustomerForm";
 
 const AuthGuard = () => {
 
@@ -50,6 +51,7 @@ const ProtectedRoutes = () => [
     <Route path="premium" element={<Premium />} />
 
     <Route path="customer" element={<Customer />} />
+    <Route path="/customer/add" element={<AddCustomerForm />} />
 
   </Route>,
 ];
