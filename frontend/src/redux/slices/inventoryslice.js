@@ -62,8 +62,8 @@ export const deleteProperty = createAsyncThunk(
 
 export const fetchAssetTypeCounts = createAsyncThunk(
   'inventory/fetchAssetTypeCounts',
-  async (listingType, { rejectWithValue }) => {
-    try { return await apiFetchAssetTypeCounts(listingType) }
+  async (params, { rejectWithValue }) => {
+    try { return await apiFetchAssetTypeCounts(params) }
     catch (err) { return rejectWithValue(err) }
   }
 )

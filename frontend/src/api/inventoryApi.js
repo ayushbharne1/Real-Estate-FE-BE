@@ -95,10 +95,10 @@ export async function deleteProperty(id) {
   }
 }
 
-export async function fetchAssetTypeCounts(listingType) {
+export async function fetchAssetTypeCounts(params) {
   try {
     const { data } = await api.get('/api/inventory/asset-type-counts', {
-      params: listingType ? { listingType } : {},
+       params: params || {},
     });
     return data.data;
   } catch (err) {

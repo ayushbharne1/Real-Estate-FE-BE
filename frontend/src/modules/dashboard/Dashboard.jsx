@@ -21,33 +21,33 @@ import {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { id: 'all',        label: 'All',        Icon: LayoutGrid, assetFilter: null },
-  { id: 'commercial', label: 'Commercial', Icon: Building2,  assetFilter: ['COMMERCIAL_SPACE','COMMERCIAL_PROPERTY','OFFICE_SPACE','RETAIL_SPACE'] },
-  { id: 'apartment',  label: 'Apartment',  Icon: Home,       assetFilter: ['APARTMENT'] },
-  { id: 'plot',       label: 'Plot',       Icon: Landmark,   assetFilter: ['PLOT'] },
-  { id: 'villas',     label: 'Villas',     Icon: TreePine,   assetFilter: ['VILLA','VILAMENT','INDEPENDENT_HOUSE','ROW_HOUSE'] },
+  { id: 'all', label: 'All', Icon: LayoutGrid, assetFilter: null },
+  { id: 'commercial', label: 'Commercial', Icon: Building2, assetFilter: ['COMMERCIAL_SPACE', 'COMMERCIAL_PROPERTY', 'OFFICE_SPACE', 'RETAIL_SPACE'] },
+  { id: 'apartment', label: 'Apartment', Icon: Home, assetFilter: ['APARTMENT'] },
+  { id: 'plot', label: 'Plot', Icon: Landmark, assetFilter: ['PLOT'] },
+  { id: 'villas', label: 'Villas', Icon: TreePine, assetFilter: ['VILLA', 'VILAMENT', 'INDEPENDENT_HOUSE', 'ROW_HOUSE'] },
 ]
 
 const ASSET_TYPES = [
-  { label: 'Apartment',           value: 'APARTMENT',           Icon: Home },
-  { label: 'Plot',                value: 'PLOT',                Icon: Landmark },
-  { label: 'Villa',               value: 'VILLA',               Icon: TreePine },
-  { label: 'Independent House',   value: 'INDEPENDENT_HOUSE',   Icon: Home },
-  { label: 'Commercial Space',    value: 'COMMERCIAL_SPACE',    Icon: Building2 },
-  { label: 'Row House',           value: 'ROW_HOUSE',           Icon: Home },
+  { label: 'Apartment', value: 'APARTMENT', Icon: Home },
+  { label: 'Plot', value: 'PLOT', Icon: Landmark },
+  { label: 'Villa', value: 'VILLA', Icon: TreePine },
+  { label: 'Independent House', value: 'INDEPENDENT_HOUSE', Icon: Home },
+  { label: 'Commercial Space', value: 'COMMERCIAL_SPACE', Icon: Building2 },
+  { label: 'Row House', value: 'ROW_HOUSE', Icon: Home },
   { label: 'Commercial Property', value: 'COMMERCIAL_PROPERTY', Icon: Warehouse },
-  { label: 'Villament',           value: 'VILAMENT',            Icon: Home },
-  { label: 'Office Space',        value: 'OFFICE_SPACE',        Icon: Building2 },
-  { label: 'Retail Space',        value: 'RETAIL_SPACE',        Icon: Store },
+  { label: 'Villament', value: 'VILAMENT', Icon: Home },
+  { label: 'Office Space', value: 'OFFICE_SPACE', Icon: Building2 },
+  { label: 'Retail Space', value: 'RETAIL_SPACE', Icon: Store },
 ]
 
 const BHK_OPTIONS = ['1BHK', '2BHK', '3BHK', '4BHK', '5BHK']
 
 const SORT_OPTIONS = [
-  { label: 'Price: Low to High',      value: 'PRICE_LOW_TO_HIGH' },
-  { label: 'Price: High to Low',      value: 'PRICE_HIGH_TO_LOW' },
-  { label: 'Newest First',            value: 'NEWEST_FIRST' },
-  { label: 'Oldest First',            value: 'OLDEST_FIRST' },
+  { label: 'Price: Low to High', value: 'PRICE_LOW_TO_HIGH' },
+  { label: 'Price: High to Low', value: 'PRICE_HIGH_TO_LOW' },
+  { label: 'Newest First', value: 'NEWEST_FIRST' },
+  { label: 'Oldest First', value: 'OLDEST_FIRST' },
   { label: 'Price/Sqft: Low to High', value: 'PRICE_SQFT_LOW_TO_HIGH' },
   { label: 'Price/Sqft: High to Low', value: 'PRICE_SQFT_HIGH_TO_LOW' },
 ]
@@ -87,10 +87,10 @@ function labelify(str) {
 }
 
 function buildShareMessage(prop) {
-  const b  = prop?.basicDetails    || {}
+  const b = prop?.basicDetails || {}
   const pd = prop?.propertyDetails || {}
-  const isRental  = b.listingType === 'RENTAL'
-  const fullAddr  = [b.address, b.area, b.city, b.state, b.pincode].filter(Boolean).join(', ')
+  const isRental = b.listingType === 'RENTAL'
+  const fullAddr = [b.address, b.area, b.city, b.state, b.pincode].filter(Boolean).join(', ')
   const price = isRental
     ? formatPrice(pd.rentPerMonth, pd.rentUnit)
     : formatPrice(pd.askPrice, pd.priceUnit)
@@ -99,8 +99,8 @@ function buildShareMessage(prop) {
   lines.push(`📍 ${fullAddr || '—'}`)
   lines.push('')
   lines.push(`🏷️ *Type:* ${isRental ? 'Rental' : 'Resale'} | ${labelify(b.assetType)}`)
-  if (b.bedrooms)     lines.push(`🛏 *BHK:* ${b.bedrooms} BHK`)
-  if (pd.sbua)        lines.push(`📐 *SBUA:* ${formatSqft(pd.sbua)}`)
+  if (b.bedrooms) lines.push(`🛏 *BHK:* ${b.bedrooms} BHK`)
+  if (pd.sbua) lines.push(`📐 *SBUA:* ${formatSqft(pd.sbua)}`)
   if (pd.pricePerSqft && !isRental) lines.push(`💰 *Price/Sqft:* ${formatPriceSqft(pd.pricePerSqft)}`)
   lines.push(`💵 *${isRental ? 'Rent' : 'Ask Price'}:* ${price}`)
   if (isRental && pd.deposit) lines.push(`🔒 *Deposit:* ${formatPrice(pd.deposit, pd.depositUnit)}`)
@@ -135,7 +135,7 @@ const ShareModal = ({ prop, onClose }) => {
           </button>
           {typeof navigator !== 'undefined' && navigator.share && (
             <button
-              onClick={async () => { try { await navigator.share({ title: prop?.basicDetails?.name, text: message, url: propUrl }) } catch {} }}
+              onClick={async () => { try { await navigator.share({ title: prop?.basicDetails?.name, text: message, url: propUrl }) } catch { } }}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold bg-[#E8431A] text-white hover:bg-[#cf3b16] transition-colors"
             >
               <Share2 className="w-4 h-4" /> Share
@@ -153,13 +153,13 @@ const Chip = ({ label }) => (
 )
 
 const PropertyCard = ({ prop, mode, onShare }) => {
-  const navigate   = useNavigate()
-  const isRental   = mode === 'rental'
-  const b          = prop.basicDetails || {}
-  const pd         = prop.propertyDetails || {}
-  const img        = b.primaryImage || b.images?.[0] || 'https://via.placeholder.com/400x300?text=No+Image'
-  const bhk        = getBHKLabel(b.bedrooms)
-  const facing     = pd.doorFacing?.replace(/_/g, ' ') || null
+  const navigate = useNavigate()
+  const isRental = mode === 'rental'
+  const b = prop.basicDetails || {}
+  const pd = prop.propertyDetails || {}
+  const img = b.primaryImage || b.images?.[0] || 'https://via.placeholder.com/400x300?text=No+Image'
+  const bhk = getBHKLabel(b.bedrooms)
+  const facing = pd.doorFacing?.replace(/_/g, ' ') || null
   const priceLabel = isRental ? formatPrice(pd.rentPerMonth, pd.rentUnit) : formatPrice(pd.askPrice, pd.priceUnit)
   const depositLabel = isRental ? formatPrice(pd.deposit, pd.depositUnit) : null
 
@@ -176,7 +176,7 @@ const PropertyCard = ({ prop, mode, onShare }) => {
       <div className="p-3">
         <div className="flex flex-wrap gap-1.5 mb-2">
           <Chip label={getAssetLabel(b.assetType)} />
-          {bhk    && <Chip label={bhk} />}
+          {bhk && <Chip label={bhk} />}
           {facing && <Chip label={labelify(facing)} />}
         </div>
         <p className="font-bold text-gray-900 text-sm leading-snug mb-1 truncate">{b.name}</p>
@@ -234,7 +234,7 @@ const AssetTypeDropdown = ({ selected, onChange, counts = {} }) => {
               className={`w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selected === value ? 'text-[#E8431A] font-semibold bg-orange-50' : 'text-gray-700'}`}>
               <span>{label}</span>
               <span className={`text-sm font-medium ${selected === value ? 'text-[#E8431A]' : 'text-gray-400'}`}>
-                {counts[value] != null ? String(counts[value]).padStart(2, '0') : '—'}
+               {String(counts[value] ?? 0).padStart(2, '0')}
               </span>
             </button>
           ))}
@@ -245,15 +245,18 @@ const AssetTypeDropdown = ({ selected, onChange, counts = {} }) => {
 }
 const ConfigurationDropdown = ({ selected, onChange }) => {
   const [open, setOpen] = useState(false)
+  const [draft, setDraft] = useState([])
   const ref = useRef(null)
   useEffect(() => {
     const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+  const handleOpen = () => { setDraft([...selected]); setOpen(o => !o) }
+  const toggleBhk = (bhk) => setDraft(d => d.includes(bhk) ? d.filter(x => x !== bhk) : [...d, bhk])
   return (
     <div ref={ref} className="relative">
-      <button onClick={() => setOpen(o => !o)}
+      <button onClick={handleOpen}
         className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${selected.length > 0 ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}>
         <Home className="w-4 h-4" /> Configuration <ChevronDown className="w-3.5 h-3.5" />
       </button>
@@ -262,15 +265,15 @@ const ConfigurationDropdown = ({ selected, onChange }) => {
           <div className="flex gap-2 flex-wrap mb-3">
             {BHK_OPTIONS.map(bhk => (
               <button key={bhk}
-                onClick={() => onChange(selected.includes(bhk) ? selected.filter(x => x !== bhk) : [...selected, bhk])}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${selected.includes(bhk) ? 'bg-[#E8431A] text-white border-[#E8431A]' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
+                onClick={() => toggleBhk(bhk)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${draft.includes(bhk) ? 'bg-[#E8431A] text-white border-[#E8431A]' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
                 {bhk}
               </button>
             ))}
           </div>
           <div className="flex gap-2 justify-end">
-            <button onClick={() => { onChange([]); setOpen(false) }} className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Cancel</button>
-            <button onClick={() => setOpen(false)} className="text-xs px-3 py-1.5 rounded-lg bg-[#E8431A] text-white hover:bg-[#cf3b16]">Apply</button>
+            <button onClick={() => { onChange([]); setDraft([]); setOpen(false) }} className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button onClick={() => { onChange(draft); setOpen(false) }} className="text-xs px-3 py-1.5 rounded-lg bg-[#E8431A] text-white hover:bg-[#cf3b16]">Apply</button>
           </div>
         </div>
       )}
@@ -281,8 +284,8 @@ const ConfigurationDropdown = ({ selected, onChange }) => {
 // ── Budget Dropdown (fixed) ───────────────────────────────────────────────────
 const BudgetDropdown = ({ value, onChange }) => {
   const [open, setOpen] = useState(false)
-  const [min, setMin]   = useState('')
-  const [max, setMax]   = useState('')
+  const [min, setMin] = useState('')
+  const [max, setMax] = useState('')
   const ref = useRef(null)
 
   const handleOpen = () => {
@@ -314,9 +317,8 @@ const BudgetDropdown = ({ value, onChange }) => {
     <div ref={ref} className="relative">
       <button
         onClick={open ? () => setOpen(false) : handleOpen}
-        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${
-          value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'
-        }`}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'
+          }`}
       >
         Budget <ChevronDown className="w-3.5 h-3.5" />
       </button>
@@ -374,8 +376,8 @@ const BudgetDropdown = ({ value, onChange }) => {
 // ── SBUA Dropdown (fixed) ─────────────────────────────────────────────────────
 const SBUADropdown = ({ value, onChange }) => {
   const [open, setOpen] = useState(false)
-  const [min, setMin]   = useState('')
-  const [max, setMax]   = useState('')
+  const [min, setMin] = useState('')
+  const [max, setMax] = useState('')
   const ref = useRef(null)
 
   const handleOpen = () => {
@@ -407,9 +409,8 @@ const SBUADropdown = ({ value, onChange }) => {
     <div ref={ref} className="relative">
       <button
         onClick={open ? () => setOpen(false) : handleOpen}
-        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${
-          value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'
-        }`}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'
+          }`}
       >
         SBUA <ChevronDown className="w-3.5 h-3.5" />
       </button>
@@ -528,28 +529,28 @@ const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, itemsPe
 
 // ── Main Dashboard ─────────────────────────────────────────────────────────────
 const Dashboard = () => {
-  const navigate  = useNavigate()
-  const dispatch  = useDispatch()
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
 
-  const items      = useSelector(selectInventoryList)
-  const total      = useSelector(selectInventoryTotal)
+  const items = useSelector(selectInventoryList)
+  const total = useSelector(selectInventoryTotal)
   const totalPages = useSelector(selectInventoryPages)
-  const loading    = useSelector(selectListLoading)
-  const listError  = useSelector(selectListError)
+  const loading = useSelector(selectListLoading)
+  const listError = useSelector(selectListError)
   const assetCounts = useSelector(selectAssetCounts)
 
-  const [viewMode,        setViewMode]        = useState('grid')
-  const [activeCategory,  setActiveCategory]  = useState('all')
-  const [activeTab,       setActiveTab]       = useState('resale')
-  const [assetType,       setAssetType]       = useState(null)
-  const [configuration,   setConfiguration]   = useState([])
-  const [budget,          setBudget]          = useState(null)
-  const [sbua,            setSbua]            = useState(null)
-  const [sortBy,          setSortBy]          = useState(null)
-  const [page,            setPage]            = useState(1)
-  const [limit,           setLimit]           = useState(10)
-  const [shareprop,       setShareprop]       = useState(null)
-  const [inputSearch,     setInputSearch]     = useState('')
+  const [viewMode, setViewMode] = useState('grid')
+  const [activeCategory, setActiveCategory] = useState('all')
+  const [activeTab, setActiveTab] = useState('resale')
+  const [assetType, setAssetType] = useState(null)
+  const [configuration, setConfiguration] = useState([])
+  const [budget, setBudget] = useState(null)
+  const [sbua, setSbua] = useState(null)
+  const [sortBy, setSortBy] = useState(null)
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
+  const [shareprop, setShareprop] = useState(null)
+  const [inputSearch, setInputSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const debounceRef = useRef(null)
 
@@ -567,10 +568,17 @@ const Dashboard = () => {
   }, [])
 
 
-useEffect(() => {
-  dispatch(fetchAssetTypeCounts(activeTab === 'rental' ? 'RENTAL' : 'RESALE'))
-}, [activeTab, dispatch])
-
+  useEffect(() => {
+    const params = {
+      listingType: activeTab === 'rental' ? 'RENTAL' : 'RESALE',
+    }
+    if (configuration.length > 0) params.bhkTypes = configuration.map(b => b.replace('BHK', ''))
+    if (budget?.min) params.budgetMin = budget.min
+    if (budget?.max) params.budgetMax = budget.max
+    if (sbua?.min) params.sbuaMin = sbua.min
+    if (sbua?.max) params.sbuaMax = sbua.max
+    dispatch(fetchAssetTypeCounts(params))
+  }, [activeTab, configuration, budget, sbua, dispatch])
   // Debounce typed search
   const handleSearchInput = (val) => {
     setInputSearch(val)
@@ -593,9 +601,9 @@ useEffect(() => {
     }
     if (budget?.min) params.budgetMin = budget.min
     if (budget?.max) params.budgetMax = budget.max
-    if (sbua?.min)   params.sbuaMin   = sbua.min
-    if (sbua?.max)   params.sbuaMax   = sbua.max
-    if (sortBy)      params.sortBy    = sortBy
+    if (sbua?.min) params.sbuaMin = sbua.min
+    if (sbua?.max) params.sbuaMax = sbua.max
+    if (sortBy) params.sortBy = sortBy
     if (debouncedSearch) params.search = debouncedSearch
     return params
   }, [isRental, activeCategory, assetType, configuration, budget, sbua, sortBy, page, limit, debouncedSearch])
@@ -627,14 +635,14 @@ useEffect(() => {
         </div>
 
         <div className="flex items-center gap-2">
-                  <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-          {['resale', 'rental'].map(t => (
-            <button key={t} onClick={() => handleTabChange(t)}
-              className={`px-4 py-1.5 text-sm font-medium capitalize transition-colors ${activeTab === t ? 'bg-[#E8431A] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
-              {t.charAt(0).toUpperCase() + t.slice(1)}
-            </button>
-          ))}
-        </div>
+          <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+            {['resale', 'rental'].map(t => (
+              <button key={t} onClick={() => handleTabChange(t)}
+                className={`px-4 py-1.5 text-sm font-medium capitalize transition-colors ${activeTab === t ? 'bg-[#E8431A] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </button>
+            ))}
+          </div>
           <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
             <button onClick={() => setViewMode('grid')} className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === 'grid' ? 'bg-[#E8431A] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
               <Grid className="w-3.5 h-3.5" /> Grid
@@ -643,7 +651,7 @@ useEffect(() => {
               <List className="w-3.5 h-3.5" /> Table
             </button>
           </div>
-         <AssetTypeDropdown selected={assetType} onChange={v => { setAssetType(v); setPage(1) }} counts={assetCounts} />
+          <AssetTypeDropdown selected={assetType} onChange={v => { setAssetType(v); setPage(1) }} counts={assetCounts} />
           <ConfigurationDropdown selected={configuration} onChange={v => { setConfiguration(v); setPage(1) }} />
           <BudgetDropdown value={budget} onChange={v => { setBudget(v); setPage(1) }} />
           <SBUADropdown value={sbua} onChange={v => { setSbua(v); setPage(1) }} />
@@ -716,12 +724,12 @@ useEffect(() => {
                 {items.length === 0 ? (
                   <tr><td colSpan={9} className="text-center py-16 text-gray-400 text-sm">No properties found</td></tr>
                 ) : items.map((prop, idx) => {
-                  const b  = prop.basicDetails    || {}
+                  const b = prop.basicDetails || {}
                   const pd = prop.propertyDetails || {}
                   return (
                     <tr key={prop._id} onClick={() => navigate(`/property/details/${prop._id}`)}
                       className="border-b border-gray-100 hover:bg-orange-50 cursor-pointer transition-colors">
-                      <td className="px-4 py-3 text-gray-500 text-xs">{(page-1)*limit + idx + 1}</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">{(page - 1) * limit + idx + 1}</td>
                       <td className="px-4 py-3"><span className="text-xs font-bold text-[#E8431A]">{prop.propertyId}</span></td>
                       <td className="px-4 py-3 font-medium text-gray-800 max-w-[160px] truncate">{b.name}</td>
                       <td className="px-4 py-3 text-gray-600 text-xs">{getAssetLabel(b.assetType)}</td>

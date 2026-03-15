@@ -457,7 +457,7 @@ const CollapsibleSection = ({ title, children, defaultOpen = false }) => {
   )
 }
 
-const MatchingCard = ({ prop }) => {
+const MatchingCard = ({ prop,onShare }) => {
   const navigate = useNavigate()
   const b  = prop.basicDetails    || {}
   const pd = prop.propertyDetails || {}
