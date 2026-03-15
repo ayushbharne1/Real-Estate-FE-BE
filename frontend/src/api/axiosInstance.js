@@ -1,6 +1,8 @@
 import axios from "axios";
 import { store } from "../redux/store";
-import { logoutUser } from "../redux/slices/authSlice";
+import { setSessionExpired } from "../redux/slices/authSlice";
+
+let isSessionHandled = false;
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -9,7 +11,7 @@ const api = axios.create({
   },
 });
 
-// Attach token on every request
+// Attach token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 
@@ -20,19 +22,18 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle expired session
+// Handle expired token
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
 
-      alert("Session expired. Please login again.");
+    if (error.response?.status === 401 && !isSessionHandled) {
 
-      store.dispatch(logoutUser());
+      isSessionHandled = true;
 
-      localStorage.clear();
+      // trigger modal
+      store.dispatch(setSessionExpired());
 
-      window.location.href = "/login";
     }
 
     return Promise.reject(error);
