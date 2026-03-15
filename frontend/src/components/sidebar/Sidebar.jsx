@@ -8,14 +8,15 @@ import {
   PlusCircle,
   Crown,
   User,
+  HandCoins 
 } from 'lucide-react'
 import ConfirmModal from '../common/ConfirmModal'
 
 // ─── Nav Config ────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
   { id: 'dashboard', icon: Home, path: '/', label: 'Properties' },
-  { id: 'listings', icon: Tags, path: '/listings', label: 'Listings' },
   { id: 'add', icon: PlusCircle, path: '/add', label: 'Add Inventory' },
+  { id: 'listings', icon: HandCoins , path: '/customer', label: 'customer' },
 ]
 
 const BOTTOM_NAV_ITEMS = [
