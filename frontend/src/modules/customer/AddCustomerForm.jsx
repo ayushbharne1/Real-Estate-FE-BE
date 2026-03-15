@@ -1,7 +1,7 @@
 // Route: /customer/add
 // Dependencies: formik, yup, lucide-react, react-router-dom
 
-import React from "react";
+import React, { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
@@ -44,18 +44,43 @@ const validationSchema = Yup.object({
   status: Yup.string()
     .oneOf(STATUS_OPTIONS, "Select a valid status")
     .required("Status is required"),
-  askPrice: Yup.string()
-    .matches(/^₹?[0-9]+[kKmM]?$/, "Enter a valid price (e.g. ₹75k)")
-    .required("Ask price is required"),
-  pricePaid: Yup.string()
-    .matches(/^[0-9]+[kKmM]?$/, "Enter a valid amount (e.g. 72k)")
-    .required("Price paid is required"),
-  rent: Yup.string()
-    .matches(/^₹?[0-9]+[kKmM]?$/, "Enter a valid rent (e.g. ₹75k)")
-    .required("Rent is required"),
-  deposit: Yup.string()
-    .matches(/^[0-9]+[kKmM]?$/, "Enter a valid deposit (e.g. 72k)")
-    .required("Deposit is required"),
+  propertyType: Yup.string()
+    .oneOf(["Resale", "Rental"], "Select property type")
+    .required("Property type is required"),
+  // Resale fields — required only when propertyType === "Resale"
+  askPrice: Yup.string().when("propertyType", {
+    is: "Resale",
+    then: (s) =>
+      s
+        .matches(/^₹?[0-9]+[kKmM]?$/, "Enter a valid price (e.g. ₹75k)")
+        .required("Ask price is required"),
+    otherwise: (s) => s.notRequired(),
+  }),
+  pricePaid: Yup.string().when("propertyType", {
+    is: "Resale",
+    then: (s) =>
+      s
+        .matches(/^[0-9]+[kKmM]?$/, "Enter a valid amount (e.g. 72k)")
+        .required("Price paid is required"),
+    otherwise: (s) => s.notRequired(),
+  }),
+  // Rental fields — required only when propertyType === "Rental"
+  rent: Yup.string().when("propertyType", {
+    is: "Rental",
+    then: (s) =>
+      s
+        .matches(/^₹?[0-9]+[kKmM]?$/, "Enter a valid rent (e.g. ₹75k)")
+        .required("Rent is required"),
+    otherwise: (s) => s.notRequired(),
+  }),
+  deposit: Yup.string().when("propertyType", {
+    is: "Rental",
+    then: (s) =>
+      s
+        .matches(/^[0-9]+[kKmM]?$/, "Enter a valid deposit (e.g. 72k)")
+        .required("Deposit is required"),
+    otherwise: (s) => s.notRequired(),
+  }),
 });
 
 /* ─────────────────────────── sub-components ────────────────────── */
@@ -121,6 +146,7 @@ export default function AddCustomerForm() {
       propertyId: "",
       assetType: "",
       status: "In Progress",
+      propertyType: "Resale",
       askPrice: "",
       pricePaid: "",
       rent: "",
@@ -128,20 +154,64 @@ export default function AddCustomerForm() {
     },
     validationSchema,
     onSubmit: (values, { setSubmitting }) => {
-      // Replace with your actual submit logic / API call
-      console.log("New customer:", { ...values, id: Date.now() });
+      // Strip unused price fields before submitting
+      const payload = {
+        id: Date.now(),
+        name: values.name,
+        contact: values.contact,
+        email: values.email,
+        propertyId: values.propertyId,
+        assetType: values.assetType,
+        status: values.status,
+        propertyType: values.propertyType,
+        ...(values.propertyType === "Resale"
+          ? { askPrice: values.askPrice, pricePaid: values.pricePaid }
+          : { rent: values.rent, deposit: values.deposit }),
+      };
+      console.log("New customer:", payload);
       setSubmitting(false);
       navigate("/customer");
     },
   });
 
   const f = formik;
+  const isResale = f.values.propertyType === "Resale";
+
+  // Summary rows shown depend on property type
+  const summaryRows = [
+    { label: "Name",          value: f.values.name },
+    { label: "Contact",       value: f.values.contact },
+    { label: "Email",         value: f.values.email },
+    { label: "Property ID",   value: f.values.propertyId },
+    { label: "Asset Type",    value: f.values.assetType },
+    { label: "Status",        value: f.values.status },
+    { label: "Property Type", value: f.values.propertyType },
+    ...(isResale
+      ? [
+          { label: "Ask Price",  value: f.values.askPrice },
+          { label: "Price Paid", value: f.values.pricePaid },
+        ]
+      : [
+          { label: "Rent",    value: f.values.rent },
+          { label: "Deposit", value: f.values.deposit },
+        ]),
+  ];
+
+  const progressFields = [
+    f.values.name,
+    f.values.contact,
+    f.values.email,
+    f.values.propertyId,
+    f.values.assetType,
+    f.values.status,
+    isResale ? f.values.askPrice  : f.values.rent,
+    isResale ? f.values.pricePaid : f.values.deposit,
+  ];
+  const filled = progressFields.filter(Boolean).length;
+  const pct    = Math.round((filled / progressFields.length) * 100);
 
   return (
-    <div
-      className="min-h-screen bg-[#F5F6FA]"
-      style={{ fontFamily: "Inter, sans-serif" }}
-    >
+    <div className="min-h-screen bg-[#F5F6FA]" style={{ fontFamily: "Inter, sans-serif" }}>
       <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet"
@@ -161,7 +231,6 @@ export default function AddCustomerForm() {
             <p className="text-xs text-[#9CA3AF]">customer / add</p>
           </div>
         </div>
-
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -183,11 +252,11 @@ export default function AddCustomerForm() {
       </div>
 
       {/* ── Page Body ── */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="mx-auto px-6 py-8">
         <form onSubmit={f.handleSubmit} noValidate>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {/* ── LEFT COLUMN (2/3) ── */}
+            {/* ── LEFT COLUMN ── */}
             <div className="lg:col-span-2 flex flex-col gap-6">
 
               {/* Card 1 — Personal Information */}
@@ -198,13 +267,7 @@ export default function AddCustomerForm() {
                   subtitle="Basic contact details of the customer"
                 />
                 <div className="flex flex-col gap-4">
-                  <Field
-                    label="Full Name"
-                    error={f.errors.name}
-                    touched={f.touched.name}
-                    icon={User}
-                    required
-                  >
+                  <Field label="Full Name" error={f.errors.name} touched={f.touched.name} icon={User} required>
                     <input
                       name="name"
                       placeholder="e.g. Shivani Sharma"
@@ -216,13 +279,7 @@ export default function AddCustomerForm() {
                   </Field>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <Field
-                      label="Contact No."
-                      error={f.errors.contact}
-                      touched={f.touched.contact}
-                      icon={Phone}
-                      required
-                    >
+                    <Field label="Contact No." error={f.errors.contact} touched={f.touched.contact} icon={Phone} required>
                       <input
                         name="contact"
                         placeholder="+91-9632587410"
@@ -233,13 +290,7 @@ export default function AddCustomerForm() {
                       />
                     </Field>
 
-                    <Field
-                      label="Status"
-                      error={f.errors.status}
-                      touched={f.touched.status}
-                      icon={Tag}
-                      required
-                    >
+                    <Field label="Status" error={f.errors.status} touched={f.touched.status} icon={Tag} required>
                       <select
                         name="status"
                         className={`${inputBase} cursor-pointer`}
@@ -254,13 +305,7 @@ export default function AddCustomerForm() {
                     </Field>
                   </div>
 
-                  <Field
-                    label="Email Address"
-                    error={f.errors.email}
-                    touched={f.touched.email}
-                    icon={Mail}
-                    required
-                  >
+                  <Field label="Email Address" error={f.errors.email} touched={f.touched.email} icon={Mail} required>
                     <input
                       name="email"
                       type="email"
@@ -282,32 +327,18 @@ export default function AddCustomerForm() {
                   subtitle="Information about the linked property"
                 />
                 <div className="grid grid-cols-2 gap-4">
-                  <Field
-                    label="Property ID"
-                    error={f.errors.propertyId}
-                    touched={f.touched.propertyId}
-                    icon={Hash}
-                    required
-                  >
+                  <Field label="Property ID" error={f.errors.propertyId} touched={f.touched.propertyId} icon={Hash} required>
                     <input
                       name="propertyId"
                       placeholder="PB5609"
                       className={`${inputBase} uppercase`}
                       value={f.values.propertyId}
-                      onChange={(e) =>
-                        f.setFieldValue("propertyId", e.target.value.toUpperCase())
-                      }
+                      onChange={(e) => f.setFieldValue("propertyId", e.target.value.toUpperCase())}
                       onBlur={f.handleBlur}
                     />
                   </Field>
 
-                  <Field
-                    label="Asset Type"
-                    error={f.errors.assetType}
-                    touched={f.touched.assetType}
-                    icon={Building2}
-                    required
-                  >
+                  <Field label="Asset Type" error={f.errors.assetType} touched={f.touched.assetType} icon={Building2} required>
                     <select
                       name="assetType"
                       className={`${inputBase} cursor-pointer`}
@@ -324,117 +355,112 @@ export default function AddCustomerForm() {
                 </div>
               </div>
 
-              {/* Card 3 — Pricing */}
+              {/* Card 3 — Pricing with Resale/Rental toggle */}
               <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6">
-                <SectionHeading
-                  step="3"
-                  title="Pricing Details"
-                  subtitle="Enter both resale and rental pricing"
-                />
+                {/* Header row: step + toggle */}
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-7 h-7 rounded-full bg-[#E8453C] text-white text-xs font-bold flex items-center justify-center shrink-0">
+                      3
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-[#111827]">Pricing Details</h3>
+                      <p className="text-xs text-[#9CA3AF]">
+                        {isResale ? "Ask price and amount paid" : "Monthly rent and security deposit"}
+                      </p>
+                    </div>
+                  </div>
 
-                {/* Resale */}
-                <p className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-widest mb-3">
-                  Resale
-                </p>
-                <div className="grid grid-cols-2 gap-4 mb-5">
-                  <Field
-                    label="Ask Price"
-                    error={f.errors.askPrice}
-                    touched={f.touched.askPrice}
-                    icon={IndianRupee}
-                    required
-                  >
-                    <input
-                      name="askPrice"
-                      placeholder="₹75k"
-                      className={inputBase}
-                      value={f.values.askPrice}
-                      onChange={f.handleChange}
-                      onBlur={f.handleBlur}
-                    />
-                  </Field>
-
-                  <Field
-                    label="Price Paid"
-                    error={f.errors.pricePaid}
-                    touched={f.touched.pricePaid}
-                    icon={IndianRupee}
-                    required
-                  >
-                    <input
-                      name="pricePaid"
-                      placeholder="72k"
-                      className={inputBase}
-                      value={f.values.pricePaid}
-                      onChange={f.handleChange}
-                      onBlur={f.handleBlur}
-                    />
-                  </Field>
+                  {/* Resale / Rental pill toggle */}
+                  <div className="flex border border-[#E5E7EB] rounded-lg overflow-hidden">
+                    {["Resale", "Rental"].map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => {
+                          f.setFieldValue("propertyType", type);
+                          // Clear the other set of fields to avoid ghost validation
+                          if (type === "Resale") {
+                            f.setFieldValue("rent", "");
+                            f.setFieldValue("deposit", "");
+                          } else {
+                            f.setFieldValue("askPrice", "");
+                            f.setFieldValue("pricePaid", "");
+                          }
+                        }}
+                        className={`px-5 py-1.5 text-sm font-medium transition-all duration-150 ${
+                          f.values.propertyType === type
+                            ? "bg-[#E8453C] text-white"
+                            : "bg-white text-[#6B7280] hover:bg-[#F9FAFB]"
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Rental */}
-                <div className="border-t border-dashed border-[#E5E7EB] mb-5" />
-                <p className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-widest mb-3">
-                  Rental
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field
-                    label="Rent"
-                    error={f.errors.rent}
-                    touched={f.touched.rent}
-                    icon={IndianRupee}
-                    required
-                  >
-                    <input
-                      name="rent"
-                      placeholder="₹75k"
-                      className={inputBase}
-                      value={f.values.rent}
-                      onChange={f.handleChange}
-                      onBlur={f.handleBlur}
-                    />
-                  </Field>
+                {/* Resale fields */}
+                {isResale && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Ask Price" error={f.errors.askPrice} touched={f.touched.askPrice} icon={IndianRupee} required>
+                      <input
+                        name="askPrice"
+                        placeholder="₹75k"
+                        className={inputBase}
+                        value={f.values.askPrice}
+                        onChange={f.handleChange}
+                        onBlur={f.handleBlur}
+                      />
+                    </Field>
+                    <Field label="Price Paid" error={f.errors.pricePaid} touched={f.touched.pricePaid} icon={IndianRupee} required>
+                      <input
+                        name="pricePaid"
+                        placeholder="72k"
+                        className={inputBase}
+                        value={f.values.pricePaid}
+                        onChange={f.handleChange}
+                        onBlur={f.handleBlur}
+                      />
+                    </Field>
+                  </div>
+                )}
 
-                  <Field
-                    label="Deposit"
-                    error={f.errors.deposit}
-                    touched={f.touched.deposit}
-                    icon={IndianRupee}
-                    required
-                  >
-                    <input
-                      name="deposit"
-                      placeholder="72k"
-                      className={inputBase}
-                      value={f.values.deposit}
-                      onChange={f.handleChange}
-                      onBlur={f.handleBlur}
-                    />
-                  </Field>
-                </div>
+                {/* Rental fields */}
+                {!isResale && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Rent" error={f.errors.rent} touched={f.touched.rent} icon={IndianRupee} required>
+                      <input
+                        name="rent"
+                        placeholder="₹75k"
+                        className={inputBase}
+                        value={f.values.rent}
+                        onChange={f.handleChange}
+                        onBlur={f.handleBlur}
+                      />
+                    </Field>
+                    <Field label="Deposit" error={f.errors.deposit} touched={f.touched.deposit} icon={IndianRupee} required>
+                      <input
+                        name="deposit"
+                        placeholder="72k"
+                        className={inputBase}
+                        value={f.values.deposit}
+                        onChange={f.handleChange}
+                        onBlur={f.handleBlur}
+                      />
+                    </Field>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* ── RIGHT COLUMN (1/3) ── */}
+            {/* ── RIGHT COLUMN — Summary ── */}
             <div className="flex flex-col gap-6">
-
-              {/* Summary Card */}
               <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 sticky top-24">
                 <h3 className="text-sm font-semibold text-[#111827] mb-4">Form Summary</h3>
 
                 <div className="flex flex-col gap-3">
-                  {[
-                    { label: "Name",        value: f.values.name },
-                    { label: "Contact",     value: f.values.contact },
-                    { label: "Email",       value: f.values.email },
-                    { label: "Property ID", value: f.values.propertyId },
-                    { label: "Asset Type",  value: f.values.assetType },
-                    { label: "Status",      value: f.values.status },
-                    { label: "Ask Price",   value: f.values.askPrice },
-                    { label: "Price Paid",  value: f.values.pricePaid },
-                    { label: "Rent",        value: f.values.rent },
-                    { label: "Deposit",     value: f.values.deposit },
-                  ].map(({ label, value }) => (
+                  {summaryRows.map(({ label, value }) => (
                     <div key={label} className="flex items-center justify-between gap-2">
                       <span className="text-xs text-[#9CA3AF]">{label}</span>
                       <span
@@ -448,31 +474,32 @@ export default function AddCustomerForm() {
                   ))}
                 </div>
 
-                <div className="mt-5 border-t border-[#F3F4F6] pt-4">
-                  {/* Progress indicator */}
-                  {(() => {
-                    const fields = [
-                      f.values.name, f.values.contact, f.values.email,
-                      f.values.propertyId, f.values.assetType, f.values.status,
-                      f.values.askPrice, f.values.pricePaid, f.values.rent, f.values.deposit,
-                    ];
-                    const filled = fields.filter(Boolean).length;
-                    const pct = Math.round((filled / fields.length) * 100);
-                    return (
-                      <>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-xs text-[#9CA3AF]">Form completion</span>
-                          <span className="text-xs font-semibold text-[#E8453C]">{pct}%</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-[#E8453C] rounded-full transition-all duration-300"
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                      </>
-                    );
-                  })()}
+                {/* Property type badge */}
+                <div className="mt-4 flex items-center gap-2">
+                  <span className="text-xs text-[#9CA3AF]">Type</span>
+                  <span
+                    className={`ml-auto text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+                      isResale
+                        ? "bg-[#FFF3E0] text-[#E65100] border border-[#FFCC80]"
+                        : "bg-[#E3F2FD] text-[#1565C0] border border-[#90CAF9]"
+                    }`}
+                  >
+                    {f.values.propertyType}
+                  </span>
+                </div>
+
+                {/* Progress bar */}
+                <div className="mt-4 border-t border-[#F3F4F6] pt-4">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs text-[#9CA3AF]">Form completion</span>
+                    <span className="text-xs font-semibold text-[#E8453C]">{pct}%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#E8453C] rounded-full transition-all duration-300"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
                 </div>
 
                 <button
@@ -492,6 +519,7 @@ export default function AddCustomerForm() {
                 </button>
               </div>
             </div>
+
           </div>
         </form>
       </div>
