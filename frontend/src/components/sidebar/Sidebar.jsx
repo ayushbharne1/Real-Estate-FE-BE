@@ -11,6 +11,10 @@ import {
   HandCoins 
 } from 'lucide-react'
 import ConfirmModal from '../common/ConfirmModal'
+import { useDispatch } from 'react-redux'
+import { logoutUser } from '../../redux/slices/authSlice'
+
+
 
 // ─── Nav Config ────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -67,11 +71,13 @@ const NavItem = ({ item }) => {
 const Sidebar = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const navigate = useNavigate()
+  const dispatch = useDispatch()
 
-  const handleLogout = () => {
-    setShowLogoutModal(false)
-    navigate('/login')
-  }
+  const handleLogout = async () => {
+  setShowLogoutModal(false)
+  await dispatch(logoutUser())
+  navigate('/login')
+}
 
   return (
     <>

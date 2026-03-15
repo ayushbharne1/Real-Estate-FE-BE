@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { loginApi } from "../../api/authApi";
+import { resetSessionHandler } from "../../api/axiosInstance";
+import { logoutApi } from "../../api/authApi";
 
 // ── Async Thunk ─────────────────────────────────────────────
 
@@ -21,6 +23,8 @@ export const loginUser = createAsyncThunk(
 );
 
 export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
+  await logoutApi();
+  resetSessionHandler();
   localStorage.removeItem("token");
   localStorage.removeItem("admin");
 });
@@ -109,11 +113,9 @@ const authSlice = createSlice({
       state.token = null;
       state.admin = null;
       state.isAuthenticated = false;
-
+      state.sessionExpired = false;
       state.error = null;
       state.fieldErrors = {};
-
-      state.sessionExpired = false;
     });
   },
 });

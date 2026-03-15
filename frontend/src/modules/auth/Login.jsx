@@ -15,6 +15,8 @@ import {
 } from '../../redux/slices/authSlice'
 import companyLogo from '../../assets/logo.svg'
 import { loginSchema } from 'shared/schemas/index.js'
+import { selectSessionExpired, clearSessionExpired } from '../../redux/slices/authSlice'
+
 
 // ── Inline field error ────────────────────────────────────────────────────────
 const FieldError = ({ message }) =>
@@ -35,11 +37,19 @@ const Login = () => {
   const serverError     = useSelector(selectAuthError)
   const fieldErrors     = useSelector(selectFieldErrors)
   const isAuthenticated = useSelector(selectIsAuthenticated)
+  const sessionExpired = useSelector(selectSessionExpired)
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) navigate('/', { replace: true })
   }, [isAuthenticated, navigate])
+
+   useEffect(() => {
+    if (sessionExpired) {
+      toast.error('Your session has expired. Please log in again.')
+      dispatch(clearSessionExpired())
+    }
+  }, [sessionExpired, dispatch])
 
   const formik = useFormik({
     initialValues: {

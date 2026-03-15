@@ -14,30 +14,27 @@ const api = axios.create({
 // Attach token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
   return config;
 });
 
 // Handle expired token
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    isSessionHandled = false; // reset on every successful response
+    return response;
+  },
   (error) => {
-
     if (error.response?.status === 401 && !isSessionHandled) {
-
       isSessionHandled = true;
-
-      // trigger modal
       store.dispatch(setSessionExpired());
-
     }
-
     return Promise.reject(error);
   }
 );
+
+export const resetSessionHandler = () => { isSessionHandled = false; };
 
 export default api;

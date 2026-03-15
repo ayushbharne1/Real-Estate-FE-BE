@@ -30,7 +30,7 @@ export function buildFormData(values, imageFiles = [], videoFile = null, existin
 
 export async function fetchProperties(params = {}) {
   try {
-    const { data } = await api.get("/api/inventory", { params });
+    const { data } = await api.get("/inventory", { params });
     return data.data;
   } catch (err) {
     throw _normalise(err);
@@ -39,7 +39,7 @@ export async function fetchProperties(params = {}) {
 
 export async function fetchProperty(id) {
   try {
-    const { data } = await api.get(`/api/inventory/${id}`);
+    const { data } = await api.get(`/inventory/${id}`);
     return data.data;
   } catch (err) {
     throw _normalise(err);
@@ -48,7 +48,7 @@ export async function fetchProperty(id) {
 
 export async function fetchSimilarProperties(id) {
   try {
-    const { data } = await api.get(`/api/inventory/${id}/similar`);
+    const { data } = await api.get(`/inventory/${id}/similar`);
     return data.data;
   } catch (err) {
     throw _normalise(err);
@@ -57,7 +57,7 @@ export async function fetchSimilarProperties(id) {
 
 export async function createProperty(formData) {
   try {
-    const { data } = await api.post("/api/inventory", formData, {
+    const { data } = await api.post("/inventory", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
@@ -69,7 +69,7 @@ export async function createProperty(formData) {
 
 export async function updateProperty(id, formData) {
   try {
-    const { data } = await api.put(`/api/inventory/${id}`, formData, {
+    const { data } = await api.put(`/inventory/${id}`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
@@ -81,7 +81,7 @@ export async function updateProperty(id, formData) {
 
 export async function deleteProperty(id) {
   try {
-    const { data } = await api.delete(`/api/inventory/${id}`);
+    const { data } = await api.delete(`/inventory/${id}`);
     return data.data;
   } catch (err) {
     throw _normalise(err);
@@ -90,7 +90,7 @@ export async function deleteProperty(id) {
 
 export async function fetchAssetTypeCounts(params) {
   try {
-    const { data } = await api.get("/api/inventory/asset-type-counts", {
+    const { data } = await api.get("/inventory/asset-type-counts", {
       params: params || {},
     });
 

@@ -1,33 +1,22 @@
-import axios from 'axios'
+import api from "./axiosInstance";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL
-
-const api = axios.create({
-  baseURL: BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
-})
-
-/**
- * POST /api/auth/login
- * Body: { email, password }
- * 200 → { token, admin: { id, name, email } }
- * 400 → { status: 'ERROR', message, errors: { password: [...] } }
- * 409 → { status: 'ERROR', message: 'Email already exists' }
- */
 export async function loginApi({ identifier, password }) {
   try {
-    const { data } = await api.post("/api/auth/login", {
-      identifier,
-      password,
-    });
-
+    const { data } = await api.post("/auth/login", { identifier, password });
     return data.data;
   } catch (err) {
     const json = err.response?.data || {};
-
     throw {
       message: json.message || `Error ${err.response?.status ?? "Unknown"}`,
       errors: json.errors || {},
     };
+  }
+}
+
+export async function logoutApi() {
+  try {
+    await api.post("/auth/logout");
+  } catch {
+    // proceed even if server logout fails
   }
 }

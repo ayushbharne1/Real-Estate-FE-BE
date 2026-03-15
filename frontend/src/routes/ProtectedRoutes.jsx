@@ -5,6 +5,7 @@ import {
   selectIsAuthenticated,
   selectSessionExpired,
   selectToken,
+  clearSessionExpired,
 } from "../redux/slices/authSlice";
 
 import MainLayout from "../components/layout/MainLayout";
@@ -16,21 +17,19 @@ import EditInventory from "../modules/inventory/Editinventory";
 import Profile from "../modules/profile/Profile";
 import Premium from "../modules/premium/Premium";
 import Customer from "../modules/customer/Customer";
+import {useDispatch} from "react-redux"
+import {useEffect} from "react"
 
 const AuthGuard = () => {
-
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const token = useSelector(selectToken);
-  const sessionExpired = useSelector(selectSessionExpired);
 
-  // If no token OR session expired → redirect
-  if (!isAuthenticated || !token || sessionExpired) {
+  if (!isAuthenticated || !token) {
     return <Navigate to="/login" replace />;
   }
 
   return <MainLayout />;
 };
-
 const ProtectedRoutes = () => [
   <Route key="main" path="/" element={<AuthGuard />}>
 
