@@ -60,7 +60,11 @@ const Navbar = () => {
         <LogoIcon />
       </div>
 
-      {/* Center – Search (dashboard only) */}
+      
+
+      {/* Right */}
+      <div className="flex items-center gap-3 flex-shrink-0">
+              {/* Center – Search (dashboard only) */}
       {location.pathname === '/' && (
         <div className="flex-1 mx-10 max-w-lg">
           <div className="flex items-center border-2 border-gray-300 rounded-md overflow-hidden">
@@ -81,9 +85,6 @@ const Navbar = () => {
           </div>
         </div>
       )}
-
-      {/* Right */}
-      <div className="flex items-center gap-3 flex-shrink-0">
         <button className="relative p-1.5 rounded-md border-2 border-gray-400 hover:bg-gray-100 transition-colors">
           <Bell className="w-5 h-5 text-gray-500" strokeWidth={1.8} />
         </button>
