@@ -1,26 +1,14 @@
 // Route: /customer/add
 // Dependencies: formik, yup, lucide-react, react-router-dom
 
-import React, { useState } from "react";
+import React from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
-import {
-  User, Phone, Mail, Hash, Building2,
-  IndianRupee, Tag, ArrowLeft, CheckCircle2,
-} from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { ASSET_TYPE_OPTIONS } from "shared/constants/dropdown.js";
 
 /* ─────────────────────────── constants ─────────────────────────── */
-const ASSET_TYPES = [
-  "Commercial Space",
-  "Commercial Land",
-  "Office Space",
-  "Retail Space",
-  "Apartment",
-  "Villa",
-  "Plot",
-];
-
 const STATUS_OPTIONS = ["In Progress", "Active", "Cancelled"];
 
 /* ─────────────────────────── validation ────────────────────────── */
@@ -39,7 +27,7 @@ const validationSchema = Yup.object({
     .matches(/^[A-Z]{2}[0-9]{4}$/, "Format: 2 letters + 4 digits (e.g. PB5609)")
     .required("Property ID is required"),
   assetType: Yup.string()
-    .oneOf(ASSET_TYPES, "Select a valid asset type")
+    .oneOf(ASSET_TYPE_OPTIONS.map((o) => o.value), "Select a valid asset type")
     .required("Asset type is required"),
   status: Yup.string()
     .oneOf(STATUS_OPTIONS, "Select a valid status")
@@ -84,51 +72,22 @@ const validationSchema = Yup.object({
 });
 
 /* ─────────────────────────── sub-components ────────────────────── */
-const inputBase =
-  "flex-1 text-sm text-[#111827] bg-transparent outline-none placeholder:text-[#C9CDD4]";
+const inputClass =
+  "w-full text-sm text-[#111827] bg-[#FAFBFC] border border-[#E5E7EB] rounded-md px-4 py-2.5 outline-none placeholder:text-[#C9CDD4]";
 
-function Field({ label, error, touched, icon: Icon, required, children }) {
+function Field({ label, error, touched, required, children }) {
   const hasError = touched && error;
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="flex items-center gap-1 text-xs font-semibold text-[#4B5563] uppercase tracking-wider">
+    <div className="flex flex-col gap-1.5 w-full">
+      <label className="text-sm text-[#333333]">
         {label}
-        {required && <span className="text-[#E8453C]">*</span>}
+        {required && <span className="text-[#333333] ml-1">*</span>}
       </label>
-      <div
-        className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-3 transition-all duration-150 bg-white ${
-          hasError
-            ? "border-[#E8453C] ring-2 ring-[#E8453C]/10 bg-[#FFF8F8]"
-            : "border-[#E5E7EB] focus-within:border-[#E8453C] focus-within:ring-2 focus-within:ring-[#E8453C]/10"
-        }`}
-      >
-        {Icon && (
-          <Icon
-            size={15}
-            className={`shrink-0 ${hasError ? "text-[#E8453C]" : "text-[#9CA3AF]"}`}
-          />
-        )}
+      <div className="relative">
         {children}
-      </div>
-      {hasError && (
-        <p className="flex items-center gap-1.5 text-xs text-[#E8453C]">
-          <span className="w-1 h-1 rounded-full bg-[#E8453C] shrink-0" />
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function SectionHeading({ step, title, subtitle }) {
-  return (
-    <div className="flex items-center gap-3 mb-5">
-      <div className="w-7 h-7 rounded-full bg-[#E8453C] text-white text-xs font-bold flex items-center justify-center shrink-0">
-        {step}
-      </div>
-      <div>
-        <h3 className="text-sm font-semibold text-[#111827]">{title}</h3>
-        <p className="text-xs text-[#9CA3AF]">{subtitle}</p>
+        {hasError && (
+          <p className="text-xs text-[#E8453C] mt-1">{error}</p>
+        )}
       </div>
     </div>
   );
@@ -145,7 +104,7 @@ export default function AddCustomerForm() {
       email: "",
       propertyId: "",
       assetType: "",
-      status: "In Progress",
+      status: "",
       propertyType: "Resale",
       askPrice: "",
       pricePaid: "",
@@ -177,349 +136,238 @@ export default function AddCustomerForm() {
   const f = formik;
   const isResale = f.values.propertyType === "Resale";
 
-  // Summary rows shown depend on property type
-  const summaryRows = [
-    { label: "Name",          value: f.values.name },
-    { label: "Contact",       value: f.values.contact },
-    { label: "Email",         value: f.values.email },
-    { label: "Property ID",   value: f.values.propertyId },
-    { label: "Asset Type",    value: f.values.assetType },
-    { label: "Status",        value: f.values.status },
-    { label: "Property Type", value: f.values.propertyType },
-    ...(isResale
-      ? [
-          { label: "Ask Price",  value: f.values.askPrice },
-          { label: "Price Paid", value: f.values.pricePaid },
-        ]
-      : [
-          { label: "Rent",    value: f.values.rent },
-          { label: "Deposit", value: f.values.deposit },
-        ]),
-  ];
-
-  const progressFields = [
-    f.values.name,
-    f.values.contact,
-    f.values.email,
-    f.values.propertyId,
-    f.values.assetType,
-    f.values.status,
-    isResale ? f.values.askPrice  : f.values.rent,
-    isResale ? f.values.pricePaid : f.values.deposit,
-  ];
-  const filled = progressFields.filter(Boolean).length;
-  const pct    = Math.round((filled / progressFields.length) * 100);
-
   return (
-    <div className="min-h-screen bg-[#F5F6FA]" style={{ fontFamily: "Inter, sans-serif" }}>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-        rel="stylesheet"
-      />
-
-      {/* ── Top Bar ── */}
-      <div className="bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/customer")}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-all text-[#6B7280]"
-          >
-            <ArrowLeft size={16} />
-          </button>
-          <div>
-            <h1 className="text-base font-semibold text-[#111827]">Add New Customer</h1>
-            <p className="text-xs text-[#9CA3AF]">customer / add</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => navigate("/customer")}
-            className="px-4 py-2 text-sm font-medium text-[#6B7280] border border-[#E5E7EB] rounded-xl bg-white hover:bg-[#F3F4F6] transition-all"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={f.handleSubmit}
-            disabled={f.isSubmitting}
-            className="flex items-center gap-2 px-5 py-2 bg-[#E8453C] hover:bg-[#d03830] text-white text-sm font-semibold rounded-xl shadow-sm shadow-red-200 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60"
-          >
-            <CheckCircle2 size={15} />
-            Save Customer
-          </button>
-        </div>
-      </div>
-
-      {/* ── Page Body ── */}
-      <div className="mx-auto px-6 py-8">
+    <div className="min-h-screen bg-white" style={{ fontFamily: "Arial, sans-serif" }}>
+      <div className="mx-auto px-8 py-10">
         <form onSubmit={f.handleSubmit} noValidate>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Header */}
+          <div className="flex items-center justify-start gap-4 mb-8">
+            <h1 className="text-3xl font-semibold text-[#111111]">Buyer Details</h1>
 
-            {/* ── LEFT COLUMN ── */}
-            <div className="lg:col-span-2 flex flex-col gap-6">
+            {/* Resale / Rental Toggle Pill */}
+            <div className="flex bg-[#F2F2F2] rounded-md overflow-hidden p-0.5">
+              {["Resale", "Rental"].map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => {
+                    f.setFieldValue("propertyType", type);
+                    // Clear fields when switching types
+                    if (type === "Resale") {
+                      f.setFieldValue("rent", "");
+                      f.setFieldValue("deposit", "");
+                    } else {
+                      f.setFieldValue("askPrice", "");
+                      f.setFieldValue("pricePaid", "");
+                    }
+                  }}
+                  className={`px-10 py-2 text-sm font-medium rounded-md transition-all duration-150 ${
+                    f.values.propertyType === type
+                      ? "bg-[#EE5352] text-white shadow-sm"
+                      : "text-[#4B5563]"
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+          </div>
 
-              {/* Card 1 — Personal Information */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6">
-                <SectionHeading
-                  step="1"
-                  title="Personal Information"
-                  subtitle="Basic contact details of the customer"
+          {/* Form Fields Grid */}
+          <div className="grid grid-cols-2 gap-x-12 gap-y-6">
+            {/* Name */}
+            <Field label="Name" error={f.errors.name} touched={f.touched.name} required>
+              <input
+                name="name"
+                placeholder="Enter Name"
+                className={inputClass}
+                value={f.values.name}
+                onChange={f.handleChange}
+                onBlur={f.handleBlur}
+              />
+            </Field>
+
+            {/* Contact No. with Country Code */}
+            <Field label="Contact No." error={f.errors.contact} touched={f.touched.contact} required>
+              <div className="flex bg-[#FAFBFC] border border-[#E5E7EB] rounded-md outline-none overflow-hidden placeholder:text-[#C9CDD4]">
+                <select className="bg-transparent text-sm text-[#111827] px-4 py-2.5 outline-none cursor-pointer border-r border-[#E5E7EB]">
+                  <option>+91</option>
+                </select>
+                <input
+                  name="contact"
+                  placeholder="Enter Contact No."
+                  className="w-full text-sm text-[#111827] bg-transparent outline-none p-2.5"
+                  value={f.values.contact}
+                  onChange={f.handleChange}
+                  onBlur={f.handleBlur}
                 />
-                <div className="flex flex-col gap-4">
-                  <Field label="Full Name" error={f.errors.name} touched={f.touched.name} icon={User} required>
+              </div>
+            </Field>
+
+            {/* Email ID */}
+            <Field label="Email ID" error={f.errors.email} touched={f.touched.email} required>
+              <input
+                name="email"
+                placeholder="Enter Email Id"
+                type="email"
+                className={inputClass}
+                value={f.values.email}
+                onChange={f.handleChange}
+                onBlur={f.handleBlur}
+              />
+            </Field>
+
+            {/* Property ID */}
+            <Field label="Property ID" error={f.errors.propertyId} touched={f.touched.propertyId} required>
+              <input
+                name="propertyId"
+                placeholder="Enter Property ID"
+                className={inputClass}
+                value={f.values.propertyId}
+                onChange={f.handleChange}
+                onBlur={f.handleBlur}
+              />
+            </Field>
+
+            {/* Asset Type Dropdown — uses shared ASSET_TYPE_OPTIONS */}
+            <Field label="Asset Type" error={f.errors.assetType} touched={f.touched.assetType} required>
+              <select
+                name="assetType"
+                className={`${inputClass} appearance-none cursor-pointer pr-10`}
+                value={f.values.assetType}
+                onChange={f.handleChange}
+                onBlur={f.handleBlur}
+              >
+                <option value="">Select Type</option>
+                {ASSET_TYPE_OPTIONS.map(({ value, label }) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+              <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#999999] pointer-events-none" />
+            </Field>
+
+            {/* Dynamic Pricing Fields */}
+            {isResale ? (
+              <>
+                {/* Ask Price */}
+                <Field label="Ask Price" error={f.errors.askPrice} touched={f.touched.askPrice} required>
+                  <div className="flex bg-[#FAFBFC] border border-[#E5E7EB] rounded-md outline-none overflow-hidden placeholder:text-[#C9CDD4]">
                     <input
-                      name="name"
-                      placeholder="e.g. Shivani Sharma"
-                      className={inputBase}
-                      value={f.values.name}
+                      name="askPrice"
+                      placeholder="Enter Price"
+                      className="w-full text-sm text-[#111827] bg-transparent outline-none p-2.5"
+                      value={f.values.askPrice}
                       onChange={f.handleChange}
                       onBlur={f.handleBlur}
                     />
-                  </Field>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field label="Contact No." error={f.errors.contact} touched={f.touched.contact} icon={Phone} required>
-                      <input
-                        name="contact"
-                        placeholder="+91-9632587410"
-                        className={inputBase}
-                        value={f.values.contact}
-                        onChange={f.handleChange}
-                        onBlur={f.handleBlur}
-                      />
-                    </Field>
-
-                    <Field label="Status" error={f.errors.status} touched={f.touched.status} icon={Tag} required>
-                      <select
-                        name="status"
-                        className={`${inputBase} cursor-pointer`}
-                        value={f.values.status}
-                        onChange={f.handleChange}
-                        onBlur={f.handleBlur}
-                      >
-                        {STATUS_OPTIONS.map((s) => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
+                    <div className="relative">
+                      <select className="bg-[#EAEBED] text-sm text-[#333333] px-10 py-2.5 outline-none cursor-pointer border-l border-[#E5E7EB] appearance-none">
+                        <option>Thousands</option>
+                        <option>Lakhs</option>
+                        <option>Crores</option>
                       </select>
-                    </Field>
+                      <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#333333] pointer-events-none" />
+                    </div>
                   </div>
+                </Field>
 
-                  <Field label="Email Address" error={f.errors.email} touched={f.touched.email} icon={Mail} required>
+                {/* Price Paid */}
+                <Field label="Price Paid" error={f.errors.pricePaid} touched={f.touched.pricePaid} required>
+                  <div className="flex bg-[#FAFBFC] border border-[#E5E7EB] rounded-md outline-none overflow-hidden placeholder:text-[#C9CDD4]">
                     <input
-                      name="email"
-                      type="email"
-                      placeholder="name@example.com"
-                      className={inputBase}
-                      value={f.values.email}
+                      name="pricePaid"
+                      placeholder="Enter Price"
+                      className="w-full text-sm text-[#111827] bg-transparent outline-none p-2.5"
+                      value={f.values.pricePaid}
                       onChange={f.handleChange}
                       onBlur={f.handleBlur}
                     />
-                  </Field>
-                </div>
-              </div>
-
-              {/* Card 2 — Property Details */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6">
-                <SectionHeading
-                  step="2"
-                  title="Property Details"
-                  subtitle="Information about the linked property"
-                />
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Property ID" error={f.errors.propertyId} touched={f.touched.propertyId} icon={Hash} required>
+                    <div className="relative">
+                      <select className="bg-[#EAEBED] text-sm text-[#333333] px-10 py-2.5 outline-none cursor-pointer border-l border-[#E5E7EB] appearance-none">
+                        <option>Thousands</option>
+                        <option>Lakhs</option>
+                        <option>Crores</option>
+                      </select>
+                      <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#333333] pointer-events-none" />
+                    </div>
+                  </div>
+                </Field>
+              </>
+            ) : (
+              <>
+                {/* Rent */}
+                <Field label="Rent" error={f.errors.rent} touched={f.touched.rent} required>
+                  <div className="flex bg-[#FAFBFC] border border-[#E5E7EB] rounded-md outline-none overflow-hidden placeholder:text-[#C9CDD4]">
                     <input
-                      name="propertyId"
-                      placeholder="PB5609"
-                      className={`${inputBase} uppercase`}
-                      value={f.values.propertyId}
-                      onChange={(e) => f.setFieldValue("propertyId", e.target.value.toUpperCase())}
-                      onBlur={f.handleBlur}
-                    />
-                  </Field>
-
-                  <Field label="Asset Type" error={f.errors.assetType} touched={f.touched.assetType} icon={Building2} required>
-                    <select
-                      name="assetType"
-                      className={`${inputBase} cursor-pointer`}
-                      value={f.values.assetType}
+                      name="rent"
+                      placeholder="Enter Price"
+                      className="w-full text-sm text-[#111827] bg-transparent outline-none p-2.5"
+                      value={f.values.rent}
                       onChange={f.handleChange}
                       onBlur={f.handleBlur}
-                    >
-                      <option value="">Select type</option>
-                      {ASSET_TYPES.map((t) => (
-                        <option key={t} value={t}>{t}</option>
-                      ))}
-                    </select>
-                  </Field>
-                </div>
-              </div>
-
-              {/* Card 3 — Pricing with Resale/Rental toggle */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6">
-                {/* Header row: step + toggle */}
-                <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-full bg-[#E8453C] text-white text-xs font-bold flex items-center justify-center shrink-0">
-                      3
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-[#111827]">Pricing Details</h3>
-                      <p className="text-xs text-[#9CA3AF]">
-                        {isResale ? "Ask price and amount paid" : "Monthly rent and security deposit"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Resale / Rental pill toggle */}
-                  <div className="flex border border-[#E5E7EB] rounded-lg overflow-hidden">
-                    {["Resale", "Rental"].map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => {
-                          f.setFieldValue("propertyType", type);
-                          // Clear the other set of fields to avoid ghost validation
-                          if (type === "Resale") {
-                            f.setFieldValue("rent", "");
-                            f.setFieldValue("deposit", "");
-                          } else {
-                            f.setFieldValue("askPrice", "");
-                            f.setFieldValue("pricePaid", "");
-                          }
-                        }}
-                        className={`px-5 py-1.5 text-sm font-medium transition-all duration-150 ${
-                          f.values.propertyType === type
-                            ? "bg-[#E8453C] text-white"
-                            : "bg-white text-[#6B7280] hover:bg-[#F9FAFB]"
-                        }`}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Resale fields */}
-                {isResale && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field label="Ask Price" error={f.errors.askPrice} touched={f.touched.askPrice} icon={IndianRupee} required>
-                      <input
-                        name="askPrice"
-                        placeholder="₹75k"
-                        className={inputBase}
-                        value={f.values.askPrice}
-                        onChange={f.handleChange}
-                        onBlur={f.handleBlur}
-                      />
-                    </Field>
-                    <Field label="Price Paid" error={f.errors.pricePaid} touched={f.touched.pricePaid} icon={IndianRupee} required>
-                      <input
-                        name="pricePaid"
-                        placeholder="72k"
-                        className={inputBase}
-                        value={f.values.pricePaid}
-                        onChange={f.handleChange}
-                        onBlur={f.handleBlur}
-                      />
-                    </Field>
-                  </div>
-                )}
-
-                {/* Rental fields */}
-                {!isResale && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field label="Rent" error={f.errors.rent} touched={f.touched.rent} icon={IndianRupee} required>
-                      <input
-                        name="rent"
-                        placeholder="₹75k"
-                        className={inputBase}
-                        value={f.values.rent}
-                        onChange={f.handleChange}
-                        onBlur={f.handleBlur}
-                      />
-                    </Field>
-                    <Field label="Deposit" error={f.errors.deposit} touched={f.touched.deposit} icon={IndianRupee} required>
-                      <input
-                        name="deposit"
-                        placeholder="72k"
-                        className={inputBase}
-                        value={f.values.deposit}
-                        onChange={f.handleChange}
-                        onBlur={f.handleBlur}
-                      />
-                    </Field>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* ── RIGHT COLUMN — Summary ── */}
-            <div className="flex flex-col gap-6">
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 sticky top-24">
-                <h3 className="text-sm font-semibold text-[#111827] mb-4">Form Summary</h3>
-
-                <div className="flex flex-col gap-3">
-                  {summaryRows.map(({ label, value }) => (
-                    <div key={label} className="flex items-center justify-between gap-2">
-                      <span className="text-xs text-[#9CA3AF]">{label}</span>
-                      <span
-                        className={`text-xs font-medium text-right truncate max-w-[130px] ${
-                          value ? "text-[#111827]" : "text-[#D1D5DB]"
-                        }`}
-                      >
-                        {value || "—"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Property type badge */}
-                <div className="mt-4 flex items-center gap-2">
-                  <span className="text-xs text-[#9CA3AF]">Type</span>
-                  <span
-                    className={`ml-auto text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-                      isResale
-                        ? "bg-[#FFF3E0] text-[#E65100] border border-[#FFCC80]"
-                        : "bg-[#E3F2FD] text-[#1565C0] border border-[#90CAF9]"
-                    }`}
-                  >
-                    {f.values.propertyType}
-                  </span>
-                </div>
-
-                {/* Progress bar */}
-                <div className="mt-4 border-t border-[#F3F4F6] pt-4">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs text-[#9CA3AF]">Form completion</span>
-                    <span className="text-xs font-semibold text-[#E8453C]">{pct}%</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-[#E8453C] rounded-full transition-all duration-300"
-                      style={{ width: `${pct}%` }}
                     />
+                    <div className="relative">
+                      <select className="bg-[#EAEBED] text-sm text-[#333333] px-10 py-2.5 outline-none cursor-pointer border-l border-[#E5E7EB] appearance-none">
+                        <option>Thousands</option>
+                        <option>Lakhs</option>
+                        <option>Crores</option>
+                      </select>
+                      <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#333333] pointer-events-none" />
+                    </div>
                   </div>
-                </div>
+                </Field>
 
-                <button
-                  type="button"
-                  onClick={f.handleSubmit}
-                  disabled={f.isSubmitting}
-                  className="mt-4 w-full py-2.5 bg-[#E8453C] hover:bg-[#d03830] text-white text-sm font-semibold rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 shadow-sm shadow-red-200"
-                >
-                  Save Customer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate("/customer")}
-                  className="mt-2 w-full py-2.5 border border-[#E5E7EB] text-[#6B7280] text-sm font-medium rounded-xl hover:bg-[#F3F4F6] transition-all"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
+                {/* Deposit */}
+                <Field label="Deposit" error={f.errors.deposit} touched={f.touched.deposit} required>
+                  <div className="flex bg-[#FAFBFC] border border-[#E5E7EB] rounded-md outline-none overflow-hidden placeholder:text-[#C9CDD4]">
+                    <input
+                      name="deposit"
+                      placeholder="Enter Price"
+                      className="w-full text-sm text-[#111827] bg-transparent outline-none p-2.5"
+                      value={f.values.deposit}
+                      onChange={f.handleChange}
+                      onBlur={f.handleBlur}
+                    />
+                    <div className="relative">
+                      <select className="bg-[#EAEBED] text-sm text-[#333333] px-10 py-2.5 outline-none cursor-pointer border-l border-[#E5E7EB] appearance-none">
+                        <option>Thousands</option>
+                        <option>Lakhs</option>
+                        <option>Crores</option>
+                      </select>
+                      <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#333333] pointer-events-none" />
+                    </div>
+                  </div>
+                </Field>
+              </>
+            )}
 
+            {/* Status Dropdown */}
+            <Field label="Status" error={f.errors.status} touched={f.touched.status} required>
+              <select
+                name="status"
+                className={`${inputClass} appearance-none cursor-pointer pr-10 text-[#C9CDD4]`}
+                value={f.values.status}
+                onChange={f.handleChange}
+                onBlur={f.handleBlur}
+              >
+                <option value="">Select</option>
+                {STATUS_OPTIONS.map((s) => (
+                  <option key={s} value={s} className="text-[#111827]">{s}</option>
+                ))}
+              </select>
+              <ChevronDown size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#999999] pointer-events-none" />
+            </Field>
+          </div>
+
+          {/* ADD Button */}
+          <div className="flex justify-end mt-12">
+            <button
+              type="submit"
+              disabled={f.isSubmitting}
+              className="px-16 py-3 bg-[#EE5352] hover:bg-[#EE5352] text-white text-sm font-semibold rounded-md shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              ADD
+            </button>
           </div>
         </form>
       </div>
