@@ -1,7 +1,7 @@
 // Route: /customer
-// Dependencies: @tanstack/react-table, lucide-react, react-router-dom
+// Dependencies: @tanstack/react-table, lucide-react, react-router-dom, react-redux
 
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -9,26 +9,37 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchBuyers,
+  updateBuyerStatus,
+  selectBuyerList,
+  selectBuyerTotal,
+  selectListLoading,
+  selectListError,
+  selectStatusUpdating,
+} from "../../redux/slices/buyerSlice";
 import {
   PhoneCall, Mail, ChevronDown, ArrowUpDown,
-  ChevronLeft, ChevronRight, Plus,
+  ChevronLeft, ChevronRight, Plus, Eye,
 } from "lucide-react";
 import { ASSET_TYPE_OPTIONS } from "shared/constants/dropdown.js";
 
-/* ─────────────────────────── mock data ─────────────────────────── */
-const INITIAL_DATA = [
-  { id: 1,  name: "Shivani",     contact: "+91-9632587410", email: "Shivani@gmail.com",         propertyId: "PB5609", assetType: "Commercial Space", askPrice: "₹75k", pricePaid: "72k", status: "In Progress" },
-  { id: 2,  name: "Shubham",     contact: "+91-9632587410", email: "Shubham Saxena@gmail.com",  propertyId: "PB4567", assetType: "Commercial Land",  askPrice: "₹85k", pricePaid: "84k", status: "In Progress" },
-  { id: 3,  name: "Christopher", contact: "+91-9632587410", email: "Christopher@gmail.com",      propertyId: "PB3245", assetType: "Office Space",      askPrice: "₹75k", pricePaid: "72k", status: "In Progress" },
-  { id: 4,  name: "Aaryan",      contact: "+91-9632587410", email: "Aaryankhan@gmail.com",       propertyId: "PB7890", assetType: "Retail Space",      askPrice: "₹85k", pricePaid: "84k", status: "In Progress" },
-  { id: 5,  name: "Shivangi",    contact: "+91-9632587410", email: "Shiangichaubey@gmail.com",   propertyId: "PB9876", assetType: "Commercial Space",  askPrice: "₹75k", pricePaid: "72k", status: "Cancelled" },
-  { id: 6,  name: "Rahul",       contact: "+91-9632587410", email: "Rahuldavid@gmail.com",       propertyId: "PB4567", assetType: "Commercial Land",   askPrice: "₹85k", pricePaid: "84k", status: "Cancelled" },
-  { id: 7,  name: "Ravi",        contact: "+91-9632587410", email: "Ravisharma@gmail.com",       propertyId: "PB4536", assetType: "Office Space",      askPrice: "₹75k", pricePaid: "72k", status: "Cancelled" },
-  { id: 8,  name: "Mike",        contact: "+91-9632587410", email: "Mike@gmail.com",             propertyId: "PB7890", assetType: "Retail Space",      askPrice: "₹85k", pricePaid: "84k", status: "Active" },
-  { id: 9,  name: "Albert",      contact: "+91-9632587410", email: "Albert@gmail.com",           propertyId: "PB8899", assetType: "Retail Space",      askPrice: "₹88k", pricePaid: "85k", status: "Active" },
-];
+/* ─────────────────────────── constants ─────────────────────────── */
 
-const STATUS_OPTIONS = ["In Progress", "Active", "Cancelled"];
+const STATUS_DISPLAY = {
+  IN_PROGRESS: "In Progress",
+  ACTIVE:      "Active",
+  CANCELLED:   "Cancelled",
+};
+
+const STATUS_API = {
+  "In Progress": "IN_PROGRESS",
+  "Active":      "ACTIVE",
+  "Cancelled":   "CANCELLED",
+};
+
+const STATUS_OPTIONS_DISPLAY = ["In Progress", "Active", "Cancelled"];
 
 const STATUS_STYLES = {
   "In Progress": "bg-[#FFF4D3] text-[#F39C12]",
@@ -36,51 +47,88 @@ const STATUS_STYLES = {
   "Active":      "bg-[#D9F9E6] text-[#2ECC71]",
 };
 
+const UNIT_LABEL = { THOUSANDS: "K", LAKHS: "L", CRORES: "Cr" };
+
+function formatPrice(value, unit) {
+  if (!value || value === 0) return "—";
+  return `₹${value}${UNIT_LABEL[unit] ?? ""}`;
+}
+
 /* ─────────────────────────── main page ─────────────────────────── */
 export default function Customer() {
   const navigate = useNavigate();
-  const [data, setData] = useState(INITIAL_DATA);
-  const [activeType, setActiveType] = useState("Resale");
-  const [selectedAssetType, setSelectedAssetType] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
+  const dispatch = useDispatch();
 
-  // Handler to update status in the local state
-  const handleStatusChange = (rowId, newStatus) => {
-    setData((prev) =>
-      prev.map((item) => (item.id === rowId ? { ...item, status: newStatus } : item))
-    );
+  const items          = useSelector(selectBuyerList);
+  const total          = useSelector(selectBuyerTotal);
+  const listLoading    = useSelector(selectListLoading);
+  const listError      = useSelector(selectListError);
+  const statusUpdating = useSelector(selectStatusUpdating);
+
+  const [activeType,        setActiveType]        = useState("Resale");
+  const [selectedAssetType, setSelectedAssetType] = useState("");
+  const [selectedStatus,    setSelectedStatus]    = useState("");
+
+  useEffect(() => {
+    dispatch(fetchBuyers({ listingType: activeType.toUpperCase(), page: 1, limit: 20 }));
+  }, [dispatch, activeType]);
+
+  const handleStatusChange = (rowId, displayStatus) => {
+    dispatch(updateBuyerStatus({ id: rowId, status: STATUS_API[displayStatus] }));
   };
 
-  // Filter data based on selected asset type and status
   const filteredData = useMemo(() => {
-    return data.filter((item) => {
-      const assetMatch = !selectedAssetType || item.assetType === selectedAssetType;
-      const statusMatch = !selectedStatus || item.status === selectedStatus;
-      return assetMatch && statusMatch;
+    return items.filter((item) => {
+      const assetLabel  = ASSET_TYPE_OPTIONS.find(o => o.value === item.assetType)?.label ?? item.assetType;
+      const statusLabel = STATUS_DISPLAY[item.status] ?? item.status;
+      return (
+        (!selectedAssetType || assetLabel === selectedAssetType) &&
+        (!selectedStatus    || statusLabel === selectedStatus)
+      );
     });
-  }, [data, selectedAssetType, selectedStatus]);
+  }, [items, selectedAssetType, selectedStatus]);
 
   const columns = useMemo(() => [
-    { accessorKey: "name",       header: "Name" },
-    { accessorKey: "contact",    header: "Contact No." },
-    { accessorKey: "email",      header: "Email ID" },
+    { accessorKey: "name", header: "Name" },
+    {
+      accessorKey: "contact",
+      header: "Contact No.",
+      cell: ({ row }) => `${row.original.countryCode}-${row.original.contact}`,
+    },
+    { accessorKey: "email", header: "Email ID" },
     { accessorKey: "propertyId", header: "Property ID" },
-    { accessorKey: "assetType",  header: "Asset Type" },
-    { accessorKey: "askPrice",   header: "Ask Price" },
-    { accessorKey: "pricePaid",  header: "Price Paid" },
+    {
+      accessorKey: "assetType",
+      header: "Asset Type",
+      cell: ({ getValue }) => ASSET_TYPE_OPTIONS.find(o => o.value === getValue())?.label ?? getValue(),
+    },
+    {
+      id: "askPrice",
+      header: "Ask Price",
+      cell: ({ row }) => formatPrice(row.original.askPrice, row.original.askPriceUnit),
+    },
+    {
+      id: "pricePaid",
+      header: "Price Paid",
+      cell: ({ row }) =>
+        row.original.listingType === "RENTAL"
+          ? formatPrice(row.original.rent, row.original.rentUnit)
+          : formatPrice(row.original.pricePaid, row.original.pricePaidUnit),
+    },
     {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
-        const currentStatus = row.original.status;
+        const displayStatus = STATUS_DISPLAY[row.original.status] ?? row.original.status;
         return (
           <div className="relative inline-block">
             <select
-              value={currentStatus}
-              onChange={(e) => handleStatusChange(row.original.id, e.target.value)}
-              className={`appearance-none flex items-center justify-between gap-1 px-3 py-1.5 rounded-md text-[10px] font-bold w-28 cursor-pointer focus:outline-none ${STATUS_STYLES[currentStatus]}`}
+              value={displayStatus}
+              disabled={statusUpdating}
+              onChange={(e) => handleStatusChange(row.original._id, e.target.value)}
+              className={`appearance-none px-3 py-1.5 rounded-md text-[10px] font-bold w-28 cursor-pointer focus:outline-none disabled:opacity-60 ${STATUS_STYLES[displayStatus]}`}
             >
-              {STATUS_OPTIONS.map((opt) => (
+              {STATUS_OPTIONS_DISPLAY.map((opt) => (
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
@@ -92,18 +140,36 @@ export default function Customer() {
     {
       id: "actions",
       header: "Actions",
-      cell: () => (
+      cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <button className="w-9 h-9 rounded-md bg-[#FF6B6B] text-white flex items-center justify-center hover:bg-[#ff5252] transition-colors">
+          {/* View Details */}
+          <button
+            onClick={() => navigate(`/customer/${row.original._id}`)}
+            title="View Details"
+            className="w-9 h-9 rounded-md bg-[#F2F2F2] text-gray-600 flex items-center justify-center hover:bg-gray-200 transition-colors"
+          >
+            <Eye size={16} />
+          </button>
+          {/* Call */}
+          <a
+            href={`tel:${row.original.countryCode}${row.original.contact}`}
+            title="Call"
+            className="w-9 h-9 rounded-md bg-[#FF6B6B] text-white flex items-center justify-center hover:bg-[#ff5252] transition-colors"
+          >
             <PhoneCall size={16} />
-          </button>
-          <button className="w-9 h-9 rounded-md bg-[#FF6B6B] text-white flex items-center justify-center hover:bg-[#ff5252] transition-colors">
+          </a>
+          {/* Email */}
+          <a
+            href={`mailto:${row.original.email}`}
+            title="Email"
+            className="w-9 h-9 rounded-md bg-[#FF6B6B] text-white flex items-center justify-center hover:bg-[#ff5252] transition-colors"
+          >
             <Mail size={16} />
-          </button>
+          </a>
         </div>
       ),
     },
-  ], []);
+  ], [statusUpdating, navigate]);
 
   const table = useReactTable({
     data: filteredData,
@@ -117,13 +183,14 @@ export default function Customer() {
 
   return (
     <div className="min-h-screen bg-white p-6 font-sans text-[#333]">
+
       {/* ── Top Controls ── */}
       <div className="flex items-center justify-end gap-3 mb-6">
         <div className="flex bg-white border border-gray-300 rounded-lg overflow-hidden h-10">
           {["Resale", "Rental"].map((t) => (
             <button
               key={t}
-              onClick={() => setActiveType(t)}
+              onClick={() => { setActiveType(t); setSelectedAssetType(""); setSelectedStatus(""); }}
               className={`px-6 py-1 text-sm font-medium transition-colors ${activeType === t ? "bg-[#FF6B6B] text-white" : "text-gray-400 hover:bg-gray-50"}`}
             >
               {t}
@@ -131,7 +198,6 @@ export default function Customer() {
           ))}
         </div>
 
-        {/* Asset Type filter — uses shared ASSET_TYPE_OPTIONS */}
         <div className="relative h-10">
           <select
             value={selectedAssetType}
@@ -146,7 +212,6 @@ export default function Customer() {
           <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
         </div>
 
-        {/* Status filter */}
         <div className="relative h-10">
           <select
             value={selectedStatus}
@@ -154,7 +219,7 @@ export default function Customer() {
             className="h-10 appearance-none border border-gray-300 rounded-lg pl-4 pr-9 text-gray-500 text-sm hover:bg-gray-50 focus:outline-none focus:border-[#FF6B6B] cursor-pointer bg-white"
           >
             <option value="">Status</option>
-            {STATUS_OPTIONS.map((s) => (
+            {STATUS_OPTIONS_DISPLAY.map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
@@ -174,92 +239,96 @@ export default function Customer() {
         </button>
       </div>
 
-      {/* ── Table ── */}
-      <div className="overflow-x-auto rounded-xl border border-gray-100 shadow-sm">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-[#F2F2F2]">
-            {table.getHeaderGroups().map((hg) => (
-              <tr key={hg.id}>
-                {hg.headers.map((h) => (
-                  <th key={h.id} className="px-6 py-4 text-[11px] uppercase tracking-wider font-bold text-gray-500">
-                    {flexRender(h.column.columnDef.header, h.getContext())}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-6 py-4 text-sm align-middle">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-            {table.getRowModel().rows.length === 0 && (
-              <tr>
-                <td colSpan={columns.length} className="px-6 py-12 text-center text-sm text-gray-400">
-                  No results found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ── Pagination ── */}
-      <div className="mt-8 flex items-center justify-between px-2">
-        <div className="text-xs text-gray-400 font-medium">
-          Showing {filteredData.length === 0 ? 0 : pageIndex * pageSize + 1}-{Math.min((pageIndex + 1) * pageSize, filteredData.length)} of {filteredData.length} Results
+      {/* ── Loading ── */}
+      {listLoading && (
+        <div className="flex justify-center items-center py-16">
+          <span className="inline-block w-8 h-8 border-4 border-gray-200 rounded-full animate-spin" style={{ borderTopColor: "#E8453C" }} />
         </div>
+      )}
 
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            className="p-1 text-gray-400 disabled:opacity-20 hover:text-gray-600"
-          >
-            <ChevronLeft size={18} />
-          </button>
+      {/* ── Error ── */}
+      {listError && !listLoading && (
+        <div className="flex justify-center py-12">
+          <p className="text-sm text-red-500">{listError}</p>
+        </div>
+      )}
 
-          <div className="flex items-center">
-            {Array.from({ length: table.getPageCount() }, (_, i) => (
-              <button
-                key={i}
-                onClick={() => table.setPageIndex(i)}
-                className={`w-8 h-8 rounded-md text-xs font-bold transition-colors ${
-                  pageIndex === i ? "text-[#FF6B6B] bg-red-50" : "text-gray-400 hover:bg-gray-50"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
+      {/* ── Table ── */}
+      {!listLoading && !listError && (
+        <>
+          <div className="overflow-x-auto rounded-xl border border-gray-100 shadow-sm">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-[#F2F2F2]">
+                {table.getHeaderGroups().map((hg) => (
+                  <tr key={hg.id}>
+                    {hg.headers.map((h) => (
+                      <th key={h.id} className="px-6 py-4 text-[11px] uppercase tracking-wider font-bold text-gray-500">
+                        {flexRender(h.column.columnDef.header, h.getContext())}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+              <tbody>
+                {table.getRowModel().rows.map((row) => (
+                  <tr key={row.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="px-6 py-4 text-sm align-middle">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                {table.getRowModel().rows.length === 0 && (
+                  <tr>
+                    <td colSpan={columns.length} className="px-6 py-12 text-center text-sm text-gray-400">
+                      No results found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
 
-          <button
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            className="p-1 text-gray-400 disabled:opacity-20 hover:text-gray-600"
-          >
-            <ChevronRight size={18} />
-          </button>
-        </div>
+          {/* ── Pagination ── */}
+          <div className="mt-8 flex items-center justify-between px-2">
+            <div className="text-xs text-gray-400 font-medium">
+              Showing {filteredData.length === 0 ? 0 : pageIndex * pageSize + 1}–{Math.min((pageIndex + 1) * pageSize, filteredData.length)} of {total} Results
+            </div>
 
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-400 font-medium">Items per page</span>
-          <select
-            value={pageSize}
-            onChange={e => table.setPageSize(Number(e.target.value))}
-            className="border border-gray-300 rounded-md px-2 py-1 text-xs text-gray-600 focus:outline-none focus:border-[#FF6B6B]"
-          >
-            {[5, 10, 20].map(size => (
-              <option key={size} value={size}>{size}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+            <div className="flex items-center gap-1">
+              <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="p-1 text-gray-400 disabled:opacity-20 hover:text-gray-600">
+                <ChevronLeft size={18} />
+              </button>
+              <div className="flex items-center">
+                {Array.from({ length: table.getPageCount() }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => table.setPageIndex(i)}
+                    className={`w-8 h-8 rounded-md text-xs font-bold transition-colors ${pageIndex === i ? "text-[#FF6B6B] bg-red-50" : "text-gray-400 hover:bg-gray-50"}`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="p-1 text-gray-400 disabled:opacity-20 hover:text-gray-600">
+                <ChevronRight size={18} />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-gray-400 font-medium">Items per page</span>
+              <select
+                value={pageSize}
+                onChange={e => table.setPageSize(Number(e.target.value))}
+                className="border border-gray-300 rounded-md px-2 py-1 text-xs text-gray-600 focus:outline-none focus:border-[#FF6B6B]"
+              >
+                {[5, 10, 20].map(size => (<option key={size} value={size}>{size}</option>))}
+              </select>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

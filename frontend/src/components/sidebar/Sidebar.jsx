@@ -20,7 +20,7 @@ import { logoutUser } from '../../redux/slices/authSlice'
 const NAV_ITEMS = [
   { id: 'dashboard', icon: Home, path: '/', label: 'Properties' },
   { id: 'add', icon: PlusCircle, path: '/add', label: 'Add Inventory' },
-  { id: 'listings', icon: HandCoins , path: '/customer', label: 'customer' },
+  { id: 'listings', icon: HandCoins , path: '/customer', label: 'Buyers' },
 ]
 
 const BOTTOM_NAV_ITEMS = [
