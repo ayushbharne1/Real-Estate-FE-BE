@@ -7,7 +7,7 @@ import {
   FurnishingStatus, ParkingType, PossessionStatus,
   BHKType, Amenity, PriceUnit, SortOption, ListingType,
   CommissionType, MaintenanceType, PreferredTenant,
-  KhataType, ExtraRoom, StructureType,
+  KhataType, ExtraRoom, StructureType, BuyerStatus,PriceUnitExtended,
 } from "../enums/index.js";
 
 const LISTING_TYPE_OPTIONS = [
@@ -178,6 +178,22 @@ const STRUCTURE_OPTIONS = [
   { value: StructureType.G_PLUS, label: "G+5+" },
 ];
 
+// ── Buyer-specific dropdowns ─────────────────────────────────────────────────
+ 
+const BUYER_STATUS_OPTIONS = [
+  { value: BuyerStatus.IN_PROGRESS, label: "In Progress" },
+  { value: BuyerStatus.ACTIVE,      label: "Active" },
+  { value: BuyerStatus.CANCELLED,   label: "Cancelled" },
+];
+ 
+const PRICE_UNIT_EXTENDED_OPTIONS = [
+  { value: PriceUnitExtended.THOUSANDS, label: "Thousands" },
+  { value: PriceUnitExtended.LAKHS,     label: "Lakhs" },
+  { value: PriceUnitExtended.CRORES,    label: "Crores" },
+];
+
+
+
 export {
   LISTING_TYPE_OPTIONS, ASSET_TYPE_OPTIONS, DOOR_FACING_OPTIONS,
   AGE_OF_BUILDING_OPTIONS, FLOOR_RANGE_OPTIONS, FURNISHING_OPTIONS,
@@ -186,4 +202,5 @@ export {
   AMENITY_OPTIONS, PRICE_UNIT_OPTIONS, SORT_OPTIONS, ITEMS_PER_PAGE_OPTIONS,
   COMMISSION_TYPE_OPTIONS, MAINTENANCE_OPTIONS, PREFERRED_TENANT_OPTIONS,
   KHATA_OPTIONS, EXTRA_ROOM_OPTIONS, STRUCTURE_OPTIONS,
+  BUYER_STATUS_OPTIONS, PRICE_UNIT_EXTENDED_OPTIONS
 };

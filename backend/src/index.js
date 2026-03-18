@@ -10,6 +10,7 @@ import authRoutes from "./routes/auth.js";
 import propertyRoutes from "./routes/property.js";
 import inventoryRoutes from "./routes/inventory.js";
 import configRoutes from "./routes/config.js";
+import buyerRoutes from "./routes/buyer.js";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use("/api/auth",       authRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/inventory",  inventoryRoutes);
 app.use("/api/config",     configRoutes);
+app.use("/api/buyers",     buyerRoutes);
 
 // ── 404 ───────────────────────────────────────────────
 app.use((_req, res) =>

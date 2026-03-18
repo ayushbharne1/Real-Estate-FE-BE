@@ -160,10 +160,24 @@ const PropertyTab = Object.freeze({
   VILLAS:     "VILLAS",
 });
 
+
+// ── Buyer-specific enums ──────────────────────────────
+const BuyerStatus = Object.freeze({
+  IN_PROGRESS: "IN_PROGRESS",
+  ACTIVE:      "ACTIVE",
+  CANCELLED:   "CANCELLED",
+});
+ 
+const PriceUnitExtended = Object.freeze({
+  THOUSANDS: "THOUSANDS",
+  LAKHS:     "LAKHS",
+  CRORES:    "CRORES",
+});
+
 export {
   ListingType, AssetType, DoorFacing, AgeOfBuilding, FloorRange,
   FurnishingStatus, ParkingType, PossessionStatus, BHKType,
   Amenity, PriceUnit, SortOption, ViewMode, PropertyTab,
   CommissionType, MaintenanceType, PreferredTenant,
-  KhataType, ExtraRoom, StructureType,
+  KhataType, ExtraRoom, StructureType, BuyerStatus, PriceUnitExtended,
 };
