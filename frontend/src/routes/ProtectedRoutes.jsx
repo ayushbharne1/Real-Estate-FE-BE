@@ -20,6 +20,7 @@ import Customer from "../modules/customer/Customer";
 import {useDispatch} from "react-redux"
 import {useEffect} from "react"
 import AddCustomerForm from "../modules/customer/AddCustomerForm";
+import BuyerDetail from "../modules/customer/BuyerDetail";
 
 const AuthGuard = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -51,6 +52,7 @@ const ProtectedRoutes = () => [
 
     <Route path="customer" element={<Customer />} />
     <Route path="/customer/add" element={<AddCustomerForm />} />
+    <Route path="/customer/:id" element={<BuyerDetail />} />
 
   </Route>,
 ];
