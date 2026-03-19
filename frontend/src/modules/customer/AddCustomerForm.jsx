@@ -23,14 +23,14 @@ const STATUS_OPTIONS_DISPLAY = ["In Progress", "Active", "Cancelled"];
 // Display → API enum maps
 const STATUS_API = {
   "In Progress": "IN_PROGRESS",
-  "Active":      "ACTIVE",
-  "Cancelled":   "CANCELLED",
+  "Active": "ACTIVE",
+  "Cancelled": "CANCELLED",
 };
 
 const UNIT_OPTIONS = [
   { value: "THOUSANDS", label: "Thousands" },
-  { value: "LAKHS",     label: "Lakhs" },
-  { value: "CRORES",    label: "Crores" },
+  { value: "LAKHS", label: "Lakhs" },
+  { value: "CRORES", label: "Crores" },
 ];
 
 /* ─────────────────────────── validation ────────────────────────── */
@@ -77,6 +77,9 @@ const validationSchema = Yup.object({
     then: (s) => s.min(0).required("Deposit is required"),
     otherwise: (s) => s.notRequired(),
   }),
+  alternateContact: Yup.string()
+    .matches(/^[0-9]{7,15}$/, "Enter a valid contact number")
+    .notRequired(),
 });
 
 /* ─────────────────────────── sub-components ────────────────────── */
@@ -134,11 +137,11 @@ function PriceField({ inputName, unitName, placeholder, formik }) {
 
 /* ─────────────────────────── main page ─────────────────────────── */
 export default function AddCustomerForm() {
-  const navigate  = useNavigate();
-  const dispatch  = useDispatch();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const saving      = useSelector(selectSaving);
-  const saveError   = useSelector(selectSaveError);
+  const saving = useSelector(selectSaving);
+  const saveError = useSelector(selectSaveError);
   const saveSuccess = useSelector(selectSaveSuccess);
 
   // Navigate away on success
@@ -156,24 +159,25 @@ export default function AddCustomerForm() {
 
   const formik = useFormik({
     initialValues: {
-      name:         "",
-      countryCode:  "+91",
-      contact:      "",
-      email:        "",
-      propertyId:   "",
-      assetType:    "",
-      status:       "",
+      name: "",
+      countryCode: "+91",
+      contact: "",
+      email: "",
+      propertyId: "",
+      assetType: "",
+      status: "",
       propertyType: "Resale",
+      alternateContact: "",
       // Resale
-      askPrice:     "",
+      askPrice: "",
       askPriceUnit: "THOUSANDS",
-      pricePaid:    "",
-      pricePaidUnit:"THOUSANDS",
+      pricePaid: "",
+      pricePaidUnit: "THOUSANDS",
       // Rental
-      rent:         "",
-      rentUnit:     "THOUSANDS",
-      deposit:      "",
-      depositUnit:  "THOUSANDS",
+      rent: "",
+      rentUnit: "THOUSANDS",
+      deposit: "",
+      depositUnit: "THOUSANDS",
     },
     validationSchema,
     onSubmit: (values) => {
@@ -181,30 +185,31 @@ export default function AddCustomerForm() {
 
       // Build the exact payload shape the API expects
       const payload = {
-        name:        values.name,
+        name: values.name,
         countryCode: values.countryCode,
-        contact:     values.contact,
-        email:       values.email,
-        propertyId:  values.propertyId,
-        assetType:   values.assetType,                          // already API enum from dropdown
+        contact: values.contact,
+        email: values.email,
+        propertyId: values.propertyId,
+        assetType: values.assetType,                          // already API enum from dropdown
         listingType: isResale ? "RESALE" : "RENTAL",
-        status:      STATUS_API[values.status],                 // convert display → API enum
+        status: STATUS_API[values.status],                 // convert display → API enum
         // Numeric prices
-        askPrice:      isResale ? Number(values.askPrice)  : 0,
-        askPriceUnit:  isResale ? values.askPriceUnit       : "THOUSANDS",
-        pricePaid:     isResale ? Number(values.pricePaid) : 0,
-        pricePaidUnit: isResale ? values.pricePaidUnit      : "THOUSANDS",
-        rent:          !isResale ? Number(values.rent)     : 0,
-        rentUnit:      !isResale ? values.rentUnit          : "THOUSANDS",
-        deposit:       !isResale ? Number(values.deposit)  : 0,
-        depositUnit:   !isResale ? values.depositUnit       : "THOUSANDS",
+        askPrice: isResale ? Number(values.askPrice) : 0,
+        askPriceUnit: isResale ? values.askPriceUnit : "THOUSANDS",
+        pricePaid: isResale ? Number(values.pricePaid) : 0,
+        pricePaidUnit: isResale ? values.pricePaidUnit : "THOUSANDS",
+        rent: !isResale ? Number(values.rent) : 0,
+        rentUnit: !isResale ? values.rentUnit : "THOUSANDS",
+        deposit: !isResale ? Number(values.deposit) : 0,
+        depositUnit: !isResale ? values.depositUnit : "THOUSANDS",
+        alternateContact: values.alternateContact || undefined,
       };
 
       dispatch(createBuyer(payload));
     },
   });
 
-  const f        = formik;
+  const f = formik;
   const isResale = f.values.propertyType === "Resale";
 
   return (
@@ -225,18 +230,17 @@ export default function AddCustomerForm() {
                   onClick={() => {
                     f.setFieldValue("propertyType", type);
                     if (type === "Resale") {
-                      f.setFieldValue("rent",    "");
+                      f.setFieldValue("rent", "");
                       f.setFieldValue("deposit", "");
                     } else {
-                      f.setFieldValue("askPrice",  "");
+                      f.setFieldValue("askPrice", "");
                       f.setFieldValue("pricePaid", "");
                     }
                   }}
-                  className={`px-10 py-2 text-sm font-medium rounded-md transition-all duration-150 ${
-                    f.values.propertyType === type
+                  className={`px-10 py-2 text-sm font-medium rounded-md transition-all duration-150 ${f.values.propertyType === type
                       ? "bg-[#EE5352] text-white shadow-sm"
                       : "text-[#4B5563]"
-                  }`}
+                    }`}
                 >
                   {type}
                 </button>
@@ -282,6 +286,28 @@ export default function AddCustomerForm() {
                   placeholder="Enter Contact No."
                   className="w-full text-sm text-[#111827] bg-transparent outline-none p-2.5"
                   value={f.values.contact}
+                  onChange={f.handleChange}
+                  onBlur={f.handleBlur}
+                />
+              </div>
+            </Field>
+
+            {/* Alternate Contact No. */}
+            <Field label="Alternate Contact No." error={f.errors.alternateContact} touched={f.touched.alternateContact}>
+              <div className="flex bg-[#FAFBFC] border border-[#E5E7EB] rounded-md overflow-hidden">
+                <select
+                  name="countryCode"
+                  className="bg-transparent text-sm text-[#111827] px-4 py-2.5 outline-none cursor-pointer border-r border-[#E5E7EB]"
+                  value={f.values.countryCode}
+                  onChange={f.handleChange}
+                >
+                  <option value="+91">+91</option>
+                </select>
+                <input
+                  name="alternateContact"
+                  placeholder="Enter Alternate No."
+                  className="w-full text-sm text-[#111827] bg-transparent outline-none p-2.5"
+                  value={f.values.alternateContact}
                   onChange={f.handleChange}
                   onBlur={f.handleBlur}
                 />
@@ -381,9 +407,8 @@ export default function AddCustomerForm() {
             <Field label="Status" error={f.errors.status} touched={f.touched.status} required>
               <select
                 name="status"
-                className={`${inputClass} appearance-none cursor-pointer pr-10 ${
-                  f.values.status ? "text-[#111827]" : "text-[#C9CDD4]"
-                }`}
+                className={`${inputClass} appearance-none cursor-pointer pr-10 ${f.values.status ? "text-[#111827]" : "text-[#C9CDD4]"
+                  }`}
                 value={f.values.status}
                 onChange={f.handleChange}
                 onBlur={f.handleBlur}
