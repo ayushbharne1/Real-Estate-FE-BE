@@ -10,7 +10,7 @@ import {
   KhataType, ExtraRoom, StructureType, BuyerStatus, PriceUnitExtended,
   BuildingGrade, ParkType, WarehouseType, FloorType, TruckAccess,
   Zoning, LandType, LandShape, Topography, CompoundWall, GateType,
-  RoadType, LeaseTenure,
+  RoadType, LeaseTenure,SortOptionExtended,
 } from "../enums/index.js";
 
 const LISTING_TYPE_OPTIONS = [
@@ -365,6 +365,15 @@ const PRICE_UNIT_EXTENDED_OPTIONS = [
   { value: PriceUnitExtended.CRORES,    label: "Crores" },
 ];
 
+const SORT_OPTIONS = [
+  { label: 'Price: Low to High', value: SortOptionExtended.PRICE_LOW_TO_HIGH },
+  { label: 'Price: High to Low', value: SortOptionExtended.PRICE_HIGH_TO_LOW },
+  { label: 'Newest First', value: SortOptionExtended.NEWEST_FIRST },
+  { label: 'Oldest First', value:  SortOptionExtended.OLDEST_FIRST },
+  { label: 'Price/Sqft: Low to High', value: SortOptionExtended.PRICE_SQFT_LOW_TO_HIGH },
+  { label: 'Price/Sqft: High to Low', value: SortOptionExtended.PRICE_SQFT_HIGH_TO_LOW },
+]
+
 export {
   LISTING_TYPE_OPTIONS,
   ASSET_TYPE_OPTIONS,
@@ -409,4 +418,5 @@ export {
   LEASE_TENURE_LAND_OPTIONS,
   IDEAL_FOR_OPTIONS,
   UTILITIES_NEARBY_OPTIONS,
+  SORT_OPTIONS,
 };
