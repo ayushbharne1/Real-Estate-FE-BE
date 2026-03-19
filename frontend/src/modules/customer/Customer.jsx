@@ -23,7 +23,7 @@ import {
   PhoneCall, Mail, ChevronDown, ArrowUpDown,
   ChevronLeft, ChevronRight, Plus, Eye,
 } from "lucide-react";
-import { ASSET_TYPE_OPTIONS } from "shared/constants/dropdown.js";
+import { ASSET_TYPE_OPTIONS, SORT_OPTIONS } from "shared/constants/dropdown.js";
 
 /* ─────────────────────────── constants ─────────────────────────── */
 
@@ -68,6 +68,7 @@ export default function Customer() {
   const [activeType,        setActiveType]        = useState("Resale");
   const [selectedAssetType, setSelectedAssetType] = useState("");
   const [selectedStatus,    setSelectedStatus]    = useState("");
+  const [selectedSort,      setSelectedSort]      = useState("");
 
   useEffect(() => {
     dispatch(fetchBuyers({ listingType: activeType.toUpperCase(), page: 1, limit: 20 }));
@@ -78,7 +79,7 @@ export default function Customer() {
   };
 
   const filteredData = useMemo(() => {
-    return items.filter((item) => {
+    let data = items.filter((item) => {
       const assetLabel  = ASSET_TYPE_OPTIONS.find(o => o.value === item.assetType)?.label ?? item.assetType;
       const statusLabel = STATUS_DISPLAY[item.status] ?? item.status;
       return (
@@ -86,7 +87,30 @@ export default function Customer() {
         (!selectedStatus    || statusLabel === selectedStatus)
       );
     });
-  }, [items, selectedAssetType, selectedStatus]);
+
+    if (selectedSort) {
+      data = [...data].sort((a, b) => {
+        switch (selectedSort) {
+          case "PRICE_LOW_TO_HIGH":
+            return (a.askPrice ?? 0) - (b.askPrice ?? 0);
+          case "PRICE_HIGH_TO_LOW":
+            return (b.askPrice ?? 0) - (a.askPrice ?? 0);
+          case "NEWEST_FIRST":
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          case "OLDEST_FIRST":
+            return new Date(a.createdAt) - new Date(b.createdAt);
+          case "PRICE_SQFT_LOW_TO_HIGH":
+            return (a.pricePerSqft ?? 0) - (b.pricePerSqft ?? 0);
+          case "PRICE_SQFT_HIGH_TO_LOW":
+            return (b.pricePerSqft ?? 0) - (a.pricePerSqft ?? 0);
+          default:
+            return 0;
+        }
+      });
+    }
+
+    return data;
+  }, [items, selectedAssetType, selectedStatus, selectedSort]);
 
   const columns = useMemo(() => [
     { accessorKey: "name", header: "Name" },
@@ -142,7 +166,6 @@ export default function Customer() {
       header: "Actions",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          {/* View Details */}
           <button
             onClick={() => navigate(`/customer/${row.original._id}`)}
             title="View Details"
@@ -150,7 +173,6 @@ export default function Customer() {
           >
             <Eye size={16} />
           </button>
-          {/* Call */}
           <a
             href={`tel:${row.original.countryCode}${row.original.contact}`}
             title="Call"
@@ -158,7 +180,6 @@ export default function Customer() {
           >
             <PhoneCall size={16} />
           </a>
-          {/* Email */}
           <a
             href={`mailto:${row.original.email}`}
             title="Email"
@@ -186,18 +207,28 @@ export default function Customer() {
 
       {/* ── Top Controls ── */}
       <div className="flex items-center justify-end gap-3 mb-6">
+
+        {/* Resale / Rental toggle */}
         <div className="flex bg-white border border-gray-300 rounded-lg overflow-hidden h-10">
           {["Resale", "Rental"].map((t) => (
             <button
               key={t}
-              onClick={() => { setActiveType(t); setSelectedAssetType(""); setSelectedStatus(""); }}
-              className={`px-6 py-1 text-sm font-medium transition-colors ${activeType === t ? "bg-[#FF6B6B] text-white" : "text-gray-400 hover:bg-gray-50"}`}
+              onClick={() => {
+                setActiveType(t);
+                setSelectedAssetType("");
+                setSelectedStatus("");
+                setSelectedSort("");
+              }}
+              className={`px-6 py-1 text-sm font-medium transition-colors ${
+                activeType === t ? "bg-[#FF6B6B] text-white" : "text-gray-400 hover:bg-gray-50"
+              }`}
             >
               {t}
             </button>
           ))}
         </div>
 
+        {/* Asset Type filter */}
         <div className="relative h-10">
           <select
             value={selectedAssetType}
@@ -212,6 +243,7 @@ export default function Customer() {
           <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
         </div>
 
+        {/* Status filter */}
         <div className="relative h-10">
           <select
             value={selectedStatus}
@@ -226,10 +258,22 @@ export default function Customer() {
           <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
         </div>
 
-        <button className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-50">
-          <ArrowUpDown size={18} />
-        </button>
+        {/* Sort dropdown */}
+        <div className="relative h-10">
+          <select
+            value={selectedSort}
+            onChange={(e) => setSelectedSort(e.target.value)}
+            className="h-10 appearance-none border border-gray-300 rounded-lg pl-4 pr-9 text-gray-500 text-sm hover:bg-gray-50 focus:outline-none focus:border-[#FF6B6B] cursor-pointer bg-white"
+          >
+            <option value="">Sort By</option>
+            {SORT_OPTIONS.map(({ value, label }) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+          <ArrowUpDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+        </div>
 
+        {/* Add Buyer button */}
         <button
           onClick={() => navigate("/customer/add")}
           className="flex items-center gap-2 px-4 py-2 bg-[#E8453C] hover:bg-[#d03830] text-white text-sm font-semibold rounded-lg shadow-sm shadow-red-200 transition-all active:scale-95"
@@ -242,7 +286,10 @@ export default function Customer() {
       {/* ── Loading ── */}
       {listLoading && (
         <div className="flex justify-center items-center py-16">
-          <span className="inline-block w-8 h-8 border-4 border-gray-200 rounded-full animate-spin" style={{ borderTopColor: "#E8453C" }} />
+          <span
+            className="inline-block w-8 h-8 border-4 border-gray-200 rounded-full animate-spin"
+            style={{ borderTopColor: "#E8453C" }}
+          />
         </div>
       )}
 
@@ -262,7 +309,10 @@ export default function Customer() {
                 {table.getHeaderGroups().map((hg) => (
                   <tr key={hg.id}>
                     {hg.headers.map((h) => (
-                      <th key={h.id} className="px-6 py-4 text-[11px] uppercase tracking-wider font-bold text-gray-500">
+                      <th
+                        key={h.id}
+                        className="px-6 py-4 text-[11px] uppercase tracking-wider font-bold text-gray-500"
+                      >
                         {flexRender(h.column.columnDef.header, h.getContext())}
                       </th>
                     ))}
@@ -271,7 +321,10 @@ export default function Customer() {
               </thead>
               <tbody>
                 {table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                  <tr
+                    key={row.id}
+                    className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
+                  >
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="px-6 py-4 text-sm align-middle">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -281,7 +334,10 @@ export default function Customer() {
                 ))}
                 {table.getRowModel().rows.length === 0 && (
                   <tr>
-                    <td colSpan={columns.length} className="px-6 py-12 text-center text-sm text-gray-400">
+                    <td
+                      colSpan={columns.length}
+                      className="px-6 py-12 text-center text-sm text-gray-400"
+                    >
                       No results found.
                     </td>
                   </tr>
@@ -293,11 +349,17 @@ export default function Customer() {
           {/* ── Pagination ── */}
           <div className="mt-8 flex items-center justify-between px-2">
             <div className="text-xs text-gray-400 font-medium">
-              Showing {filteredData.length === 0 ? 0 : pageIndex * pageSize + 1}–{Math.min((pageIndex + 1) * pageSize, filteredData.length)} of {total} Results
+              Showing{" "}
+              {filteredData.length === 0 ? 0 : pageIndex * pageSize + 1}–
+              {Math.min((pageIndex + 1) * pageSize, filteredData.length)} of {total} Results
             </div>
 
             <div className="flex items-center gap-1">
-              <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="p-1 text-gray-400 disabled:opacity-20 hover:text-gray-600">
+              <button
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                className="p-1 text-gray-400 disabled:opacity-20 hover:text-gray-600"
+              >
                 <ChevronLeft size={18} />
               </button>
               <div className="flex items-center">
@@ -305,13 +367,21 @@ export default function Customer() {
                   <button
                     key={i}
                     onClick={() => table.setPageIndex(i)}
-                    className={`w-8 h-8 rounded-md text-xs font-bold transition-colors ${pageIndex === i ? "text-[#FF6B6B] bg-red-50" : "text-gray-400 hover:bg-gray-50"}`}
+                    className={`w-8 h-8 rounded-md text-xs font-bold transition-colors ${
+                      pageIndex === i
+                        ? "text-[#FF6B6B] bg-red-50"
+                        : "text-gray-400 hover:bg-gray-50"
+                    }`}
                   >
                     {i + 1}
                   </button>
                 ))}
               </div>
-              <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="p-1 text-gray-400 disabled:opacity-20 hover:text-gray-600">
+              <button
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                className="p-1 text-gray-400 disabled:opacity-20 hover:text-gray-600"
+              >
                 <ChevronRight size={18} />
               </button>
             </div>
@@ -320,10 +390,12 @@ export default function Customer() {
               <span className="text-xs text-gray-400 font-medium">Items per page</span>
               <select
                 value={pageSize}
-                onChange={e => table.setPageSize(Number(e.target.value))}
+                onChange={(e) => table.setPageSize(Number(e.target.value))}
                 className="border border-gray-300 rounded-md px-2 py-1 text-xs text-gray-600 focus:outline-none focus:border-[#FF6B6B]"
               >
-                {[5, 10, 20].map(size => (<option key={size} value={size}>{size}</option>))}
+                {[5, 10, 20].map((size) => (
+                  <option key={size} value={size}>{size}</option>
+                ))}
               </select>
             </div>
           </div>
