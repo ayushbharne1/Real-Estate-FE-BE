@@ -1,3 +1,4 @@
+// backend/src/controllers/inventoryController.js
 import Property from "../models/Property.js";
 import { success, error } from "../utils/response.js";
 import { SortOption } from "shared/enums";
@@ -6,10 +7,10 @@ import { UPLOAD } from "shared/constants/app.js";
 
 // ── Sort map ──────────────────────────────────────────────────
 const SORT_MAP = {
-  [SortOption.PRICE_LOW_TO_HIGH]: { "propertyDetails.askPrice": 1 },
-  [SortOption.PRICE_HIGH_TO_LOW]: { "propertyDetails.askPrice": -1 },
-  [SortOption.NEWEST_FIRST]: { createdAt: -1 },
-  [SortOption.OLDEST_FIRST]: { createdAt: 1 },
+  [SortOption.PRICE_LOW_TO_HIGH]:      { "propertyDetails.askPrice": 1 },
+  [SortOption.PRICE_HIGH_TO_LOW]:      { "propertyDetails.askPrice": -1 },
+  [SortOption.NEWEST_FIRST]:           { createdAt: -1 },
+  [SortOption.OLDEST_FIRST]:           { createdAt: 1 },
   [SortOption.PRICE_SQFT_LOW_TO_HIGH]: { "propertyDetails.pricePerSqft": 1 },
   [SortOption.PRICE_SQFT_HIGH_TO_LOW]: { "propertyDetails.pricePerSqft": -1 },
 };
@@ -20,37 +21,55 @@ const SORT_MAP = {
 export const createProperty = async (req, res) => {
   try {
     const {
+      // Step 1
       name, listingType, assetType, possession,
       address, area, state, city, pincode,
+      // Residential config
       bedrooms, bathrooms, balconies, seats,
-      doorFacing, ageOfBuilding, floorNumber,
-      furnishing, pricePerSqft,
+      // Step 2 — common
+      doorFacing, ageOfBuilding, floorNumber, furnishing, pricePerSqft,
       sbua, plotArea, uds,
       apartmentType, balconyFacing, structure,
       totalRooms, waterSupply, totalFloors,
+      // Office Space
+      cabins, meetingRooms, boardRoom, buildingGrade,
+      // Tech Park
+      tower, parkType,
+      // Showroom / Shop
+      frontage,
+      // Warehouse
+      warehouseType, landArea, floorType, floorLoading,
+      docks, dockLevelers, truckAccess, powerLoad, officeBlock,
+      // Industrial Land
+      landType, depth, shape, topography, compoundWall, gate,
+      fsiFar, roadType, utilitiesNearby,
+      pricePerAcre, pricePerAcreUnit,
+      groundRent, groundRentUnit,
+      // Shared commercial
+      zoning, leaseTenure,
+      // Pricing
       askPrice, priceUnit,
       rentPerMonth, rentUnit,
       deposit, depositUnit,
       maintenance, commissionType,
+      // Step 3
       buildingKhata, landKhata, eKhata, extraRooms,
-      cornerUnit, bioppaApprovedKhata,
-      exclusive, parking,
+      cornerUnit, bioppaApprovedKhata, exclusive,
+      parking, parkingNum,
       preferredTenant, petAllowed, nonVegAllowed,
+      idealFor,
       amenities, description,
     } = req.body;
 
-    // ── Media — set by uploadProperty middleware ───────────────
-    // req.imageUrls: string[]       Cloudinary image URLs
-    // req.videoUrl:  string | null  Cloudinary video URL
-    const images = req.imageUrls ?? [];
-    const videoUrl = req.videoUrl ?? undefined;
-
-    // Fall back to placeholder if no images uploaded
-    const finalImages = images.length > 0 ? images : [UPLOAD.DEFAULT_IMAGE_URL];
+    const images   = req.imageUrls ?? [];
+    const videoUrl = req.videoUrl  ?? undefined;
+    const finalImages  = images.length > 0 ? images : [UPLOAD.DEFAULT_IMAGE_URL];
     const primaryImage = finalImages[0];
 
-    const parsedAmenities = _parseJson(amenities, []);
-    const parsedExtraRooms = _parseJson(extraRooms, []);
+    const parsedAmenities     = _parseJson(amenities, []);
+    const parsedExtraRooms    = _parseJson(extraRooms, []);
+    const parsedIdealFor      = _parseJson(idealFor, []);
+    const parsedUtilities     = _parseJson(utilitiesNearby, []);
 
     const property = await Property.create({
       basicDetails: {
@@ -58,51 +77,93 @@ export const createProperty = async (req, res) => {
         images: finalImages, primaryImage, videoUrl,
         address, area: area || undefined,
         state, city, pincode, possession,
-        bedrooms: Number(bedrooms) || 0,
+        bedrooms:  Number(bedrooms)  || 0,
         bathrooms: Number(bathrooms) || 0,
         balconies: Number(balconies) || 0,
-        seats: seats ? Number(seats) : undefined,
+        seats:     seats ? Number(seats) : undefined,
       },
 
       propertyDetails: {
-        doorFacing: doorFacing || undefined,
-        furnishing: furnishing || undefined,
+        // Common
+        doorFacing:    doorFacing    || undefined,
+        furnishing:    furnishing    || undefined,
         ageOfBuilding: ageOfBuilding || undefined,
-        floorNumber: floorNumber || undefined,
-        sbua: sbua ? Number(sbua) : undefined,
-        plotArea: plotArea ? Number(plotArea) : undefined,
-        uds: uds ? Number(uds) : undefined,
+        floorNumber:   floorNumber   || undefined,
+        sbua:          sbua          ? Number(sbua)          : undefined,
+        plotArea:      plotArea      ? Number(plotArea)      : undefined,
+        uds:           uds           ? Number(uds)           : undefined,
+        // Residential
         apartmentType: apartmentType || undefined,
         balconyFacing: balconyFacing || undefined,
-        structure: structure || undefined,
-        totalRooms: totalRooms ? Number(totalRooms) : undefined,
-        waterSupply: waterSupply || undefined,
-        totalFloors: totalFloors ? Number(totalFloors) : undefined,
-        pricePerSqft: pricePerSqft ? Number(pricePerSqft) : undefined,
-        askPrice: askPrice ? Number(askPrice) : undefined,
-        priceUnit: priceUnit || "LAKHS",
-        rentPerMonth: rentPerMonth ? Number(rentPerMonth) : undefined,
-        rentUnit: rentUnit || "LAKHS",
-        deposit: deposit ? Number(deposit) : undefined,
-        depositUnit: depositUnit || "LAKHS",
-        maintenance: maintenance || undefined,
-        commissionType: commissionType || undefined,
+        structure:     structure     || undefined,
+        totalRooms:    totalRooms    ? Number(totalRooms)    : undefined,
+        waterSupply:   waterSupply   || undefined,
+        totalFloors:   totalFloors   ? Number(totalFloors)   : undefined,
+        // Office Space
+        cabins:        cabins        ? Number(cabins)        : undefined,
+        meetingRooms:  meetingRooms  ? Number(meetingRooms)  : undefined,
+        boardRoom:     boardRoom     ? Number(boardRoom)     : undefined,
+        buildingGrade: buildingGrade || undefined,
+        // Tech Park
+        tower:    tower    || undefined,
+        parkType: parkType || undefined,
+        // Showroom / Shop / Industrial Land
+        frontage:  frontage  ? Number(frontage)  : undefined,
+        // Warehouse
+        warehouseType: warehouseType || undefined,
+        landArea:      landArea      ? Number(landArea)      : undefined,
+        floorType:     floorType     || undefined,
+        floorLoading:  floorLoading  ? Number(floorLoading)  : undefined,
+        docks:         docks         ? Number(docks)         : undefined,
+        dockLevelers:  dockLevelers  ? Number(dockLevelers)  : undefined,
+        truckAccess:   truckAccess   || undefined,
+        powerLoad:     powerLoad     ? Number(powerLoad)     : undefined,
+        officeBlock:   officeBlock   ? Number(officeBlock)   : undefined,
+        // Industrial Land
+        landType:     landType     || undefined,
+        depth:        depth        ? Number(depth)        : undefined,
+        shape:        shape        || undefined,
+        topography:   topography   || undefined,
+        compoundWall: compoundWall || undefined,
+        gate:         gate         || undefined,
+        fsiFar:       fsiFar       || undefined,
+        roadType:     roadType     || undefined,
+        utilitiesNearby: parsedUtilities.length ? parsedUtilities : undefined,
+        pricePerAcre:     pricePerAcre     ? Number(pricePerAcre)     : undefined,
+        pricePerAcreUnit: pricePerAcreUnit || undefined,
+        groundRent:       groundRent       ? Number(groundRent)       : undefined,
+        groundRentUnit:   groundRentUnit   || undefined,
+        // Shared commercial
+        zoning:      zoning      || undefined,
+        leaseTenure: leaseTenure || undefined,
+        // Pricing
+        pricePerSqft:  pricePerSqft  ? Number(pricePerSqft)  : undefined,
+        askPrice:      askPrice      ? Number(askPrice)       : undefined,
+        priceUnit:     priceUnit     || "LAKHS",
+        rentPerMonth:  rentPerMonth  ? Number(rentPerMonth)   : undefined,
+        rentUnit:      rentUnit      || "LAKHS",
+        deposit:       deposit       ? Number(deposit)        : undefined,
+        depositUnit:   depositUnit   || "LAKHS",
+        maintenance:   maintenance   || undefined,
+        commissionType:commissionType|| undefined,
       },
 
       moreDetails: {
-        buildingKhata: buildingKhata || undefined,
-        landKhata: landKhata || undefined,
-        eKhata: eKhata !== undefined ? _parseBool(eKhata) : undefined,
-        extraRooms: parsedExtraRooms,
-        cornerUnit: cornerUnit !== undefined ? _parseBool(cornerUnit) : undefined,
+        buildingKhata:       buildingKhata       || undefined,
+        landKhata:           landKhata           || undefined,
+        eKhata:              eKhata       !== undefined ? _parseBool(eKhata)       : undefined,
+        extraRooms:          parsedExtraRooms,
+        cornerUnit:          cornerUnit   !== undefined ? _parseBool(cornerUnit)   : undefined,
         bioppaApprovedKhata: bioppaApprovedKhata !== undefined ? _parseBool(bioppaApprovedKhata) : undefined,
-        exclusive: exclusive !== undefined ? _parseBool(exclusive) : undefined,
-        parking: parking || undefined,
-        preferredTenant: preferredTenant || undefined,
-        petAllowed: petAllowed !== undefined ? _parseBool(petAllowed) : undefined,
-        nonVegAllowed: nonVegAllowed !== undefined ? _parseBool(nonVegAllowed) : undefined,
-        amenities: parsedAmenities,
-        description,
+        exclusive:           exclusive    !== undefined ? _parseBool(exclusive)    : undefined,
+        parking:             parking      || undefined,
+        parkingNum:          parkingNum   ? Number(parkingNum) : undefined,
+        preferredTenant:     preferredTenant || undefined,
+        petAllowed:          petAllowed   !== undefined ? _parseBool(petAllowed)   : undefined,
+        nonVegAllowed:       nonVegAllowed !== undefined ? _parseBool(nonVegAllowed) : undefined,
+        idealFor:            parsedIdealFor.length ? parsedIdealFor : undefined,
+        amenities:           parsedAmenities,
+        description:         description || "",
       },
     });
 
@@ -113,44 +174,34 @@ export const createProperty = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// GET /api/inventory  — list with filters, sort, pagination
+// GET /api/inventory  — List / search properties
 // ─────────────────────────────────────────────────────────────
 export const getProperties = async (req, res) => {
   try {
     const {
-      search, listingType, assetType, bhkTypes,
-      budgetMin, budgetMax, sbuaMin, sbuaMax,
-      sortBy, page = 1, limit = 20,
+      search, listingType, assetType, sort,
+      budgetMin, budgetMax, sbuaMin, sbuaMax, page, limit,
     } = req.query;
+    const rawBhk = req.query['bhkTypes[]'] || req.query.bhkTypes;
 
     const filter = { isActive: true };
     if (listingType) filter["basicDetails.listingType"] = listingType;
-    if (assetType) filter["basicDetails.assetType"] = assetType;
+    if (assetType)   filter["basicDetails.assetType"]   = assetType;
 
-    if (search) {
-      filter["$or"] = [
-        { "basicDetails.name": { $regex: search, $options: "i" } },
-        { "basicDetails.city": { $regex: search, $options: "i" } },
-        { "basicDetails.area": { $regex: search, $options: "i" } },
-        { "basicDetails.address": { $regex: search, $options: "i" } },
-        { "basicDetails.state": { $regex: search, $options: "i" } },
-        { "basicDetails.pincode": { $regex: search, $options: "i" } },
-        { "basicDetails.assetType": { $regex: search, $options: "i" } },
-        { "basicDetails.listingType": { $regex: search, $options: "i" } },
-        { "propertyId": { $regex: search, $options: "i" } },
-        { "propertyDetails.apartmentType": { $regex: search, $options: "i" } },
-        { "propertyDetails.furnishing": { $regex: search, $options: "i" } },
-        { "propertyDetails.floorNumber": { $regex: search, $options: "i" } },
-        { "propertyDetails.doorFacing": { $regex: search, $options: "i" } },
-        { "moreDetails.preferredTenant": { $regex: search, $options: "i" } },
-        { "moreDetails.amenities": { $regex: search, $options: "i" } },
-      ];
-    }
-
-    const rawBhk = req.query['bhkTypes[]'] || req.query.bhkTypes;
     const bhkArray = rawBhk ? (Array.isArray(rawBhk) ? rawBhk : [rawBhk]) : [];
     if (bhkArray.length > 0) {
       filter["basicDetails.bedrooms"] = { $in: bhkArray.map(Number) };
+    }
+
+    if (search) {
+      const re = new RegExp(search, "i");
+      filter.$or = [
+        { "basicDetails.name":    re },
+        { "basicDetails.address": re },
+        { "basicDetails.area":    re },
+        { "basicDetails.city":    re },
+        { propertyId:             re },
+      ];
     }
 
     if (sbuaMin || sbuaMax) {
@@ -160,63 +211,43 @@ export const getProperties = async (req, res) => {
     }
 
     const isRentalFilter = listingType === 'RENTAL';
-    const priceField = isRentalFilter ? 'propertyDetails.rentPerMonth' : 'propertyDetails.askPrice';
-    const unitField = isRentalFilter ? 'propertyDetails.rentUnit' : 'propertyDetails.priceUnit';
-
-    const pipeline = [{ $match: filter }];
 
     if (budgetMin || budgetMax) {
+      const priceField = isRentalFilter ? 'propertyDetails.rentPerMonth' : 'propertyDetails.askPrice';
+      const unitField  = isRentalFilter ? 'propertyDetails.rentUnit'     : 'propertyDetails.priceUnit';
       const normalizedPrice = {
         $cond: [{ $eq: [`$${unitField}`, 'CRORES'] }, { $multiply: [`$${priceField}`, 100] }, `$${priceField}`]
       };
       const exprs = [];
       if (budgetMin) exprs.push({ $gte: [normalizedPrice, Number(budgetMin)] });
       if (budgetMax) exprs.push({ $lte: [normalizedPrice, Number(budgetMax)] });
-      pipeline.push({ $match: { $expr: exprs.length === 1 ? exprs[0] : { $and: exprs } } });
+      if (exprs.length > 0) {
+        filter.$expr = exprs.length === 1 ? exprs[0] : { $and: exprs };
+      }
     }
 
-    // Always add normalized price field for correct sorting
-    pipeline.push({
-      $addFields: {
-        _normalizedPrice: {
-          $cond: [{ $eq: [`$${unitField}`, 'CRORES'] }, { $multiply: [`$${priceField}`, 100] }, `$${priceField}`]
-        }
-      }
-    });
+    const sortObj  = SORT_MAP[sort] || SORT_MAP[SortOption.NEWEST_FIRST];
+    const pageNum  = Math.max(1, Number(page)  || 1);
+    const limitNum = Math.min(100, Number(limit) || 20);
+    const skip     = (pageNum - 1) * limitNum;
 
-    const SORT_MAP = {
-      PRICE_LOW_TO_HIGH: { _normalizedPrice: 1 },
-      PRICE_HIGH_TO_LOW: { _normalizedPrice: -1 },
-      NEWEST_FIRST: { createdAt: -1 },
-      OLDEST_FIRST: { createdAt: 1 },
-      PRICE_SQFT_LOW_TO_HIGH: { "propertyDetails.pricePerSqft": 1 },
-      PRICE_SQFT_HIGH_TO_LOW: { "propertyDetails.pricePerSqft": -1 },
-    };
-
-    pipeline.push({ $sort: SORT_MAP[sortBy] || { createdAt: -1 } });
-
-    const skip = (Number(page) - 1) * Number(limit);
-
-    // Count before pagination
-    const countPipeline = [...pipeline, { $count: 'total' }];
-    const countResult = await Property.aggregate(countPipeline);
-    const total = countResult[0]?.total || 0;
-
-    pipeline.push({ $skip: skip });
-    pipeline.push({ $limit: Number(limit) });
-    pipeline.push({ $unset: '_normalizedPrice' });
-
-    const items = await Property.aggregate(pipeline);
+    const [items, total] = await Promise.all([
+      Property.find(filter).sort(sortObj).skip(skip).limit(limitNum),
+      Property.countDocuments(filter),
+    ]);
 
     success(res, {
-      items, total,
-      page: Number(page), limit: Number(limit),
-      totalPages: Math.ceil(total / Number(limit)),
+      items,
+      total,
+      page:       pageNum,
+      limit:      limitNum,
+      totalPages: Math.ceil(total / limitNum),
     });
   } catch (err) {
     error(res, err.message);
   }
 };
+
 // ─────────────────────────────────────────────────────────────
 // GET /api/inventory/:id
 // ─────────────────────────────────────────────────────────────
@@ -231,25 +262,15 @@ export const getProperty = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// GET /api/inventory/:id/similar  — FIXED: assetType only, no city filter
+// GET /api/inventory/:id/similar
 // ─────────────────────────────────────────────────────────────
 export const getSimilar = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
     if (!property) return error(res, "Property not found", 404);
-
     const assetType = property.basicDetails?.assetType;
-
-    const filter = {
-      _id: { $ne: property._id },
-      isActive: true,
-    };
-
-    // Only filter by assetType — never by city, so results always exist
-    if (assetType) {
-      filter["basicDetails.assetType"] = assetType;
-    }
-
+    const filter = { _id: { $ne: property._id }, isActive: true };
+    if (assetType) filter["basicDetails.assetType"] = assetType;
     const items = await Property.find(filter).limit(4);
     success(res, items);
   } catch (err) {
@@ -269,203 +290,195 @@ export const updateProperty = async (req, res) => {
       name, listingType, assetType, possession,
       address, area, state, city, pincode,
       bedrooms, bathrooms, balconies, seats,
-      doorFacing, ageOfBuilding, floorNumber,
-      furnishing, pricePerSqft,
+      doorFacing, ageOfBuilding, floorNumber, furnishing, pricePerSqft,
       sbua, plotArea, uds,
       apartmentType, balconyFacing, structure,
       totalRooms, waterSupply, totalFloors,
+      cabins, meetingRooms, boardRoom, buildingGrade,
+      tower, parkType,
+      frontage,
+      warehouseType, landArea, floorType, floorLoading,
+      docks, dockLevelers, truckAccess, powerLoad, officeBlock,
+      landType, depth, shape, topography, compoundWall, gate,
+      fsiFar, roadType, utilitiesNearby,
+      pricePerAcre, pricePerAcreUnit,
+      groundRent, groundRentUnit,
+      zoning, leaseTenure,
       askPrice, priceUnit,
       rentPerMonth, rentUnit,
       deposit, depositUnit,
       maintenance, commissionType,
       buildingKhata, landKhata, eKhata, extraRooms,
-      cornerUnit, bioppaApprovedKhata,
-      exclusive, parking,
+      cornerUnit, bioppaApprovedKhata, exclusive,
+      parking, parkingNum,
       preferredTenant, petAllowed, nonVegAllowed,
+      idealFor,
       amenities, description,
-      // existingImages: JSON array of current Cloudinary URLs to KEEP
-      existingImages,
-      // removeVideo: pass "true" to delete the existing video
-      removeVideo,
+      existingImages, removeVideo,
     } = req.body;
 
     // ── Image management ───────────────────────────────────────
-    const newImages = req.imageUrls ?? [];
-    const keptImages = _parseJson(existingImages, property.basicDetails.images);
-    const allImages = [...keptImages, ...newImages];
-
-    // Fall back to placeholder if result is empty
+    const newImages   = req.imageUrls ?? [];
+    const keptImages  = _parseJson(existingImages, property.basicDetails.images);
+    const allImages   = [...keptImages, ...newImages];
     const finalImages = allImages.length > 0 ? allImages : [UPLOAD.DEFAULT_IMAGE_URL];
-    const primaryImage = finalImages[0];
-
-    // Delete removed Cloudinary images (skip placeholder)
-    const removedImages = (property.basicDetails.images ?? []).filter(
-      (url) => !keptImages.includes(url) && url !== UPLOAD.DEFAULT_IMAGE_URL
-    );
-    await Promise.allSettled(
-      removedImages.map((url) => {
-        const pid = _cloudinaryPublicId(url);
-        return pid ? cloudinary.uploader.destroy(pid) : Promise.resolve();
-      })
-    );
 
     // ── Video management ───────────────────────────────────────
-    let videoUrl = property.basicDetails.videoUrl ?? null;
-
-    // removeVideo=true → delete old video, set null
-    if (_parseBool(removeVideo) && videoUrl) {
-      const pid = _cloudinaryPublicId(videoUrl);
-      if (pid) await cloudinary.uploader.destroy(pid, { resource_type: "video" }).catch(() => null);
-      videoUrl = null;
-    }
-
-    // New video uploaded → replace old one
-    if (req.videoUrl) {
-      if (videoUrl && videoUrl !== req.videoUrl) {
-        const pid = _cloudinaryPublicId(videoUrl);
-        if (pid) await cloudinary.uploader.destroy(pid, { resource_type: "video" }).catch(() => null);
+    let videoUrl = property.basicDetails.videoUrl;
+    if (_parseBool(removeVideo)) {
+      if (videoUrl) {
+        const pid = _extractCloudinaryId(videoUrl);
+        if (pid) await cloudinary.uploader.destroy(pid, { resource_type: "video" }).catch(() => {});
       }
+      videoUrl = undefined;
+    } else if (req.videoUrl) {
       videoUrl = req.videoUrl;
     }
 
-    // ── Build $set payload (only fields present in request) ────
-    const p = {};
+    const parsedAmenities  = _parseJson(amenities,      property.moreDetails?.amenities  ?? []);
+    const parsedExtraRooms = _parseJson(extraRooms,     property.moreDetails?.extraRooms ?? []);
+    const parsedIdealFor   = _parseJson(idealFor,       property.moreDetails?.idealFor   ?? []);
+    const parsedUtilities  = _parseJson(utilitiesNearby,property.propertyDetails?.utilitiesNearby ?? []);
 
-    // Step 1
-    _set(p, "basicDetails.name", name);
+    const _set = (obj, path, val) => {
+      if (val === undefined || val === null || val === "") return;
+      const keys = path.split(".");
+      let cur = obj;
+      for (let i = 0; i < keys.length - 1; i++) {
+        if (!cur[keys[i]]) cur[keys[i]] = {};
+        cur = cur[keys[i]];
+      }
+      cur[keys[keys.length - 1]] = val;
+    };
+
+    const p = property;
+
+    // Basic
+    _set(p, "basicDetails.name",        name);
     _set(p, "basicDetails.listingType", listingType);
-    _set(p, "basicDetails.assetType", assetType);
-    _set(p, "basicDetails.possession", possession);
-    _set(p, "basicDetails.address", address);
-    _set(p, "basicDetails.area", area);
-    _set(p, "basicDetails.state", state);
-    _set(p, "basicDetails.city", city);
-    _set(p, "basicDetails.pincode", pincode);
-    _set(p, "basicDetails.bedrooms", bedrooms !== undefined ? Number(bedrooms) : undefined);
-    _set(p, "basicDetails.bathrooms", bathrooms !== undefined ? Number(bathrooms) : undefined);
-    _set(p, "basicDetails.balconies", balconies !== undefined ? Number(balconies) : undefined);
-    _set(p, "basicDetails.seats", seats !== undefined ? Number(seats) : undefined);
+    _set(p, "basicDetails.assetType",   assetType);
+    _set(p, "basicDetails.possession",  possession);
+    _set(p, "basicDetails.address",     address);
+    _set(p, "basicDetails.area",        area);
+    _set(p, "basicDetails.state",       state);
+    _set(p, "basicDetails.city",        city);
+    _set(p, "basicDetails.pincode",     pincode);
+    p.basicDetails.images       = finalImages;
+    p.basicDetails.primaryImage = finalImages[0];
+    if (videoUrl !== undefined) p.basicDetails.videoUrl = videoUrl;
+    if (bedrooms  !== undefined) p.basicDetails.bedrooms  = Number(bedrooms);
+    if (bathrooms !== undefined) p.basicDetails.bathrooms = Number(bathrooms);
+    if (balconies !== undefined) p.basicDetails.balconies = Number(balconies);
+    if (seats     !== undefined) p.basicDetails.seats     = Number(seats);
 
-    if (newImages.length || existingImages !== undefined) {
-      p["basicDetails.images"] = finalImages;
-      p["basicDetails.primaryImage"] = primaryImage;
-    }
-    if (req.videoUrl !== undefined || _parseBool(removeVideo)) {
-      p["basicDetails.videoUrl"] = videoUrl;
-    }
-
-    // Step 2
-    _set(p, "propertyDetails.doorFacing", doorFacing);
-    _set(p, "propertyDetails.furnishing", furnishing);
+    // Property details — common
+    _set(p, "propertyDetails.doorFacing",    doorFacing);
+    _set(p, "propertyDetails.furnishing",    furnishing);
     _set(p, "propertyDetails.ageOfBuilding", ageOfBuilding);
-    _set(p, "propertyDetails.floorNumber", floorNumber);
-    _set(p, "propertyDetails.sbua", sbua !== undefined ? Number(sbua) : undefined);
-    _set(p, "propertyDetails.plotArea", plotArea !== undefined ? Number(plotArea) : undefined);
-    _set(p, "propertyDetails.uds", uds !== undefined ? Number(uds) : undefined);
-    _set(p, "propertyDetails.apartmentType", apartmentType);
-    _set(p, "propertyDetails.balconyFacing", balconyFacing);
-    _set(p, "propertyDetails.structure", structure);
-    _set(p, "propertyDetails.totalRooms", totalRooms !== undefined ? Number(totalRooms) : undefined);
-    _set(p, "propertyDetails.waterSupply", waterSupply);
-    _set(p, "propertyDetails.totalFloors", totalFloors !== undefined ? Number(totalFloors) : undefined);
-    _set(p, "propertyDetails.pricePerSqft", pricePerSqft !== undefined ? Number(pricePerSqft) : undefined);
-    _set(p, "propertyDetails.askPrice", askPrice !== undefined ? Number(askPrice) : undefined);
-    _set(p, "propertyDetails.priceUnit", priceUnit);
-    _set(p, "propertyDetails.rentPerMonth", rentPerMonth !== undefined ? Number(rentPerMonth) : undefined);
-    _set(p, "propertyDetails.rentUnit", rentUnit);
-    _set(p, "propertyDetails.deposit", deposit !== undefined ? Number(deposit) : undefined);
-    _set(p, "propertyDetails.depositUnit", depositUnit);
-    _set(p, "propertyDetails.maintenance", maintenance);
-    _set(p, "propertyDetails.commissionType", commissionType);
+    _set(p, "propertyDetails.floorNumber",   floorNumber);
+    if (sbua        !== undefined) _set(p, "propertyDetails.sbua",        Number(sbua));
+    if (plotArea    !== undefined) _set(p, "propertyDetails.plotArea",    Number(plotArea));
+    if (uds         !== undefined) _set(p, "propertyDetails.uds",         Number(uds));
+    _set(p, "propertyDetails.apartmentType",  apartmentType);
+    _set(p, "propertyDetails.balconyFacing",  balconyFacing);
+    _set(p, "propertyDetails.structure",      structure);
+    if (totalRooms  !== undefined) _set(p, "propertyDetails.totalRooms",  Number(totalRooms));
+    _set(p, "propertyDetails.waterSupply",    waterSupply);
+    if (totalFloors !== undefined) _set(p, "propertyDetails.totalFloors", Number(totalFloors));
+
+    // Office Space
+    if (cabins       !== undefined) _set(p, "propertyDetails.cabins",       Number(cabins));
+    if (meetingRooms !== undefined) _set(p, "propertyDetails.meetingRooms", Number(meetingRooms));
+    if (boardRoom    !== undefined) _set(p, "propertyDetails.boardRoom",    Number(boardRoom));
+    _set(p, "propertyDetails.buildingGrade", buildingGrade);
+
+    // Tech Park
+    _set(p, "propertyDetails.tower",    tower);
+    _set(p, "propertyDetails.parkType", parkType);
+
+    // Showroom / Shop / Industrial Land
+    if (frontage !== undefined) _set(p, "propertyDetails.frontage", Number(frontage));
+
+    // Warehouse
+    _set(p, "propertyDetails.warehouseType", warehouseType);
+    if (landArea     !== undefined) _set(p, "propertyDetails.landArea",     Number(landArea));
+    _set(p, "propertyDetails.floorType",    floorType);
+    if (floorLoading !== undefined) _set(p, "propertyDetails.floorLoading", Number(floorLoading));
+    if (docks        !== undefined) _set(p, "propertyDetails.docks",        Number(docks));
+    if (dockLevelers !== undefined) _set(p, "propertyDetails.dockLevelers", Number(dockLevelers));
+    _set(p, "propertyDetails.truckAccess", truckAccess);
+    if (powerLoad    !== undefined) _set(p, "propertyDetails.powerLoad",    Number(powerLoad));
+    if (officeBlock  !== undefined) _set(p, "propertyDetails.officeBlock",  Number(officeBlock));
+
+    // Industrial Land
+    _set(p, "propertyDetails.landType",     landType);
+    if (depth !== undefined) _set(p, "propertyDetails.depth", Number(depth));
+    _set(p, "propertyDetails.shape",        shape);
+    _set(p, "propertyDetails.topography",   topography);
+    _set(p, "propertyDetails.compoundWall", compoundWall);
+    _set(p, "propertyDetails.gate",         gate);
+    _set(p, "propertyDetails.fsiFar",       fsiFar);
+    _set(p, "propertyDetails.roadType",     roadType);
+    if (parsedUtilities.length) p.propertyDetails.utilitiesNearby = parsedUtilities;
+    if (pricePerAcre     !== undefined) _set(p, "propertyDetails.pricePerAcre",     Number(pricePerAcre));
+    _set(p, "propertyDetails.pricePerAcreUnit", pricePerAcreUnit);
+    if (groundRent !== undefined) _set(p, "propertyDetails.groundRent", Number(groundRent));
+    _set(p, "propertyDetails.groundRentUnit", groundRentUnit);
+
+    // Shared commercial
+    _set(p, "propertyDetails.zoning",      zoning);
+    _set(p, "propertyDetails.leaseTenure", leaseTenure);
+
+    // Pricing
+    if (pricePerSqft !== undefined) _set(p, "propertyDetails.pricePerSqft", Number(pricePerSqft));
+    if (askPrice     !== undefined) _set(p, "propertyDetails.askPrice",     Number(askPrice));
+    _set(p, "propertyDetails.priceUnit",     priceUnit);
+    if (rentPerMonth !== undefined) _set(p, "propertyDetails.rentPerMonth", Number(rentPerMonth));
+    _set(p, "propertyDetails.rentUnit",      rentUnit);
+    if (deposit !== undefined) _set(p, "propertyDetails.deposit", Number(deposit));
+    _set(p, "propertyDetails.depositUnit",   depositUnit);
+    _set(p, "propertyDetails.maintenance",   maintenance);
+    _set(p, "propertyDetails.commissionType",commissionType);
 
     // Step 3
-    _set(p, "moreDetails.buildingKhata", buildingKhata);
-    _set(p, "moreDetails.landKhata", landKhata);
-    _set(p, "moreDetails.eKhata", eKhata !== undefined ? _parseBool(eKhata) : undefined);
-    _set(p, "moreDetails.cornerUnit", cornerUnit !== undefined ? _parseBool(cornerUnit) : undefined);
-    _set(p, "moreDetails.bioppaApprovedKhata", bioppaApprovedKhata !== undefined ? _parseBool(bioppaApprovedKhata) : undefined);
-    _set(p, "moreDetails.exclusive", exclusive !== undefined ? _parseBool(exclusive) : undefined);
-    _set(p, "moreDetails.parking", parking);
-    _set(p, "moreDetails.preferredTenant", preferredTenant);
-    _set(p, "moreDetails.petAllowed", petAllowed !== undefined ? _parseBool(petAllowed) : undefined);
-    _set(p, "moreDetails.nonVegAllowed", nonVegAllowed !== undefined ? _parseBool(nonVegAllowed) : undefined);
-    _set(p, "moreDetails.description", description);
-    if (amenities !== undefined) p["moreDetails.amenities"] = _parseJson(amenities, property.moreDetails.amenities);
-    if (extraRooms !== undefined) p["moreDetails.extraRooms"] = _parseJson(extraRooms, property.moreDetails.extraRooms);
+    _set(p, "moreDetails.buildingKhata",       buildingKhata);
+    _set(p, "moreDetails.landKhata",           landKhata);
+    if (eKhata              !== undefined) _set(p, "moreDetails.eKhata",              _parseBool(eKhata));
+    if (cornerUnit          !== undefined) _set(p, "moreDetails.cornerUnit",          _parseBool(cornerUnit));
+    if (bioppaApprovedKhata !== undefined) _set(p, "moreDetails.bioppaApprovedKhata", _parseBool(bioppaApprovedKhata));
+    if (exclusive           !== undefined) _set(p, "moreDetails.exclusive",           _parseBool(exclusive));
+    _set(p, "moreDetails.parking",          parking);
+    if (parkingNum  !== undefined) _set(p, "moreDetails.parkingNum", Number(parkingNum));
+    _set(p, "moreDetails.preferredTenant",  preferredTenant);
+    if (petAllowed    !== undefined) _set(p, "moreDetails.petAllowed",    _parseBool(petAllowed));
+    if (nonVegAllowed !== undefined) _set(p, "moreDetails.nonVegAllowed", _parseBool(nonVegAllowed));
+    if (parsedExtraRooms.length) p.moreDetails.extraRooms = parsedExtraRooms;
+    if (parsedIdealFor.length)   p.moreDetails.idealFor   = parsedIdealFor;
+    if (parsedAmenities.length)  p.moreDetails.amenities  = parsedAmenities;
+    if (description !== undefined) p.moreDetails.description = description;
 
-    p["lastCheckedAt"] = new Date();
-
-    const updated = await Property.findByIdAndUpdate(
-      req.params.id,
-      { $set: p },
-      { new: true, runValidators: true }
-    );
-
-    success(res, updated);
+    p.lastCheckedAt = new Date();
+    await p.save();
+    success(res, p);
   } catch (err) {
     error(res, err.message);
   }
 };
 
 // ─────────────────────────────────────────────────────────────
-// DELETE /api/inventory/:id  — soft delete
+// DELETE /api/inventory/:id
 // ─────────────────────────────────────────────────────────────
 export const deleteProperty = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
     if (!property) return error(res, "Property not found", 404);
-    await Property.findByIdAndUpdate(req.params.id, { $set: { isActive: false } });
-    success(res, { message: "Property deleted successfully" });
+    property.isActive = false;
+    await property.save();
+    success(res, { message: "Property deleted" });
   } catch (err) {
     error(res, err.message);
   }
 };
-
-// ─────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────
-function _set(payload, key, value) {
-  if (value !== undefined) payload[key] = value;
-}
-
-function _parseJson(value, fallback = []) {
-  if (Array.isArray(value)) return value;
-  if (typeof value === "string") {
-    try { return JSON.parse(value); } catch { return fallback; }
-  }
-  return fallback;
-}
-
-// PATCH FILE: backend/src/controllers/inventoryController.js
-// Only the helper functions and relevant sections need changing.
-// Replace the _parseBool function at the bottom of the file:
-
-// OLD:
-// function _parseBool(value) {
-//   if (typeof value === "boolean") return value;
-//   return value === "true" || value === "1";
-// }
-
-// NEW (handles Yes/No from frontend dropdowns):
-function _parseBool(value) {
-  if (typeof value === "boolean") return value;
-  if (typeof value === "string") {
-    const v = value.toLowerCase();
-    return v === "true" || v === "1" || v === "yes";
-  }
-  return false;
-}
-
-function _cloudinaryPublicId(url) {
-  try {
-    const parts = url.split("/upload/");
-    if (parts.length < 2) return null;
-    return parts[1].replace(/^v\d+\//, "").replace(/\.[^/.]+$/, "");
-  } catch {
-    return null;
-  }
-}
-
 
 // GET /api/inventory/asset-type-counts
 export const getAssetTypeCounts = async (req, res) => {
@@ -492,7 +505,7 @@ export const getAssetTypeCounts = async (req, res) => {
     if (budgetMin || budgetMax) {
       const isRentalFilter = listingType === 'RENTAL';
       const priceField = isRentalFilter ? 'propertyDetails.rentPerMonth' : 'propertyDetails.askPrice';
-      const unitField = isRentalFilter ? 'propertyDetails.rentUnit' : 'propertyDetails.priceUnit';
+      const unitField  = isRentalFilter ? 'propertyDetails.rentUnit'     : 'propertyDetails.priceUnit';
       const normalizedPrice = {
         $cond: [{ $eq: [`$${unitField}`, 'CRORES'] }, { $multiply: [`$${priceField}`, 100] }, `$${priceField}`]
       };
@@ -512,3 +525,26 @@ export const getAssetTypeCounts = async (req, res) => {
     error(res, err.message);
   }
 };
+
+// ─── helpers ──────────────────────────────────────────────────
+function _parseBool(val) {
+  if (typeof val === "boolean") return val;
+  if (typeof val === "string")  return val.toLowerCase() === "true" || val === "Yes" || val === "1";
+  return Boolean(val);
+}
+
+function _parseJson(val, fallback) {
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string") {
+    try { return JSON.parse(val); } catch { return fallback; }
+  }
+  return fallback;
+}
+
+function _extractCloudinaryId(url) {
+  try {
+    return url.replace(/^.*\/upload\/(?:v\d+\/)?/, "").replace(/\.[^.]+$/, "");
+  } catch {
+    return null;
+  }
+}

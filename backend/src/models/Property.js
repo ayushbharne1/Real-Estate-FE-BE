@@ -4,6 +4,9 @@ import {
   ListingType, AssetType, DoorFacing, AgeOfBuilding, FloorRange,
   FurnishingStatus, ParkingType, PossessionStatus, PriceUnit,
   CommissionType, MaintenanceType, PreferredTenant, KhataType, ExtraRoom, StructureType,
+  BuildingGrade, ParkType, WarehouseType, FloorType, TruckAccess,
+  Zoning, LandType, LandShape, Topography, CompoundWall, GateType,
+  RoadType, LeaseTenure,
 } from "shared/enums";
 
 const propertySchema = new mongoose.Schema(
@@ -36,11 +39,13 @@ const propertySchema = new mongoose.Schema(
       // Possession
       possession: { type: String, enum: Object.values(PossessionStatus), required: true },
 
-      // Configuration (BHK)
+      // Configuration (BHK) — residential
       bedrooms:  { type: Number, default: 0 },
       bathrooms: { type: Number, default: 0 },
       balconies: { type: Number, default: 0 },
-      seats:     { type: Number },  // Office Space only
+
+      // Office Space workstations
+      seats: { type: Number },
     },
 
     // ═════════════════════════════════════════════════════════
@@ -62,7 +67,7 @@ const propertySchema = new mongoose.Schema(
       apartmentType: { type: String },
       balconyFacing: { type: String, enum: [...Object.values(DoorFacing), null] },
 
-      // ── Villa / IH / Row House / Villament / Comm. Property / Rental Villa
+      // ── Villa / IH / Row House / Villament / Comm. Property
       structure: { type: String, enum: Object.values(StructureType) },
 
       // ── Commercial Property unique ─────────────────────────
@@ -71,6 +76,53 @@ const propertySchema = new mongoose.Schema(
 
       // ── Retail Space unique ────────────────────────────────
       totalFloors: { type: Number },
+
+      // ── Office Space ───────────────────────────────────────
+      cabins:        { type: Number },
+      meetingRooms:  { type: Number },
+      boardRoom:     { type: Number },
+      buildingGrade: { type: String, enum: Object.values(BuildingGrade) },
+
+      // ── Tech Park ──────────────────────────────────────────
+      tower:    { type: String },
+      parkType: { type: String, enum: Object.values(ParkType) },
+
+      // ── Showroom / Shop / Industrial Land ──────────────────
+      frontage: { type: Number },
+
+      // ── Warehouse ──────────────────────────────────────────
+      warehouseType: { type: String, enum: Object.values(WarehouseType) },
+      landArea:      { type: Number },
+      floorType:     { type: String, enum: Object.values(FloorType) },
+      floorLoading:  { type: Number },
+      docks:         { type: Number },
+      dockLevelers:  { type: Number },
+      truckAccess:   { type: String, enum: Object.values(TruckAccess) },
+      powerLoad:     { type: Number },
+      officeBlock:   { type: Number },
+
+      // ── Industrial Land ────────────────────────────────────
+      landType:     { type: String, enum: Object.values(LandType) },
+      depth:        { type: Number },
+      shape:        { type: String, enum: Object.values(LandShape) },
+      topography:   { type: String, enum: Object.values(Topography) },
+      compoundWall: { type: String, enum: Object.values(CompoundWall) },
+      gate:         { type: String, enum: Object.values(GateType) },
+      fsiFar:       { type: String },
+      roadType:     { type: String, enum: Object.values(RoadType) },
+      utilitiesNearby: [{ type: String }],
+
+      // ── Zoning (Warehouse + Industrial Land) ───────────────
+      zoning: { type: String, enum: Object.values(Zoning) },
+
+      // ── Rental — Lease Tenure (Office, Shop, Tech Park, Warehouse, Land)
+      leaseTenure: { type: String, enum: Object.values(LeaseTenure) },
+
+      // ── Industrial Land pricing ────────────────────────────
+      pricePerAcre:    { type: Number },
+      pricePerAcreUnit:{ type: String, enum: Object.values(PriceUnit), default: PriceUnit.CRORES },
+      groundRent:      { type: Number },
+      groundRentUnit:  { type: String, enum: Object.values(PriceUnit), default: PriceUnit.LAKHS },
 
       // ── Pricing — Resale ───────────────────────────────────
       pricePerSqft: { type: Number },
@@ -90,8 +142,7 @@ const propertySchema = new mongoose.Schema(
     // STEP 3 — More Details
     // ═════════════════════════════════════════════════════════
     moreDetails: {
-      // FIX: buildingKhata and landKhata now store "Yes"/"No" strings
-      // (changed from A/B KhataType enum — consistent with e-Khata UI pattern)
+      // ── Residential Khata ──────────────────────────────────
       buildingKhata: { type: String, enum: ['Yes', 'No', ...Object.values(KhataType), null] },
       landKhata:     { type: String, enum: ['Yes', 'No', ...Object.values(KhataType), null] },
       eKhata:        { type: Boolean },
@@ -104,13 +155,19 @@ const propertySchema = new mongoose.Schema(
       // ── Resale — Office Space ──────────────────────────────
       exclusive: { type: Boolean },
 
-      // ── Parking ────────────────────────────────────────────
+      // ── Parking — residential (enum) ───────────────────────
       parking: { type: String, enum: Object.values(ParkingType) },
+
+      // ── Parking — commercial (number of slots) ─────────────
+      parkingNum: { type: Number },
 
       // ── Rental ─────────────────────────────────────────────
       preferredTenant: { type: String, enum: Object.values(PreferredTenant) },
       petAllowed:      { type: Boolean },
       nonVegAllowed:   { type: Boolean },
+
+      // ── Showroom ───────────────────────────────────────────
+      idealFor: [{ type: String }],
 
       // ── Amenities ──────────────────────────────────────────
       amenities: [{ type: String }],
