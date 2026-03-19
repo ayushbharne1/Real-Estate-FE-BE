@@ -44,7 +44,6 @@ import { AssetType, ListingType } from 'shared/enums/index.js'
 
 // ─── Asset type options filtered by listing type ──────────────────────────────
 
-// All commercial types support both Resale and Rental
 const COMMERCIAL_ASSET_VALUES = new Set([
   AssetType.OFFICE_SPACE,
   AssetType.RETAIL_SPACE,
@@ -55,7 +54,6 @@ const COMMERCIAL_ASSET_VALUES = new Set([
   AssetType.INDUSTRIAL_LAND,
 ])
 
-// Residential types that support Rental
 const RESIDENTIAL_RENTAL_VALUES = new Set([AssetType.APARTMENT, AssetType.VILLA])
 
 const RENTAL_ASSET_VALUES = new Set([
@@ -81,10 +79,10 @@ export const isRentalLocked = (listingType, assetType) =>
 // ─── field descriptor factories ───────────────────────────────────────────────
 
 const APT_TYPE_OPTIONS = [
-  { value: 'SIMPLEX',    label: 'Simplex' },
-  { value: 'DUPLEX',     label: 'Duplex' },
-  { value: 'TRIPLEX',    label: 'Triplex' },
-  { value: 'PENTHOUSE',  label: 'Penthouse' },
+  { value: 'SIMPLEX',   label: 'Simplex' },
+  { value: 'DUPLEX',    label: 'Duplex' },
+  { value: 'TRIPLEX',   label: 'Triplex' },
+  { value: 'PENTHOUSE', label: 'Penthouse' },
 ]
 
 const TOTAL_FLOORS_OPTIONS = Array.from({ length: 30 }, (_, i) => ({
@@ -113,68 +111,68 @@ const F = {
 
 const S = {
   // Residential
-  aptType:      F.dropdown('Apartment Type', APT_TYPE_OPTIONS, true),
-  facing:       F.dropdown('Door Facing', DOOR_FACING_OPTIONS),
-  age:          F.dropdown('Age of Building', AGE_OF_BUILDING_OPTIONS),
-  floorNo:      F.dropdown('Floor Number', FLOOR_RANGE_OPTIONS),
-  totalFloors:  F.dropdown('Total Floors', TOTAL_FLOORS_OPTIONS),
-  structure:    F.dropdown('Structure', STRUCTURE_OPTIONS),
-  config:       F.config(),
-  furnishing:   F.dropdown('Furnishing', FURNISHING_OPTIONS, true),
-  furnOffice:   F.dropdown('Furnishing', FURNISHING_OFFICE_OPTIONS),
-  furnRetail:   F.dropdown('Furnishing', FURNISHING_RETAIL_OPTIONS),
-  furnShop:     F.dropdown('Furnishing', FURNISHING_SHOP_OPTIONS),
-  sbua:         F.number('SBUA', 'sq.ft', true),
-  plotArea:     F.number('Plot Area', 'sq.ft', true),
-  uds:          F.number('UDS (Undivided Spaces)', 'sq.ft'),
-  priceSqft:    F.number('Price per Sqft', '₹'),
-  askPrice:     F.price('Ask Price'),
-  rent:         F.price('Rent per Month'),
-  deposit:      F.price('Deposit', false),
-  parking:      F.dropdown('Parking', PARKING_OPTIONS),
-  bKhata:       F.dropdown('Building Khata', YES_NO_OPTIONS),
-  lKhata:       F.dropdown('Land Khata', YES_NO_OPTIONS),
-  eKhata:       F.yesno('E-Khata'),
-  cornerUnit:   F.yesno('Corner Unit'),
-  biappa:       F.yesno('Bioppa Approved Khata'),
-  exclusive:    F.yesno('Exclusive'),
-  extraRooms:   F.multiselect('Extra Rooms', EXTRA_ROOM_OPTIONS),
-  balconyFacing:F.dropdown('Balcony Facing', BALCONY_FACING_OPTIONS),
-  seats:        F.number('Workstations', '', false),
-  cabins:       F.number('Cabins', '', false),
-  meetingRooms: F.number('Meeting Rooms', '', false),
-  boardRoom:    F.number('Board Room', '', false),
-  totalRooms:   F.number('Total Rooms'),
-  waterSupply:  F.text('Water Supply'),
-  prefTenants:  F.dropdown('Preferred Tenants', PREFERRED_TENANT_OPTIONS, true),
-  maintenance:  F.dropdown('Maintenance', MAINTENANCE_OPTIONS),
-  commission:   F.dropdown('Commission Type', COMMISSION_TYPE_OPTIONS, true),
-  petAllowed:   F.yesno('Pet Allowed'),
-  nonVeg:       F.yesno('Non-Veg Allowed'),
-  amenities:    F.amenities(),
+  aptType:       F.dropdown('Apartment Type', APT_TYPE_OPTIONS, true),
+  facing:        F.dropdown('Door Facing', DOOR_FACING_OPTIONS),
+  age:           F.dropdown('Age of Building', AGE_OF_BUILDING_OPTIONS),
+  floorNo:       F.dropdown('Floor Number', FLOOR_RANGE_OPTIONS),
+  totalFloors:   F.dropdown('Total Floors', TOTAL_FLOORS_OPTIONS),
+  structure:     F.dropdown('Structure', STRUCTURE_OPTIONS),
+  config:        F.config(),
+  furnishing:    F.dropdown('Furnishing', FURNISHING_OPTIONS, true),
+  furnOffice:    F.dropdown('Furnishing', FURNISHING_OFFICE_OPTIONS),
+  furnRetail:    F.dropdown('Furnishing', FURNISHING_RETAIL_OPTIONS),
+  furnShop:      F.dropdown('Furnishing', FURNISHING_SHOP_OPTIONS),
+  sbua:          F.number('SBUA', 'sq.ft', true),
+  plotArea:      F.number('Plot Area', 'sq.ft', true),
+  uds:           F.number('UDS (Undivided Spaces)', 'sq.ft'),
+  priceSqft:     F.number('Price per Sqft', '₹'),
+  askPrice:      F.price('Ask Price'),
+  rent:          F.price('Rent per Month'),
+  deposit:       F.price('Deposit', false),
+  parking:       F.dropdown('Parking', PARKING_OPTIONS),
+  bKhata:        F.dropdown('Building Khata', YES_NO_OPTIONS),
+  lKhata:        F.dropdown('Land Khata', YES_NO_OPTIONS),
+  eKhata:        F.yesno('E-Khata'),
+  cornerUnit:    F.yesno('Corner Unit'),
+  biappa:        F.yesno('Bioppa Approved Khata'),
+  exclusive:     F.yesno('Exclusive'),
+  extraRooms:    F.multiselect('Extra Rooms', EXTRA_ROOM_OPTIONS),
+  balconyFacing: F.dropdown('Balcony Facing', BALCONY_FACING_OPTIONS),
+  seats:         F.number('Workstations', '', false),
+  cabins:        F.number('Cabins', '', false),
+  meetingRooms:  F.number('Meeting Rooms', '', false),
+  boardRoom:     F.number('Board Room', '', false),
+  totalRooms:    F.number('Total Rooms'),
+  waterSupply:   F.text('Water Supply'),
+  prefTenants:   F.dropdown('Preferred Tenants', PREFERRED_TENANT_OPTIONS, true),
+  maintenance:   F.dropdown('Maintenance', MAINTENANCE_OPTIONS),
+  commission:    F.dropdown('Commission Type', COMMISSION_TYPE_OPTIONS, true),
+  petAllowed:    F.yesno('Pet Allowed'),
+  nonVeg:        F.yesno('Non-Veg Allowed'),
+  amenities:     F.amenities(),
 
   // Commercial — Office
-  buildingGrade:F.dropdown('Building Grade', BUILDING_GRADE_OPTIONS),
+  buildingGrade: F.dropdown('Building Grade', BUILDING_GRADE_OPTIONS),
 
   // Commercial — Tech Park
-  tower:        F.text('Tower / Block'),
-  parkType:     F.dropdown('Park Type', PARK_TYPE_OPTIONS),
+  tower:    F.text('Tower / Block'),
+  parkType: F.dropdown('Park Type', PARK_TYPE_OPTIONS),
 
   // Commercial — Showroom / Shop
-  frontage:     F.number('Frontage', 'ft'),
-  idealFor:     F.multiselect('Ideal For', IDEAL_FOR_OPTIONS),
+  frontage: F.number('Frontage', 'ft'),
+  idealFor: F.multiselect('Ideal For', IDEAL_FOR_OPTIONS),
 
   // Commercial — Warehouse
-  warehouseType:F.dropdown('Warehouse Type', WAREHOUSE_TYPE_OPTIONS),
-  landArea:     F.number('Land Area', 'acres'),
-  floorType:    F.dropdown('Floor Type', FLOOR_TYPE_OPTIONS),
-  floorLoading: F.number('Floor Loading', 'tons/sq.m'),
-  docks:        F.number('Docks', ''),
-  dockLevelers: F.number('Dock Levelers', ''),
-  truckAccess:  F.dropdown('Truck Access', TRUCK_ACCESS_OPTIONS),
-  powerLoad:    F.number('Power Load', 'kW'),
-  officeBlock:  F.number('Office Block', 'sq.ft'),
-  zoningWh:     F.dropdown('Zoning', ZONING_WAREHOUSE_OPTIONS),
+  warehouseType: F.dropdown('Warehouse Type', WAREHOUSE_TYPE_OPTIONS),
+  landArea:      F.number('Land Area', 'acres'),
+  floorType:     F.dropdown('Floor Type', FLOOR_TYPE_OPTIONS),
+  floorLoading:  F.number('Floor Loading', 'tons/sq.m'),
+  docks:         F.number('Docks', ''),
+  dockLevelers:  F.number('Dock Levelers', ''),
+  truckAccess:   F.dropdown('Truck Access', TRUCK_ACCESS_OPTIONS),
+  powerLoad:     F.number('Power Load', 'kW'),
+  officeBlock:   F.number('Office Block', 'sq.ft'),
+  zoningWh:      F.dropdown('Zoning', ZONING_WAREHOUSE_OPTIONS),
 
   // Commercial — Industrial Land
   landType:     F.dropdown('Land Type', LAND_TYPE_OPTIONS),
@@ -191,12 +189,12 @@ const S = {
   groundRent:   F.price('Ground Rent / Month'),
 
   // Rental lease tenures
-  leaseTenureOfficeShop:     F.dropdown('Lease Tenure', LEASE_TENURE_OFFICE_SHOP_OPTIONS),
-  leaseTenureTechWarehouse:  F.dropdown('Lease Tenure', LEASE_TENURE_TECH_WAREHOUSE_OPTIONS),
-  leaseTenureLand:           F.dropdown('Lease Tenure', LEASE_TENURE_LAND_OPTIONS),
+  leaseTenureOfficeShop:    F.dropdown('Lease Tenure', LEASE_TENURE_OFFICE_SHOP_OPTIONS),
+  leaseTenureTechWarehouse: F.dropdown('Lease Tenure', LEASE_TENURE_TECH_WAREHOUSE_OPTIONS),
+  leaseTenureLand:          F.dropdown('Lease Tenure', LEASE_TENURE_LAND_OPTIONS),
 
   // Parking as number (commercial)
-  parkingNum:   F.number('Parking', 'slots'),
+  parkingNum: F.number('Parking', 'slots'),
 }
 
 // ─── RESALE configs ───────────────────────────────────────────────────────────
@@ -242,8 +240,6 @@ const RESALE = {
     step2: { facing: S.facing, totalFloors: S.totalFloors, floorNo: S.floorNo, age: S.age, furnishing: S.furnRetail, sbua: S.sbua, plotArea: S.plotArea, priceSqft: S.priceSqft, askPrice: S.askPrice },
     step3: { amenities: S.amenities },
   },
-
-  // ── New commercial — Resale ───────────────────────────────────────────────
   [AssetType.SHOWROOM]: {
     step2: { facing: S.facing, floorNo: S.floorNo, frontage: S.frontage, furnishing: S.furnRetail, sbua: S.sbua, priceSqft: S.priceSqft, askPrice: S.askPrice },
     step3: { parkingNum: S.parkingNum, idealFor: S.idealFor, amenities: S.amenities },
@@ -260,8 +256,9 @@ const RESALE = {
     step2: { warehouseType: S.warehouseType, sbua: S.sbua, landArea: S.landArea, floorType: S.floorType, floorLoading: S.floorLoading, docks: S.docks, dockLevelers: S.dockLevelers, truckAccess: S.truckAccess, powerLoad: S.powerLoad, officeBlock: S.officeBlock, priceSqft: S.priceSqft, askPrice: S.askPrice },
     step3: { zoningWh: S.zoningWh, parkingNum: S.parkingNum, amenities: S.amenities },
   },
+  // ── FIXED: added sbua and priceSqft ──────────────────────────────────────
   [AssetType.INDUSTRIAL_LAND]: {
-    step2: { landType: S.landType, landArea: S.landArea, frontage: S.frontage, depth: S.depth, shape: S.shape, topography: S.topography, compoundWall: S.compoundWall, gate: S.gate, pricePerAcre: S.pricePerAcre, askPrice: S.askPrice },
+    step2: { landType: S.landType, landArea: S.landArea, frontage: S.frontage, depth: S.depth, shape: S.shape, topography: S.topography, compoundWall: S.compoundWall, gate: S.gate, sbua: S.sbua, priceSqft: S.priceSqft, pricePerAcre: S.pricePerAcre, askPrice: S.askPrice },
     step3: { zoningLand: S.zoningLand, fsiFar: S.fsiFar, roadType: S.roadType, utilities: S.utilities, amenities: S.amenities },
   },
 }
@@ -277,8 +274,6 @@ const RENTAL = {
     step2: { facing: S.facing, age: S.age, structure: S.structure, totalFloors: S.totalFloors, furnishing: S.furnishing, sbua: S.sbua, parking: S.parking, config: S.config, rent: S.rent, maintenance: S.maintenance, commission: S.commission },
     step3: { prefTenants: S.prefTenants, petAllowed: S.petAllowed, nonVeg: S.nonVeg, amenities: S.amenities },
   },
-
-  // ── New commercial — Rental ───────────────────────────────────────────────
   [AssetType.OFFICE_SPACE]: {
     step2: { seats: S.seats, cabins: S.cabins, meetingRooms: S.meetingRooms, boardRoom: S.boardRoom, facing: S.facing, age: S.age, floorNo: S.floorNo, furnishing: S.furnOffice, buildingGrade: S.buildingGrade, sbua: S.sbua, rent: S.rent, deposit: S.deposit, leaseTenure: S.leaseTenureOfficeShop },
     step3: { extraRooms: S.extraRooms, parkingNum: S.parkingNum, maintenance: S.maintenance, amenities: S.amenities },
@@ -303,8 +298,9 @@ const RENTAL = {
     step2: { warehouseType: S.warehouseType, sbua: S.sbua, landArea: S.landArea, floorType: S.floorType, floorLoading: S.floorLoading, docks: S.docks, dockLevelers: S.dockLevelers, truckAccess: S.truckAccess, powerLoad: S.powerLoad, officeBlock: S.officeBlock, rent: S.rent, deposit: S.deposit, leaseTenure: S.leaseTenureTechWarehouse },
     step3: { zoningWh: S.zoningWh, parkingNum: S.parkingNum, maintenance: S.maintenance, amenities: S.amenities },
   },
+  // ── FIXED: added sbua and priceSqft ──────────────────────────────────────
   [AssetType.INDUSTRIAL_LAND]: {
-    step2: { landType: S.landType, landArea: S.landArea, frontage: S.frontage, depth: S.depth, shape: S.shape, topography: S.topography, compoundWall: S.compoundWall, gate: S.gate, groundRent: S.groundRent, deposit: S.deposit, leaseTenure: S.leaseTenureLand },
+    step2: { landType: S.landType, landArea: S.landArea, frontage: S.frontage, depth: S.depth, shape: S.shape, topography: S.topography, compoundWall: S.compoundWall, gate: S.gate, sbua: S.sbua, priceSqft: S.priceSqft, groundRent: S.groundRent, deposit: S.deposit, leaseTenure: S.leaseTenureLand },
     step3: { zoningLand: S.zoningLand, fsiFar: S.fsiFar, roadType: S.roadType, utilities: S.utilities },
   },
 }
@@ -433,20 +429,20 @@ export function buildSubmitPayload(values) {
     seats:     values.seats     !== '' ? Number(values.seats)     : undefined,
 
     // Property details
-    apartmentType:  values.aptType      || undefined,
-    doorFacing:     values.facing       || undefined,
-    ageOfBuilding:  values.age          || undefined,
-    floorNumber:    values.floorNo      || undefined,
-    totalFloors:    values.totalFloors  || undefined,
-    structure:      values.structure    || undefined,
-    furnishing:     values.furnishing   || undefined,
-    balconyFacing:  values.balconyFacing|| undefined,
-    sbua:           values.sbua         || undefined,
-    plotArea:       values.plotArea     || undefined,
-    uds:            values.uds          || undefined,
-    pricePerSqft:   values.priceSqft    || undefined,
-    totalRooms:     values.totalRooms   || undefined,
-    waterSupply:    values.waterSupply  || undefined,
+    apartmentType:  values.aptType       || undefined,
+    doorFacing:     values.facing        || undefined,
+    ageOfBuilding:  values.age           || undefined,
+    floorNumber:    values.floorNo       || undefined,
+    totalFloors:    values.totalFloors   || undefined,
+    structure:      values.structure     || undefined,
+    furnishing:     values.furnishing    || undefined,
+    balconyFacing:  values.balconyFacing || undefined,
+    sbua:           values.sbua          !== '' && values.sbua != null ? Number(values.sbua) : undefined,
+    plotArea:       values.plotArea      !== '' && values.plotArea != null ? Number(values.plotArea) : undefined,
+    uds:            values.uds           !== '' && values.uds != null ? Number(values.uds) : undefined,
+    pricePerSqft:   values.priceSqft     !== '' && values.priceSqft != null ? Number(values.priceSqft) : undefined,
+    totalRooms:     values.totalRooms    || undefined,
+    waterSupply:    values.waterSupply   || undefined,
 
     // Pricing
     askPrice:       values.askPriceValue || undefined,
@@ -459,64 +455,64 @@ export function buildSubmitPayload(values) {
     commissionType: values.commission    || undefined,
 
     // Residential more details
-    buildingKhata:       values.bKhata    || undefined,
-    landKhata:           values.lKhata    || undefined,
-    eKhata:              values.eKhata    || undefined,
+    buildingKhata:       values.bKhata      || undefined,
+    landKhata:           values.lKhata      || undefined,
+    eKhata:              values.eKhata      || undefined,
     extraRooms:          values.extraRooms?.length ? values.extraRooms : undefined,
-    cornerUnit:          values.cornerUnit || undefined,
-    bioppaApprovedKhata: values.biappa    || undefined,
-    exclusive:           values.exclusive || undefined,
-    parking:             values.parking   || undefined,
+    cornerUnit:          values.cornerUnit  || undefined,
+    bioppaApprovedKhata: values.biappa      || undefined,
+    exclusive:           values.exclusive   || undefined,
+    parking:             values.parking     || undefined,
     preferredTenant:     values.prefTenants || undefined,
-    petAllowed:          values.petAllowed || undefined,
-    nonVegAllowed:       values.nonVeg     || undefined,
+    petAllowed:          values.petAllowed  || undefined,
+    nonVegAllowed:       values.nonVeg      || undefined,
     amenities:           values.amenities?.length ? values.amenities : undefined,
     description:         values.description || undefined,
 
     // Office Space
-    cabins:       values.cabins       !== '' ? Number(values.cabins)       : undefined,
-    meetingRooms: values.meetingRooms !== '' ? Number(values.meetingRooms) : undefined,
-    boardRoom:    values.boardRoom    !== '' ? Number(values.boardRoom)    : undefined,
-    buildingGrade:values.buildingGrade || undefined,
+    cabins:        values.cabins       !== '' ? Number(values.cabins)       : undefined,
+    meetingRooms:  values.meetingRooms !== '' ? Number(values.meetingRooms) : undefined,
+    boardRoom:     values.boardRoom    !== '' ? Number(values.boardRoom)    : undefined,
+    buildingGrade: values.buildingGrade || undefined,
 
     // Tech Park
     tower:    values.tower    || undefined,
     parkType: values.parkType || undefined,
 
     // Showroom / Shop
-    frontage: values.frontage !== '' ? Number(values.frontage) : undefined,
+    frontage: values.frontage !== '' && values.frontage != null ? Number(values.frontage) : undefined,
     idealFor: values.idealFor?.length ? values.idealFor : undefined,
 
     // Warehouse
     warehouseType: values.warehouseType || undefined,
-    landArea:      values.landArea      !== '' ? Number(values.landArea)      : undefined,
+    landArea:      values.landArea      !== '' && values.landArea != null ? Number(values.landArea) : undefined,
     floorType:     values.floorType     || undefined,
-    floorLoading:  values.floorLoading  !== '' ? Number(values.floorLoading)  : undefined,
-    docks:         values.docks         !== '' ? Number(values.docks)         : undefined,
-    dockLevelers:  values.dockLevelers  !== '' ? Number(values.dockLevelers)  : undefined,
+    floorLoading:  values.floorLoading  !== '' && values.floorLoading != null ? Number(values.floorLoading) : undefined,
+    docks:         values.docks         !== '' && values.docks != null ? Number(values.docks) : undefined,
+    dockLevelers:  values.dockLevelers  !== '' && values.dockLevelers != null ? Number(values.dockLevelers) : undefined,
     truckAccess:   values.truckAccess   || undefined,
-    powerLoad:     values.powerLoad     !== '' ? Number(values.powerLoad)     : undefined,
-    officeBlock:   values.officeBlock   !== '' ? Number(values.officeBlock)   : undefined,
+    powerLoad:     values.powerLoad     !== '' && values.powerLoad != null ? Number(values.powerLoad) : undefined,
+    officeBlock:   values.officeBlock   !== '' && values.officeBlock != null ? Number(values.officeBlock) : undefined,
 
     // Industrial Land
-    landType:     values.landType     || undefined,
-    depth:        values.depth        !== '' ? Number(values.depth)        : undefined,
-    shape:        values.shape        || undefined,
-    topography:   values.topography   || undefined,
-    compoundWall: values.compoundWall || undefined,
-    gate:         values.gate         || undefined,
-    zoning:       values.zoningWh || values.zoningLand || undefined,
-    fsiFar:       values.fsiFar       || undefined,
-    roadType:     values.roadType     || undefined,
+    landType:        values.landType     || undefined,
+    depth:           values.depth        !== '' && values.depth != null ? Number(values.depth) : undefined,
+    shape:           values.shape        || undefined,
+    topography:      values.topography   || undefined,
+    compoundWall:    values.compoundWall || undefined,
+    gate:            values.gate         || undefined,
+    zoning:          values.zoningWh || values.zoningLand || undefined,
+    fsiFar:          values.fsiFar       || undefined,
+    roadType:        values.roadType     || undefined,
     utilitiesNearby: values.utilities?.length ? values.utilities : undefined,
-    pricePerAcre: values.pricePerAcreValue || undefined,
-    pricePerAcreUnit: values.pricePerAcreUnit || undefined,
-    groundRent:   values.groundRentValue || undefined,
-    groundRentUnit: values.groundRentUnit || undefined,
+    pricePerAcre:    values.pricePerAcreValue !== '' && values.pricePerAcreValue != null ? Number(values.pricePerAcreValue) : undefined,
+    pricePerAcreUnit:values.pricePerAcreUnit || undefined,
+    groundRent:      values.groundRentValue  !== '' && values.groundRentValue != null ? Number(values.groundRentValue) : undefined,
+    groundRentUnit:  values.groundRentUnit   || undefined,
 
     // Shared commercial
-    parkingNum:   values.parkingNum !== '' ? Number(values.parkingNum) : undefined,
-    leaseTenure:  values.leaseTenure || undefined,
+    parkingNum:  values.parkingNum !== '' && values.parkingNum != null ? Number(values.parkingNum) : undefined,
+    leaseTenure: values.leaseTenure || undefined,
   }
 }
 
@@ -541,29 +537,29 @@ export function propertyToFormValues(property) {
     balconies:   b.balconies   ?? '',
     seats:       b.seats       ?? '',
 
-    aptType:      pd.apartmentType  || '',
-    facing:       pd.doorFacing     || '',
-    age:          pd.ageOfBuilding  || '',
-    floorNo:      pd.floorNumber    || '',
-    totalFloors:  String(pd.totalFloors ?? ''),
-    structure:    pd.structure      || '',
-    furnishing:   pd.furnishing     || '',
-    balconyFacing:pd.balconyFacing  || '',
-    sbua:         pd.sbua           ?? '',
-    plotArea:     pd.plotArea       ?? '',
-    uds:          pd.uds            ?? '',
-    priceSqft:    pd.pricePerSqft   ?? '',
-    totalRooms:   pd.totalRooms     ?? '',
-    waterSupply:  pd.waterSupply    || '',
+    aptType:       pd.apartmentType  || '',
+    facing:        pd.doorFacing     || '',
+    age:           pd.ageOfBuilding  || '',
+    floorNo:       pd.floorNumber    || '',
+    totalFloors:   String(pd.totalFloors ?? ''),
+    structure:     pd.structure      || '',
+    furnishing:    pd.furnishing     || '',
+    balconyFacing: pd.balconyFacing  || '',
+    sbua:          pd.sbua           ?? '',
+    plotArea:      pd.plotArea       ?? '',
+    uds:           pd.uds            ?? '',
+    priceSqft:     pd.pricePerSqft   ?? '',
+    totalRooms:    pd.totalRooms     ?? '',
+    waterSupply:   pd.waterSupply    || '',
 
-    askPriceValue:  pd.askPrice      ?? '',
-    askPriceUnit:   pd.priceUnit     || 'CRORES',
-    rentValue:      pd.rentPerMonth  ?? '',
-    rentUnit:       pd.rentUnit      || 'LAKHS',
-    depositValue:   pd.deposit       ?? '',
-    depositUnit:    pd.depositUnit   || 'LAKHS',
-    maintenance:    pd.maintenance   || '',
-    commission:     pd.commissionType|| '',
+    askPriceValue:  pd.askPrice       ?? '',
+    askPriceUnit:   pd.priceUnit      || 'CRORES',
+    rentValue:      pd.rentPerMonth   ?? '',
+    rentUnit:       pd.rentUnit       || 'LAKHS',
+    depositValue:   pd.deposit        ?? '',
+    depositUnit:    pd.depositUnit    || 'LAKHS',
+    maintenance:    pd.maintenance    || '',
+    commission:     pd.commissionType || '',
 
     // Office Space
     cabins:        pd.cabins        ?? '',
@@ -601,27 +597,27 @@ export function propertyToFormValues(property) {
     zoningLand:   pd.zoning       || '',
     fsiFar:       pd.fsiFar       || '',
     roadType:     pd.roadType     || '',
-    utilities:    pd.utilitiesNearby || [],
+    utilities:    pd.utilitiesNearby    || [],
     pricePerAcreValue:  pd.pricePerAcre     ?? '',
     pricePerAcreUnit:   pd.pricePerAcreUnit || 'CRORES',
     groundRentValue:    pd.groundRent       ?? '',
     groundRentUnit:     pd.groundRentUnit   || 'LAKHS',
 
     // Shared more details
-    bKhata:    md.buildingKhata || '',
-    lKhata:    md.landKhata     || '',
-    eKhata:    md.eKhata    !== undefined && md.eKhata    !== null ? (md.eKhata    ? 'Yes' : 'No') : '',
-    extraRooms:md.extraRooms    || [],
-    cornerUnit:md.cornerUnit !== undefined && md.cornerUnit !== null ? (md.cornerUnit ? 'Yes' : 'No') : '',
-    biappa:    md.bioppaApprovedKhata !== undefined && md.bioppaApprovedKhata !== null ? (md.bioppaApprovedKhata ? 'Yes' : 'No') : '',
-    exclusive: md.exclusive !== undefined && md.exclusive !== null ? (md.exclusive ? 'Yes' : 'No') : '',
-    parking:   md.parking   || '',
-    parkingNum:md.parkingNum ?? '',
-    prefTenants:md.preferredTenant || '',
-    petAllowed: md.petAllowed !== undefined && md.petAllowed !== null ? (md.petAllowed ? 'Yes' : 'No') : '',
-    nonVeg:     md.nonVegAllowed  !== undefined && md.nonVegAllowed  !== null ? (md.nonVegAllowed  ? 'Yes' : 'No') : '',
-    leaseTenure:pd.leaseTenure || '',
-    amenities:  md.amenities    || [],
-    description:md.description  || '',
+    bKhata:      md.buildingKhata || '',
+    lKhata:      md.landKhata     || '',
+    eKhata:      md.eKhata    !== undefined && md.eKhata    !== null ? (md.eKhata    ? 'Yes' : 'No') : '',
+    extraRooms:  md.extraRooms    || [],
+    cornerUnit:  md.cornerUnit !== undefined && md.cornerUnit !== null ? (md.cornerUnit ? 'Yes' : 'No') : '',
+    biappa:      md.bioppaApprovedKhata !== undefined && md.bioppaApprovedKhata !== null ? (md.bioppaApprovedKhata ? 'Yes' : 'No') : '',
+    exclusive:   md.exclusive !== undefined && md.exclusive !== null ? (md.exclusive ? 'Yes' : 'No') : '',
+    parking:     md.parking   || '',
+    parkingNum:  md.parkingNum ?? '',
+    prefTenants: md.preferredTenant || '',
+    petAllowed:  md.petAllowed  !== undefined && md.petAllowed  !== null ? (md.petAllowed  ? 'Yes' : 'No') : '',
+    nonVeg:      md.nonVegAllowed !== undefined && md.nonVegAllowed !== null ? (md.nonVegAllowed ? 'Yes' : 'No') : '',
+    leaseTenure: pd.leaseTenure || '',
+    amenities:   md.amenities   || [],
+    description: md.description || '',
   }
 }
