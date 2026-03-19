@@ -45,6 +45,7 @@ const buyerSchema = new mongoose.Schema(
       default: BuyerStatus.IN_PROGRESS,
     },
     alternateContact: { type: String, trim: true },
+    alternateCountryCode: { type: String, default: "+91" },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true },

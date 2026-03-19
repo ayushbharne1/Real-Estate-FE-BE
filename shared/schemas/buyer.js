@@ -11,6 +11,8 @@ const buyerBaseSchema = z.object({
   name:        z.string().min(1, "Name is required").max(100),
   countryCode: z.string().default("+91"),
   contact:     z.string().min(7, "Valid contact number required").max(15),
+  alternateCountryCode: z.string().optional(),
+  alternateContact:     z.string().optional(),
   email:       z.string().email("Valid email required"),
   propertyId:  z.string().optional(),
   assetType:   z.enum(assetTypeValues,   { required_error: "Asset type is required" }),

@@ -168,6 +168,7 @@ export default function AddCustomerForm() {
       status: "",
       propertyType: "Resale",
       alternateContact: "",
+      alternateCountryCode: "+91",
       // Resale
       askPrice: "",
       askPriceUnit: "THOUSANDS",
@@ -203,6 +204,7 @@ export default function AddCustomerForm() {
         deposit: !isResale ? Number(values.deposit) : 0,
         depositUnit: !isResale ? values.depositUnit : "THOUSANDS",
         alternateContact: values.alternateContact || undefined,
+        alternateCountryCode: values.alternateCountryCode || undefined,
       };
 
       dispatch(createBuyer(payload));
@@ -296,9 +298,9 @@ export default function AddCustomerForm() {
             <Field label="Alternate Contact No." error={f.errors.alternateContact} touched={f.touched.alternateContact}>
               <div className="flex bg-[#FAFBFC] border border-[#E5E7EB] rounded-md overflow-hidden">
                 <select
-                  name="countryCode"
+                  name="alternateCountryCode"
                   className="bg-transparent text-sm text-[#111827] px-4 py-2.5 outline-none cursor-pointer border-r border-[#E5E7EB]"
-                  value={f.values.countryCode}
+                  value={f.values.alternateCountryCode}
                   onChange={f.handleChange}
                 >
                   <option value="+91">+91</option>

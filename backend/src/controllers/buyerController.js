@@ -7,6 +7,7 @@ import { success, error } from "../utils/response.js";
 // ─────────────────────────────────────────────────────────────
 export const createBuyer = async (req, res) => {
   try {
+    console.log(req.body);
     const buyer = await Buyer.create(req.body);
     success(res, buyer, 201);
   } catch (err) {
