@@ -23,20 +23,20 @@ const RED = "#EE5352";
 
 const STATUS_DISPLAY = {
   IN_PROGRESS: "In Progress",
-  ACTIVE:      "Active",
-  CANCELLED:   "Cancelled",
+  ACTIVE: "Active",
+  CANCELLED: "Cancelled",
 };
 
 const STATUS_STYLES = {
   IN_PROGRESS: "bg-[#FFF4D3] text-[#F39C12]",
-  ACTIVE:      "bg-[#D9F9E6] text-[#2ECC71]",
-  CANCELLED:   "bg-[#FFD5D5] text-[#FF5B5B]",
+  ACTIVE: "bg-[#D9F9E6] text-[#2ECC71]",
+  CANCELLED: "bg-[#FFD5D5] text-[#FF5B5B]",
 };
 
 const UNIT_LABEL = {
   THOUSANDS: "K",
-  LAKHS:     "L",
-  CRORES:    "Cr",
+  LAKHS: "L",
+  CRORES: "Cr",
 };
 
 function formatPrice(value, unit) {
@@ -48,9 +48,9 @@ function formatPrice(value, unit) {
 function formatDate(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("en-IN", {
-    day:   "2-digit",
+    day: "2-digit",
     month: "short",
-    year:  "numeric",
+    year: "numeric",
   });
 }
 
@@ -100,13 +100,13 @@ const InfoBadge = ({ label, value, highlight }) => (
 
 /* ─────────────────────────── main page ─────────────────────────── */
 export default function BuyerDetail() {
-  const { id }   = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const buyer   = useSelector(selectCurrentBuyer);
+  const buyer = useSelector(selectCurrentBuyer);
   const loading = useSelector(selectDetailLoading);
-  const error   = useSelector(selectDetailError);
+  const error = useSelector(selectDetailError);
 
   useEffect(() => {
     if (id) dispatch(fetchBuyer(id));
@@ -148,9 +148,9 @@ export default function BuyerDetail() {
 
   if (!buyer) return null;
 
-  const isResale    = buyer.listingType === "RESALE";
-  const assetLabel  = ASSET_TYPE_OPTIONS.find(o => o.value === buyer.assetType)?.label ?? buyer.assetType;
-  const statusKey   = buyer.status;
+  const isResale = buyer.listingType === "RESALE";
+  const assetLabel = ASSET_TYPE_OPTIONS.find(o => o.value === buyer.assetType)?.label ?? buyer.assetType;
+  const statusKey = buyer.status;
   const statusLabel = STATUS_DISPLAY[statusKey] ?? statusKey;
 
   return (
@@ -224,6 +224,14 @@ export default function BuyerDetail() {
                   label="Contact No."
                   value={`${buyer.countryCode} ${buyer.contact}`}
                 />
+
+                {buyer.alternateContact && (
+                  <DetailRow
+                    icon={Phone}
+                    label="Alternate Contact"
+                    value={`${buyer.countryCode} ${buyer.alternateContact}`}
+                  />
+                )}
                 <DetailRow
                   icon={Mail}
                   label="Email Address"
