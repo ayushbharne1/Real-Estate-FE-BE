@@ -196,6 +196,14 @@ const PriceUnitExtended = Object.freeze({
   LAKHS:     "LAKHS",
   CRORES:    "CRORES",
 });
+const SortOptionExtended = Object.freeze({
+  PRICE_LOW_TO_HIGH:      "PRICE_LOW_TO_HIGH",
+  PRICE_HIGH_TO_LOW:      "PRICE_HIGH_TO_LOW",
+  NEWEST_FIRST:           "NEWEST_FIRST",
+  OLDEST_FIRST:           "OLDEST_FIRST",
+  PRICE_SQFT_LOW_TO_HIGH: "PRICE_SQFT_LOW_TO_HIGH",
+  PRICE_SQFT_HIGH_TO_LOW: "PRICE_SQFT_HIGH_TO_LOW",
+});
 
 // ── New commercial enums ──────────────────────────────
 const BuildingGrade = Object.freeze({
@@ -320,4 +328,5 @@ export {
   BuildingGrade, ParkType, WarehouseType, FloorType, TruckAccess,
   Zoning, LandType, LandShape, Topography, CompoundWall, GateType,
   RoadType, LeaseTenure,
+  SortOptionExtended,
 };
