@@ -22,32 +22,37 @@ import {
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { id: 'all', label: 'All', Icon: LayoutGrid, assetFilter: null },
-  { id: 'commercial', label: 'Commercial', Icon: Building2, assetFilter: ['COMMERCIAL_SPACE', 'COMMERCIAL_PROPERTY', 'OFFICE_SPACE', 'RETAIL_SPACE'] },
+  { id: 'commercial', label: 'Commercial', Icon: Building2, assetFilter: ['COMMERCIAL_SPACE', 'COMMERCIAL_PROPERTY', 'OFFICE_SPACE', 'RETAIL_SPACE', 'SHOWROOM', 'SHOP', 'TECH_PARK', 'WAREHOUSE', 'INDUSTRIAL_LAND'] },
   { id: 'apartment', label: 'Apartment', Icon: Home, assetFilter: ['APARTMENT'] },
   { id: 'plot', label: 'Plot', Icon: Landmark, assetFilter: ['PLOT'] },
   { id: 'villas', label: 'Villas', Icon: TreePine, assetFilter: ['VILLA', 'VILAMENT', 'INDEPENDENT_HOUSE', 'ROW_HOUSE'] },
 ]
 
 const ASSET_TYPES = [
-  { label: 'Apartment', value: 'APARTMENT', Icon: Home },
-  { label: 'Plot', value: 'PLOT', Icon: Landmark },
-  { label: 'Villa', value: 'VILLA', Icon: TreePine },
-  { label: 'Independent House', value: 'INDEPENDENT_HOUSE', Icon: Home },
-  { label: 'Commercial Space', value: 'COMMERCIAL_SPACE', Icon: Building2 },
-  { label: 'Row House', value: 'ROW_HOUSE', Icon: Home },
-  { label: 'Commercial Property', value: 'COMMERCIAL_PROPERTY', Icon: Warehouse },
-  { label: 'Villament', value: 'VILAMENT', Icon: Home },
-  { label: 'Office Space', value: 'OFFICE_SPACE', Icon: Building2 },
-  { label: 'Retail Space', value: 'RETAIL_SPACE', Icon: Store },
+  { label: 'Apartment',          value: 'APARTMENT',           Icon: Home },
+  { label: 'Plot',               value: 'PLOT',                Icon: Landmark },
+  { label: 'Villa',              value: 'VILLA',               Icon: TreePine },
+  { label: 'Independent House',  value: 'INDEPENDENT_HOUSE',   Icon: Home },
+  { label: 'Commercial Space',   value: 'COMMERCIAL_SPACE',    Icon: Building2 },
+  { label: 'Row House',          value: 'ROW_HOUSE',           Icon: Home },
+  { label: 'Commercial Property',value: 'COMMERCIAL_PROPERTY', Icon: Warehouse },
+  { label: 'Villament',          value: 'VILAMENT',            Icon: Home },
+  { label: 'Office Space',       value: 'OFFICE_SPACE',        Icon: Building2 },
+  { label: 'Retail Space',       value: 'RETAIL_SPACE',        Icon: Store },
+  { label: 'Showroom',           value: 'SHOWROOM',            Icon: Store },
+  { label: 'Shop',               value: 'SHOP',                Icon: Store },
+  { label: 'Tech Park',          value: 'TECH_PARK',           Icon: Building2 },
+  { label: 'Warehouse',          value: 'WAREHOUSE',           Icon: Warehouse },
+  { label: 'Industrial Land',    value: 'INDUSTRIAL_LAND',     Icon: Landmark },
 ]
 
 const BHK_OPTIONS = ['1BHK', '2BHK', '3BHK', '4BHK', '5BHK']
 
 const SORT_OPTIONS = [
-  { label: 'Price: Low to High', value: 'PRICE_LOW_TO_HIGH' },
-  { label: 'Price: High to Low', value: 'PRICE_HIGH_TO_LOW' },
-  { label: 'Newest First', value: 'NEWEST_FIRST' },
-  { label: 'Oldest First', value: 'OLDEST_FIRST' },
+  { label: 'Price: Low to High',      value: 'PRICE_LOW_TO_HIGH' },
+  { label: 'Price: High to Low',      value: 'PRICE_HIGH_TO_LOW' },
+  { label: 'Newest First',            value: 'NEWEST_FIRST' },
+  { label: 'Oldest First',            value: 'OLDEST_FIRST' },
   { label: 'Price/Sqft: Low to High', value: 'PRICE_SQFT_LOW_TO_HIGH' },
   { label: 'Price/Sqft: High to Low', value: 'PRICE_SQFT_HIGH_TO_LOW' },
 ]
@@ -128,8 +133,7 @@ const ShareModal = ({ prop, onClose }) => {
         </div>
         <pre className="text-xs text-gray-600 bg-gray-50 rounded-xl p-3 whitespace-pre-wrap font-sans mb-4 max-h-48 overflow-y-auto border border-gray-100">{message}</pre>
         <div className="flex gap-2">
-          <button onClick={copy}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${copied ? 'border-green-400 bg-green-50 text-green-600' : 'border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'}`}>
+          <button onClick={copy} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${copied ? 'border-green-400 bg-green-50 text-green-600' : 'border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'}`}>
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             {copied ? 'Copied!' : 'Copy Message'}
           </button>
@@ -169,7 +173,7 @@ const PropertyCard = ({ prop, mode, onShare }) => {
       <div className="relative overflow-hidden">
         <img src={img} alt={b.name} className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300" />
         <span className="absolute top-3 left-3 bg-[#E8431A] text-white text-xs font-bold px-2.5 py-1 rounded-md tracking-wide">{prop.propertyId}</span>
-        <span className={`absolute top-3 right-3 text-white text-[10px] font-bold px-2 py-0.5 rounded-md ${isRental ? 'bg-[#E8431A]' : 'bg-[#E8431A]'}`}>
+        <span className="absolute top-3 right-3 text-white text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#E8431A]">
           {isRental ? 'Rental' : 'Resale'}
         </span>
       </div>
@@ -211,38 +215,49 @@ const PropertyCard = ({ prop, mode, onShare }) => {
   )
 }
 
-// ── Dropdown components ───────────────────────────────────────────────────────
-
+// ── Asset Type Dropdown — only shows types with count > 0 ─────────────────────
 const AssetTypeDropdown = ({ selected, onChange, counts = {} }) => {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
+
   useEffect(() => {
     const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  // Only show asset types that have at least 1 property
+  const visibleTypes = ASSET_TYPES.filter(({ value }) => (counts[value] ?? 0) > 0)
+
   return (
     <div ref={ref} className="relative">
       <button onClick={() => setOpen(o => !o)}
         className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${selected ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}>
-        <Building2 className="w-4 h-4" /> Asset Type <ChevronDown className="w-3.5 h-3.5" />
+        <Building2 className="w-4 h-4" />
+        {selected ? getAssetLabel(selected) : 'Asset Type'}
+        <ChevronDown className="w-3.5 h-3.5" />
       </button>
       {open && (
         <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-2 max-h-72 overflow-y-auto">
-          {ASSET_TYPES.map(({ label, value }) => (
-            <button key={value} onClick={() => { onChange(selected === value ? null : value); setOpen(false) }}
-              className={`w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selected === value ? 'text-[#E8431A] font-semibold bg-orange-50' : 'text-gray-700'}`}>
-              <span>{label}</span>
-              <span className={`text-sm font-medium ${selected === value ? 'text-[#E8431A]' : 'text-gray-400'}`}>
-               {String(counts[value] ?? 0).padStart(2, '0')}
-              </span>
-            </button>
-          ))}
+          {visibleTypes.length === 0 ? (
+            <p className="px-4 py-3 text-sm text-gray-400 text-center">No properties found</p>
+          ) : (
+            visibleTypes.map(({ label, value }) => (
+              <button key={value} onClick={() => { onChange(selected === value ? null : value); setOpen(false) }}
+                className={`w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selected === value ? 'text-[#E8431A] font-semibold bg-orange-50' : 'text-gray-700'}`}>
+                <span>{label}</span>
+                <span className={`text-sm font-medium ${selected === value ? 'text-[#E8431A]' : 'text-gray-400'}`}>
+                  {String(counts[value] ?? 0).padStart(2, '0')}
+                </span>
+              </button>
+            ))
+          )}
         </div>
       )}
     </div>
   )
 }
+
 const ConfigurationDropdown = ({ selected, onChange }) => {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState([])
@@ -264,8 +279,7 @@ const ConfigurationDropdown = ({ selected, onChange }) => {
         <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-3">
           <div className="flex gap-2 flex-wrap mb-3">
             {BHK_OPTIONS.map(bhk => (
-              <button key={bhk}
-                onClick={() => toggleBhk(bhk)}
+              <button key={bhk} onClick={() => toggleBhk(bhk)}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${draft.includes(bhk) ? 'bg-[#E8431A] text-white border-[#E8431A]' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
                 {bhk}
               </button>
@@ -281,18 +295,13 @@ const ConfigurationDropdown = ({ selected, onChange }) => {
   )
 }
 
-// ── Budget Dropdown (fixed) ───────────────────────────────────────────────────
 const BudgetDropdown = ({ value, onChange }) => {
   const [open, setOpen] = useState(false)
   const [min, setMin] = useState('')
   const [max, setMax] = useState('')
   const ref = useRef(null)
 
-  const handleOpen = () => {
-    setMin(value?.min || '')
-    setMax(value?.max || '')
-    setOpen(true)
-  }
+  const handleOpen = () => { setMin(value?.min || ''); setMax(value?.max || ''); setOpen(true) }
 
   useEffect(() => {
     const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
@@ -300,29 +309,15 @@ const BudgetDropdown = ({ value, onChange }) => {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const apply = () => {
-    if (min || max) onChange({ min, max })
-    else onChange(null)
-    setOpen(false)
-  }
-
-  const cancel = () => {
-    onChange(null)
-    setMin('')
-    setMax('')
-    setOpen(false)
-  }
+  const apply = () => { if (min || max) onChange({ min, max }); else onChange(null); setOpen(false) }
+  const cancel = () => { onChange(null); setMin(''); setMax(''); setOpen(false) }
 
   return (
     <div ref={ref} className="relative">
-      <button
-        onClick={open ? () => setOpen(false) : handleOpen}
-        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'
-          }`}
-      >
+      <button onClick={open ? () => setOpen(false) : handleOpen}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}>
         Budget <ChevronDown className="w-3.5 h-3.5" />
       </button>
-
       {open && (
         <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 p-5">
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">
@@ -331,41 +326,19 @@ const BudgetDropdown = ({ value, onChange }) => {
           <div className="flex items-end gap-3 mb-4">
             <div className="flex-1">
               <label className="text-[10px] text-gray-400 font-semibold mb-1.5 block uppercase tracking-wide">Min</label>
-              <input
-                value={min}
-                onChange={e => setMin(e.target.value)}
-                placeholder="e.g. 50"
-                type="number"
-                min="0"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#E8431A] focus:ring-2 focus:ring-orange-50 transition-all bg-gray-50 placeholder-gray-300"
-              />
+              <input value={min} onChange={e => setMin(e.target.value)} placeholder="e.g. 50" type="number" min="0"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#E8431A] transition-all bg-gray-50 placeholder-gray-300" />
             </div>
             <div className="pb-2.5 text-gray-300 font-bold text-lg select-none">—</div>
             <div className="flex-1">
               <label className="text-[10px] text-gray-400 font-semibold mb-1.5 block uppercase tracking-wide">Max</label>
-              <input
-                value={max}
-                onChange={e => setMax(e.target.value)}
-                placeholder="e.g. 500"
-                type="number"
-                min="0"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#E8431A] focus:ring-2 focus:ring-orange-50 transition-all bg-gray-50 placeholder-gray-300"
-              />
+              <input value={max} onChange={e => setMax(e.target.value)} placeholder="e.g. 500" type="number" min="0"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#E8431A] transition-all bg-gray-50 placeholder-gray-300" />
             </div>
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={cancel}
-              className="flex-1 text-sm font-semibold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-            >
-              Clear
-            </button>
-            <button
-              onClick={apply}
-              className="flex-1 text-sm font-semibold py-2.5 rounded-xl bg-[#E8431A] text-white hover:bg-[#cf3b16] transition-colors"
-            >
-              Apply
-            </button>
+            <button onClick={cancel} className="flex-1 text-sm font-semibold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Clear</button>
+            <button onClick={apply} className="flex-1 text-sm font-semibold py-2.5 rounded-xl bg-[#E8431A] text-white hover:bg-[#cf3b16] transition-colors">Apply</button>
           </div>
         </div>
       )}
@@ -373,18 +346,13 @@ const BudgetDropdown = ({ value, onChange }) => {
   )
 }
 
-// ── SBUA Dropdown (fixed) ─────────────────────────────────────────────────────
 const SBUADropdown = ({ value, onChange }) => {
   const [open, setOpen] = useState(false)
   const [min, setMin] = useState('')
   const [max, setMax] = useState('')
   const ref = useRef(null)
 
-  const handleOpen = () => {
-    setMin(value?.min || '')
-    setMax(value?.max || '')
-    setOpen(true)
-  }
+  const handleOpen = () => { setMin(value?.min || ''); setMax(value?.max || ''); setOpen(true) }
 
   useEffect(() => {
     const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
@@ -392,29 +360,15 @@ const SBUADropdown = ({ value, onChange }) => {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const apply = () => {
-    if (min || max) onChange({ min, max })
-    else onChange(null)
-    setOpen(false)
-  }
-
-  const cancel = () => {
-    onChange(null)
-    setMin('')
-    setMax('')
-    setOpen(false)
-  }
+  const apply = () => { if (min || max) onChange({ min, max }); else onChange(null); setOpen(false) }
+  const cancel = () => { onChange(null); setMin(''); setMax(''); setOpen(false) }
 
   return (
     <div ref={ref} className="relative">
-      <button
-        onClick={open ? () => setOpen(false) : handleOpen}
-        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'
-          }`}
-      >
+      <button onClick={open ? () => setOpen(false) : handleOpen}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${value ? 'border-[#E8431A] text-[#E8431A]' : 'border-gray-300 text-gray-600 hover:border-gray-400'}`}>
         SBUA <ChevronDown className="w-3.5 h-3.5" />
       </button>
-
       {open && (
         <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 p-5">
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">
@@ -423,41 +377,19 @@ const SBUADropdown = ({ value, onChange }) => {
           <div className="flex items-end gap-3 mb-4">
             <div className="flex-1">
               <label className="text-[10px] text-gray-400 font-semibold mb-1.5 block uppercase tracking-wide">Min</label>
-              <input
-                value={min}
-                onChange={e => setMin(e.target.value)}
-                placeholder="e.g. 500"
-                type="number"
-                min="0"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#E8431A] focus:ring-2 focus:ring-orange-50 transition-all bg-gray-50 placeholder-gray-300"
-              />
+              <input value={min} onChange={e => setMin(e.target.value)} placeholder="e.g. 500" type="number" min="0"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#E8431A] transition-all bg-gray-50 placeholder-gray-300" />
             </div>
             <div className="pb-2.5 text-gray-300 font-bold text-lg select-none">—</div>
             <div className="flex-1">
               <label className="text-[10px] text-gray-400 font-semibold mb-1.5 block uppercase tracking-wide">Max</label>
-              <input
-                value={max}
-                onChange={e => setMax(e.target.value)}
-                placeholder="e.g. 5000"
-                type="number"
-                min="0"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#E8431A] focus:ring-2 focus:ring-orange-50 transition-all bg-gray-50 placeholder-gray-300"
-              />
+              <input value={max} onChange={e => setMax(e.target.value)} placeholder="e.g. 5000" type="number" min="0"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#E8431A] transition-all bg-gray-50 placeholder-gray-300" />
             </div>
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={cancel}
-              className="flex-1 text-sm font-semibold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-            >
-              Clear
-            </button>
-            <button
-              onClick={apply}
-              className="flex-1 text-sm font-semibold py-2.5 rounded-xl bg-[#E8431A] text-white hover:bg-[#cf3b16] transition-colors"
-            >
-              Apply
-            </button>
+            <button onClick={cancel} className="flex-1 text-sm font-semibold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Clear</button>
+            <button onClick={apply} className="flex-1 text-sm font-semibold py-2.5 rounded-xl bg-[#E8431A] text-white hover:bg-[#cf3b16] transition-colors">Apply</button>
           </div>
         </div>
       )}
@@ -554,7 +486,6 @@ const Dashboard = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const debounceRef = useRef(null)
 
-  // Listen for search events from Navbar
   useEffect(() => {
     const handler = (e) => {
       const q = e.detail || ''
@@ -567,11 +498,8 @@ const Dashboard = () => {
     return () => window.removeEventListener('navbar:search', handler)
   }, [])
 
-
   useEffect(() => {
-    const params = {
-      listingType: activeTab === 'rental' ? 'RENTAL' : 'RESALE',
-    }
+    const params = { listingType: activeTab === 'rental' ? 'RENTAL' : 'RESALE' }
     if (configuration.length > 0) params.bhkTypes = configuration.map(b => b.replace('BHK', ''))
     if (budget?.min) params.budgetMin = budget.min
     if (budget?.max) params.budgetMax = budget.max
@@ -579,14 +507,11 @@ const Dashboard = () => {
     if (sbua?.max) params.sbuaMax = sbua.max
     dispatch(fetchAssetTypeCounts(params))
   }, [activeTab, configuration, budget, sbua, dispatch])
-  // Debounce typed search
+
   const handleSearchInput = (val) => {
     setInputSearch(val)
     clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      setDebouncedSearch(val)
-      setPage(1)
-    }, 400)
+    debounceRef.current = setTimeout(() => { setDebouncedSearch(val); setPage(1) }, 400)
   }
 
   const isRental = activeTab === 'rental'
@@ -596,9 +521,7 @@ const Dashboard = () => {
     const params = { listingType: isRental ? 'RENTAL' : 'RESALE', page, limit }
     if (assetType) { params.assetType = assetType }
     else if (categoryObj?.assetFilter?.length === 1) { params.assetType = categoryObj.assetFilter[0] }
-    if (configuration.length > 0) {
-      params.bhkTypes = configuration.map(b => b.replace('BHK', ''))
-    }
+    if (configuration.length > 0) params.bhkTypes = configuration.map(b => b.replace('BHK', ''))
     if (budget?.min) params.budgetMin = budget.min
     if (budget?.max) params.budgetMax = budget.max
     if (sbua?.min) params.sbuaMin = sbua.min
@@ -734,7 +657,7 @@ const Dashboard = () => {
                       <td className="px-4 py-3 font-medium text-gray-800 max-w-[160px] truncate">{b.name}</td>
                       <td className="px-4 py-3 text-gray-600 text-xs">{getAssetLabel(b.assetType)}</td>
                       <td className="px-4 py-3 text-gray-600 text-xs">{formatSqft(pd.sbua)}</td>
-                      <td className="px-4 py-3 text-gray-600 text-xs">{pd.plotArea ? formatSqft(pd.plotArea) : '—'}</td>
+                      <td className="px-4 py-3 text-gray-600 text-xs">{pd.plotArea ? formatSqft(pd.plotArea) : pd.landArea ? `${pd.landArea} acres` : '—'}</td>
                       <td className="px-4 py-3 text-gray-600 text-xs">{pd.doorFacing ? labelify(pd.doorFacing) : '—'}</td>
                       {isRental ? (
                         <>
