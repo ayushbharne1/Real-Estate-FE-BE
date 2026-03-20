@@ -24,7 +24,7 @@ import {
   ChevronLeft, ChevronRight, Plus, Eye,
 } from "lucide-react";
 import {
-  ASSET_TYPE_OPTIONS,BUYER_SORT_OPTIONS,
+  ASSET_TYPE_OPTIONS, BUYER_SORT_OPTIONS,
   RENTAL_ASSET_OPTIONS, RESALE_ASSET_OPTIONS,
   BUYER_STATUS_DISPLAY, BUYER_STATUS_API,
   BUYER_STATUS_OPTIONS_DISPLAY, BUYER_STATUS_STYLES,
@@ -53,29 +53,29 @@ export default function Customer() {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedSort, setSelectedSort] = useState("");
 
-const assetTypeOptions = activeType === "Rental" ? RENTAL_ASSET_OPTIONS : RESALE_ASSET_OPTIONS
+  const assetTypeOptions = activeType === "Rental" ? RENTAL_ASSET_OPTIONS : RESALE_ASSET_OPTIONS
 
-// Update useEffect to send all filters to API:
-useEffect(() => {
-  const params = {
-    listingType: activeType.toUpperCase(),
-    page: 1,
-    limit: 20,
-  }
-  if (selectedAssetType) {
-    const assetValue = ASSET_TYPE_OPTIONS.find(o => o.label === selectedAssetType)?.value
-    if (assetValue) params.assetType = assetValue
-  }
-  if (selectedStatus) params.status = BUYER_STATUS_API[selectedStatus]
-  if (selectedSort)   params.sortBy = selectedSort
+  // Update useEffect to send all filters to API:
+  useEffect(() => {
+    const params = {
+      listingType: activeType.toUpperCase(),
+      page: 1,
+      limit: 20,
+    }
+    if (selectedAssetType) {
+      const assetValue = ASSET_TYPE_OPTIONS.find(o => o.label === selectedAssetType)?.value
+      if (assetValue) params.assetType = assetValue
+    }
+    if (selectedStatus) params.status = BUYER_STATUS_API[selectedStatus]
+    if (selectedSort) params.sortBy = selectedSort
 
-  dispatch(fetchBuyers(params))
-}, [dispatch, activeType, selectedAssetType, selectedStatus, selectedSort])
+    dispatch(fetchBuyers(params))
+  }, [dispatch, activeType, selectedAssetType, selectedStatus, selectedSort])
   const handleStatusChange = (rowId, displayStatus) => {
     dispatch(updateBuyerStatus({ id: rowId, status: BUYER_STATUS_API[displayStatus] }));
   };
 
-  
+
   const columns = useMemo(() => [
     { accessorKey: "name", header: "Name" },
     {
@@ -313,8 +313,8 @@ useEffect(() => {
           <div className="mt-8 flex items-center justify-between px-2">
             <div className="text-xs text-gray-400 font-medium">
               Showing{" "}
-              {filteredData.length === 0 ? 0 : pageIndex * pageSize + 1}–
-              {Math.min((pageIndex + 1) * pageSize, filteredData.length)} of {total} Results
+              {items.length === 0 ? 0 : pageIndex * pageSize + 1}–
+              {Math.min((pageIndex + 1) * pageSize, items.length)} of {total} Results
             </div>
 
             <div className="flex items-center gap-1">
@@ -331,8 +331,8 @@ useEffect(() => {
                     key={i}
                     onClick={() => table.setPageIndex(i)}
                     className={`w-8 h-8 rounded-md text-xs font-bold transition-colors ${pageIndex === i
-                        ? "text-[#FF6B6B] bg-red-50"
-                        : "text-gray-400 hover:bg-gray-50"
+                      ? "text-[#FF6B6B] bg-red-50"
+                      : "text-gray-400 hover:bg-gray-50"
                       }`}
                   >
                     {i + 1}
