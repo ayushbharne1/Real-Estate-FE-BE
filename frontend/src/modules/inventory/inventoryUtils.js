@@ -17,7 +17,6 @@ import {
   COMMISSION_TYPE_OPTIONS,
   MAINTENANCE_OPTIONS,
   PREFERRED_TENANT_OPTIONS,
-  KHATA_OPTIONS,
   EXTRA_ROOM_OPTIONS,
   STRUCTURE_OPTIONS,
   BUILDING_GRADE_OPTIONS,
@@ -130,11 +129,7 @@ const S = {
   rent:          F.price('Rent per Month'),
   deposit:       F.price('Deposit', false),
   parking:       F.dropdown('Parking', PARKING_OPTIONS),
-  bKhata:        F.dropdown('Building Khata', YES_NO_OPTIONS),
-  lKhata:        F.dropdown('Land Khata', YES_NO_OPTIONS),
-  eKhata:        F.yesno('E-Khata'),
   cornerUnit:    F.yesno('Corner Unit'),
-  biappa:        F.yesno('Bioppa Approved Khata'),
   exclusive:     F.yesno('Exclusive'),
   extraRooms:    F.multiselect('Extra Rooms', EXTRA_ROOM_OPTIONS),
   balconyFacing: F.dropdown('Balcony Facing', BALCONY_FACING_OPTIONS),
@@ -202,7 +197,7 @@ const S = {
 const RESALE = {
   [AssetType.APARTMENT]: {
     step2: { aptType: S.aptType, facing: S.facing, age: S.age, floorNo: S.floorNo, config: S.config, furnishing: S.furnishing, sbua: S.sbua, priceSqft: S.priceSqft, askPrice: S.askPrice },
-    step3: { bKhata: S.bKhata, lKhata: S.lKhata, parking: S.parking, eKhata: S.eKhata, extraRooms: S.extraRooms, amenities: S.amenities },
+    step3: {  parking: S.parking, extraRooms: S.extraRooms, amenities: S.amenities },
   },
   [AssetType.VILLA]: {
     step2: { facing: S.facing, age: S.age, structure: S.structure, config: S.config, furnishing: S.furnishing, sbua: S.sbua, priceSqft: S.priceSqft, askPrice: S.askPrice },
@@ -218,7 +213,7 @@ const RESALE = {
   },
   [AssetType.ROW_HOUSE]: {
     step2: { aptType: S.aptType, facing: S.facing, age: S.age, balconyFacing: S.balconyFacing, structure: S.structure, floorNo: S.floorNo, config: S.config, furnishing: S.furnishing, sbua: S.sbua, priceSqft: S.priceSqft, askPrice: S.askPrice },
-    step3: { bKhata: S.bKhata, cornerUnit: S.cornerUnit, eKhata: S.eKhata, biappa: S.biappa, parking: S.parking, amenities: S.amenities },
+    step3: { cornerUnit: S.cornerUnit, biappa: S.biappa, parking: S.parking, amenities: S.amenities },
   },
   [AssetType.VILAMENT]: {
     step2: { facing: S.facing, age: S.age, structure: S.structure, config: S.config, furnishing: S.furnishing, sbua: S.sbua, plotArea: S.plotArea, uds: S.uds, priceSqft: S.priceSqft, askPrice: S.askPrice },
@@ -230,7 +225,7 @@ const RESALE = {
   },
   [AssetType.COMMERCIAL_PROPERTY]: {
     step2: { facing: S.facing, structure: S.structure, totalRooms: S.totalRooms, waterSupply: S.waterSupply, sbua: S.sbua, priceSqft: S.priceSqft, askPrice: S.askPrice },
-    step3: { eKhata: S.eKhata, amenities: S.amenities },
+    step3: { amenities: S.amenities },
   },
   [AssetType.OFFICE_SPACE]: {
     step2: { seats: S.seats, cabins: S.cabins, meetingRooms: S.meetingRooms, boardRoom: S.boardRoom, facing: S.facing, age: S.age, floorNo: S.floorNo, furnishing: S.furnOffice, buildingGrade: S.buildingGrade, sbua: S.sbua, priceSqft: S.priceSqft, askPrice: S.askPrice },
@@ -375,7 +370,7 @@ export const INITIAL_VALUES = {
   aptType: '', facing: '', age: '', floorNo: '', totalFloors: '', structure: '',
   bedrooms: '', bathrooms: '', balconies: '', furnishing: '', balconyFacing: '',
   sbua: '', plotArea: '', uds: '', priceSqft: '', seats: '', totalRooms: '', waterSupply: '',
-  bKhata: '', lKhata: '', eKhata: '', extraRooms: [],
+  extraRooms: [],
   cornerUnit: '', biappa: '', exclusive: '',
   askPriceValue: '', askPriceUnit: 'CRORES',
   rentValue: '', rentUnit: 'LAKHS',
@@ -455,12 +450,8 @@ export function buildSubmitPayload(values) {
     commissionType: values.commission    || undefined,
 
     // Residential more details
-    buildingKhata:       values.bKhata      || undefined,
-    landKhata:           values.lKhata      || undefined,
-    eKhata:              values.eKhata      || undefined,
     extraRooms:          values.extraRooms?.length ? values.extraRooms : undefined,
     cornerUnit:          values.cornerUnit  || undefined,
-    bioppaApprovedKhata: values.biappa      || undefined,
     exclusive:           values.exclusive   || undefined,
     parking:             values.parking     || undefined,
     preferredTenant:     values.prefTenants || undefined,
@@ -604,12 +595,8 @@ export function propertyToFormValues(property) {
     groundRentUnit:     pd.groundRentUnit   || 'LAKHS',
 
     // Shared more details
-    bKhata:      md.buildingKhata || '',
-    lKhata:      md.landKhata     || '',
-    eKhata:      md.eKhata    !== undefined && md.eKhata    !== null ? (md.eKhata    ? 'Yes' : 'No') : '',
     extraRooms:  md.extraRooms    || [],
     cornerUnit:  md.cornerUnit !== undefined && md.cornerUnit !== null ? (md.cornerUnit ? 'Yes' : 'No') : '',
-    biappa:      md.bioppaApprovedKhata !== undefined && md.bioppaApprovedKhata !== null ? (md.bioppaApprovedKhata ? 'Yes' : 'No') : '',
     exclusive:   md.exclusive !== undefined && md.exclusive !== null ? (md.exclusive ? 'Yes' : 'No') : '',
     parking:     md.parking   || '',
     parkingNum:  md.parkingNum ?? '',

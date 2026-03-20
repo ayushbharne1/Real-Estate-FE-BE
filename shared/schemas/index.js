@@ -4,7 +4,7 @@ import {
   FurnishingStatus, ParkingType, PossessionStatus,
   Amenity, PriceUnit, ListingType, BHKType, SortOption,
   CommissionType, MaintenanceType, PreferredTenant,
-  KhataType, ExtraRoom, StructureType,
+  ExtraRoom, StructureType,
 } from "../enums/index.js";
 import { VALIDATION, REGEX } from "../constants/app.js";
 

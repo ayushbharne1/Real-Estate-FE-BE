@@ -142,10 +142,6 @@ function buildShareMessage(property) {
 
   const moreLines = [];
   if (md.parking) moreLines.push(` *Parking:* ${labelify(md.parking)}`);
-  if (md.buildingKhata != null)
-    moreLines.push(` *B-Khata:* ${md.buildingKhata ? "Yes" : "No"}`);
-  if (md.eKhata != null)
-    moreLines.push(` *E-Khata:* ${md.eKhata ? "Yes" : "No"}`);
   if (md.cornerUnit != null)
     moreLines.push(` *Corner Unit:* ${md.cornerUnit ? "Yes" : "No"}`);
   if (md.petAllowed != null)
@@ -771,15 +767,7 @@ const PropertyDetail = () => {
             <div className="mb-5">
               <SectionTitle>More Details</SectionTitle>
               <div className="grid grid-cols-3 gap-x-6 gap-y-4">
-                {/* Khata */}
-                {md.buildingKhata != null && md.buildingKhata !== "" && (
-                  <DetailCell icon={CheckCircle2} label="Building Khata" value={typeof md.buildingKhata === "boolean" ? (md.buildingKhata ? "Yes" : "No") : md.buildingKhata} />
-                )}
-                {md.landKhata != null && md.landKhata !== "" && (
-                  <DetailCell icon={CheckCircle2} label="Land Khata" value={typeof md.landKhata === "boolean" ? (md.landKhata ? "Yes" : "No") : md.landKhata} />
-                )}
-                {md.eKhata != null && <DetailCell icon={CheckCircle2} label="E Khata" value={boolDisplay(md.eKhata)} />}
-
+                
                 {/* Parking — residential (enum dropdown) */}
                 {md.parking && <DetailCell icon={CheckCircle2} label="Parking" value={labelify(md.parking)} />}
 
@@ -787,7 +775,7 @@ const PropertyDetail = () => {
                 {md.parkingNum != null && md.parkingNum > 0 && <DetailCell icon={CheckCircle2} label="Parking Slots" value={`${md.parkingNum} slots`} />}
 
                 {md.cornerUnit != null && <DetailCell icon={CheckCircle2} label="Corner Unit" value={boolDisplay(md.cornerUnit)} />}
-                {md.bioppaApprovedKhata != null && <DetailCell icon={CheckCircle2} label="Bioppa Khata" value={boolDisplay(md.bioppaApprovedKhata)} />}
+                
                 {md.exclusive != null && <DetailCell icon={CheckCircle2} label="Exclusive" value={boolDisplay(md.exclusive)} />}
 
                 {/* Extra Rooms */}

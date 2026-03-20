@@ -7,7 +7,7 @@ import {
   FurnishingStatus, ParkingType, PossessionStatus,
   BHKType, Amenity, PriceUnit, SortOption, ListingType,
   CommissionType, MaintenanceType, PreferredTenant,
-  KhataType, ExtraRoom, StructureType, BuyerStatus, PriceUnitExtended,
+  ExtraRoom, StructureType, BuyerStatus, PriceUnitExtended,
   BuildingGrade, ParkType, WarehouseType, FloorType, TruckAccess,
   Zoning, LandType, LandShape, Topography, CompoundWall, GateType,
   RoadType, LeaseTenure,SortOptionExtended,
@@ -190,10 +190,6 @@ const PREFERRED_TENANT_OPTIONS = [
   { value: PreferredTenant.ANY,      label: "Any" },
 ];
 
-const KHATA_OPTIONS = [
-  { value: KhataType.A, label: "A Khata" },
-  { value: KhataType.B, label: "B Khata" },
-];
 
 const EXTRA_ROOM_OPTIONS = [
   { value: ExtraRoom.STUDY_ROOM,   label: "Study Room" },
@@ -439,7 +435,6 @@ export {
   COMMISSION_TYPE_OPTIONS,
   MAINTENANCE_OPTIONS,
   PREFERRED_TENANT_OPTIONS,
-  KHATA_OPTIONS,
   EXTRA_ROOM_OPTIONS,
   STRUCTURE_OPTIONS,
   BUYER_STATUS_OPTIONS,

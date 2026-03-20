@@ -137,10 +137,7 @@ const PreferredTenant = Object.freeze({
 });
 
 // ── Resale-specific enums ─────────────────────────────
-const KhataType = Object.freeze({
-  A: "A",
-  B: "B",
-});
+ 
 
 const ExtraRoom = Object.freeze({
   STUDY_ROOM:    "STUDY_ROOM",
@@ -332,7 +329,7 @@ export {
   FurnishingStatus, ParkingType, PossessionStatus, BHKType,
   Amenity, PriceUnit, SortOption, ViewMode, PropertyTab,
   CommissionType, MaintenanceType, PreferredTenant,
-  KhataType, ExtraRoom, StructureType, BuyerStatus, PriceUnitExtended,
+  ExtraRoom, StructureType, BuyerStatus, PriceUnitExtended,
   // New commercial enums
   BuildingGrade, ParkType, WarehouseType, FloorType, TruckAccess,
   Zoning, LandType, LandShape, Topography, CompoundWall, GateType,

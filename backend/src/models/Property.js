@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import {
   ListingType, AssetType, DoorFacing, AgeOfBuilding, FloorRange,
   FurnishingStatus, ParkingType, PossessionStatus, PriceUnit,
-  CommissionType, MaintenanceType, PreferredTenant, KhataType, ExtraRoom, StructureType,
+  CommissionType, MaintenanceType, PreferredTenant, ExtraRoom, StructureType,
   BuildingGrade, ParkType, WarehouseType, FloorType, TruckAccess,
   Zoning, LandType, LandShape, Topography, CompoundWall, GateType,
   RoadType, LeaseTenure,
@@ -143,14 +143,10 @@ const propertySchema = new mongoose.Schema(
     // ═════════════════════════════════════════════════════════
     moreDetails: {
       // ── Residential Khata ──────────────────────────────────
-      buildingKhata: { type: String, enum: ['Yes', 'No', ...Object.values(KhataType), null] },
-      landKhata:     { type: String, enum: ['Yes', 'No', ...Object.values(KhataType), null] },
-      eKhata:        { type: Boolean },
       extraRooms:    [{ type: String, enum: Object.values(ExtraRoom) }],
 
       // ── Resale — Row House ─────────────────────────────────
       cornerUnit:          { type: Boolean },
-      bioppaApprovedKhata: { type: Boolean },
 
       // ── Resale — Office Space ──────────────────────────────
       exclusive: { type: Boolean },

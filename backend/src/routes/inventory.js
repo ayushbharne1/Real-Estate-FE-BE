@@ -148,18 +148,11 @@ import { dashboardQuerySchema } from "shared/schemas";
  *               commissionType:
  *                 type: string
  *
- *               buildingKhata:
- *                 type: string
- *               landKhata:
- *                 type: string
- *               eKhata:
- *                 type: boolean
+ *               
  *               extraRooms:
  *                 type: string
  *                 description: "JSON array e.g. [\"STUDY_ROOM\",\"SERVANT_ROOM\"]"
  *               cornerUnit:
- *                 type: boolean
- *               bioppaApprovedKhata:
  *                 type: boolean
  *               exclusive:
  *                 type: boolean
@@ -377,7 +370,6 @@ router.get("/:id/similar", protect, getSimilar);
  *               removeVideo:
  *                 type: boolean
  *                 description: "Pass true to delete the existing video"
- *
  *               name:
  *                 type: string
  *               listingType:
@@ -455,18 +447,10 @@ router.get("/:id/similar", protect, getSimilar);
  *                 type: string
  *               commissionType:
  *                 type: string
- *               buildingKhata:
- *                 type: string
- *               landKhata:
- *                 type: string
- *               eKhata:
- *                 type: boolean
  *               extraRooms:
  *                 type: string
  *                 description: "JSON array e.g. [\"STUDY_ROOM\"]"
  *               cornerUnit:
- *                 type: boolean
- *               bioppaApprovedKhata:
  *                 type: boolean
  *               exclusive:
  *                 type: boolean

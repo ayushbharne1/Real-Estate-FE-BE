@@ -53,8 +53,8 @@ export const createProperty = async (req, res) => {
       deposit, depositUnit,
       maintenance, commissionType,
       // Step 3
-      buildingKhata, landKhata, eKhata, extraRooms,
-      cornerUnit, bioppaApprovedKhata, exclusive,
+      extraRooms,
+      cornerUnit, exclusive,
       parking, parkingNum,
       preferredTenant, petAllowed, nonVegAllowed,
       idealFor,
@@ -149,12 +149,8 @@ export const createProperty = async (req, res) => {
       },
 
       moreDetails: {
-        buildingKhata:       buildingKhata       || undefined,
-        landKhata:           landKhata           || undefined,
-        eKhata:              eKhata       !== undefined ? _parseBool(eKhata)       : undefined,
         extraRooms:          parsedExtraRooms,
         cornerUnit:          cornerUnit   !== undefined ? _parseBool(cornerUnit)   : undefined,
-        bioppaApprovedKhata: bioppaApprovedKhata !== undefined ? _parseBool(bioppaApprovedKhata) : undefined,
         exclusive:           exclusive    !== undefined ? _parseBool(exclusive)    : undefined,
         parking:             parking      || undefined,
         parkingNum:          parkingNum   ? Number(parkingNum) : undefined,
@@ -308,8 +304,8 @@ export const updateProperty = async (req, res) => {
       rentPerMonth, rentUnit,
       deposit, depositUnit,
       maintenance, commissionType,
-      buildingKhata, landKhata, eKhata, extraRooms,
-      cornerUnit, bioppaApprovedKhata, exclusive,
+      extraRooms,
+      cornerUnit, exclusive,
       parking, parkingNum,
       preferredTenant, petAllowed, nonVegAllowed,
       idealFor,
@@ -441,11 +437,7 @@ export const updateProperty = async (req, res) => {
     _set(p, "propertyDetails.commissionType",commissionType);
 
     // Step 3
-    _set(p, "moreDetails.buildingKhata",       buildingKhata);
-    _set(p, "moreDetails.landKhata",           landKhata);
-    if (eKhata              !== undefined) _set(p, "moreDetails.eKhata",              _parseBool(eKhata));
     if (cornerUnit          !== undefined) _set(p, "moreDetails.cornerUnit",          _parseBool(cornerUnit));
-    if (bioppaApprovedKhata !== undefined) _set(p, "moreDetails.bioppaApprovedKhata", _parseBool(bioppaApprovedKhata));
     if (exclusive           !== undefined) _set(p, "moreDetails.exclusive",           _parseBool(exclusive));
     _set(p, "moreDetails.parking",          parking);
     if (parkingNum  !== undefined) _set(p, "moreDetails.parkingNum", Number(parkingNum));
