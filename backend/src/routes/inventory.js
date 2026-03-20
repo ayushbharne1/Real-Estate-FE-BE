@@ -3,6 +3,7 @@ const router = express.Router();
 import {
   createProperty, getProperties, getProperty, getSimilar,
   updateProperty, deleteProperty, getAssetTypeCounts,
+  getSuggestions,getKeywords,
 } from "../controllers/inventoryController.js";
 import { protect }              from "../middleware/auth.js";
 import { uploadProperty }       from "../config/cloudinary.js";
@@ -275,6 +276,50 @@ router.get("/", protect, validateQuery(dashboardQuerySchema), getProperties);
  *         description: Unauthorized
  */
 router.get("/asset-type-counts", protect, getAssetTypeCounts);
+
+
+
+
+
+/**
+ * @swagger
+ * /api/inventory/suggestions:
+ *   get:
+ *     summary: Get search suggestions for properties
+ *     tags: [Inventory]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: "Search query string"
+ *     responses:
+ *       200:
+ *         description: List of matching property suggestions (max 8)
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/suggestions", protect, getSuggestions);
+ 
+// GET /api/inventory/keywords
+// ─────────────────────────────────────────────────────────────
+/**
+ * @swagger
+ * /api/inventory/keywords:
+ *   get:
+ *     summary: Get all keywords
+ *     tags: [Inventory]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of keywords
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/keywords", protect, getKeywords);
 
 // ─────────────────────────────────────────────────────────────
 // GET /api/inventory/:id

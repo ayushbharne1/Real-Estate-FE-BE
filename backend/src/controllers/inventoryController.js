@@ -15,6 +15,51 @@ const SORT_MAP = {
   [SortOption.PRICE_SQFT_HIGH_TO_LOW]: { "propertyDetails.pricePerSqft": -1 },
 };
 
+
+const ASSET_LABELS = {
+  APARTMENT: 'Apartment', PLOT: 'Plot', VILLA: 'Villa',
+  INDEPENDENT_HOUSE: 'Independent House', COMMERCIAL_SPACE: 'Commercial Space',
+  ROW_HOUSE: 'Row House', COMMERCIAL_PROPERTY: 'Commercial Property',
+  VILAMENT: 'Villament', OFFICE_SPACE: 'Office Space', RETAIL_SPACE: 'Retail Space',
+  SHOWROOM: 'Showroom', SHOP: 'Shop', TECH_PARK: 'Tech Park',
+  WAREHOUSE: 'Warehouse', INDUSTRIAL_LAND: 'Industrial Land',
+};
+ 
+const POSSESSION_LABELS = {
+  READY_TO_MOVE: 'Ready to Move', UNDER_CONSTRUCTION: 'Under Construction',
+  NEW_LAUNCH: 'New Launch', RESALE_READY: 'Resale Ready', VACANT_LAND: 'Vacant Land',
+};
+ 
+const FURNISHING_LABELS = {
+  FURNISHED: 'Fully Furnished', SEMI_FURNISHED: 'Semi Furnished',
+  UNFURNISHED: 'Unfurnished', PLUG_AND_PLAY: 'Plug and Play',
+  WARM_SHELL: 'Warm Shell', BARE_SHELL: 'Bare Shell',
+};
+ 
+const FLOOR_LABELS = {
+  GROUND: 'Ground Floor', LOWER: 'Lower Floor', MID: 'Mid Floor',
+  HIGH: 'High Floor', ULTRA: 'Ultra High Floor',
+};
+ 
+const AGE_LABELS = {
+  NEW: 'New Construction', THREE_TO_FIVE: '3 to 5 Years Old',
+  FIVE_TO_TEN: '5 to 10 Years Old', TEN_TO_FIFTEEN: '10 to 15 Years Old',
+  FIFTEEN_PLUS: '15 Plus Years Old',
+};
+ 
+// Reverse map: label → enum key
+const _reverseMap = (map, search) => {
+  const s = search.toLowerCase()
+  return Object.entries(map).find(([, label]) => label.toLowerCase() === s)?.[0] || null
+}
+ 
+const _formatPrice = (value, unit) => {
+  if (!value || value === 0) return null;
+  const num = Number(value);
+  if (unit === 'CRORES') return `₹${num.toFixed(2)} Cr`;
+  if (num >= 100) return `₹${(num / 100).toFixed(2)} Cr`;
+  return `₹${num.toFixed(2)} L`;
+};
 // ─────────────────────────────────────────────────────────────
 // POST /api/inventory  — Create property
 // ─────────────────────────────────────────────────────────────
@@ -179,35 +224,107 @@ export const getProperties = async (req, res) => {
       budgetMin, budgetMax, sbuaMin, sbuaMax, page, limit,
     } = req.query;
     const rawBhk = req.query['bhkTypes[]'] || req.query.bhkTypes;
-
+ 
     const filter = { isActive: true };
     if (listingType) filter["basicDetails.listingType"] = listingType;
     if (assetType)   filter["basicDetails.assetType"]   = assetType;
-
+ 
     const bhkArray = rawBhk ? (Array.isArray(rawBhk) ? rawBhk : [rawBhk]) : [];
     if (bhkArray.length > 0) {
       filter["basicDetails.bedrooms"] = { $in: bhkArray.map(Number) };
     }
-
+ 
     if (search) {
       const re = new RegExp(search, "i");
-      filter.$or = [
-        { "basicDetails.name":    re },
-        { "basicDetails.address": re },
-        { "basicDetails.area":    re },
-        { "basicDetails.city":    re },
-        { propertyId:             re },
-      ];
+      const s  = search.trim()
+ 
+      // Reverse map label → enum
+      const assetEnum      = _reverseMap(ASSET_LABELS,      s)
+      const possessionEnum = _reverseMap(POSSESSION_LABELS,  s)
+      const furnishingEnum = _reverseMap(FURNISHING_LABELS,  s)
+      const floorEnum      = _reverseMap(FLOOR_LABELS,       s)
+      const ageEnum        = _reverseMap(AGE_LABELS,         s)
+ 
+      // BHK match: "2 BHK" → bedrooms: 2
+      const bhkMatch = s.match(/^(\d)\s*BHK$/i)
+ 
+      // Price match: "50 L", "1.2 Cr", "₹50" etc.
+      // We'll convert the searched price string back to a number range
+      const priceOrClauses = []
+      const crMatch = s.match(/₹?([\d.]+)\s*Cr/i)
+      const lakhMatch = s.match(/₹?([\d.]+)\s*L/i)
+ 
+      if (crMatch) {
+        const crVal = parseFloat(crMatch[1])
+        // In DB: askPrice stored in Lakhs, CRORES unit means value is in crores
+        // Match: priceUnit=CRORES and askPrice ≈ crVal (±0.5 Cr tolerance)
+        priceOrClauses.push({
+          "propertyDetails.priceUnit": "CRORES",
+          "propertyDetails.askPrice": { $gte: crVal - 0.5, $lte: crVal + 0.5 },
+        })
+        priceOrClauses.push({
+          "propertyDetails.rentUnit": "CRORES",
+          "propertyDetails.rentPerMonth": { $gte: crVal - 0.5, $lte: crVal + 0.5 },
+        })
+        // Also match LAKHS where value/100 ≈ crVal
+        priceOrClauses.push({
+          "propertyDetails.priceUnit": "LAKHS",
+          "propertyDetails.askPrice": { $gte: (crVal - 0.5) * 100, $lte: (crVal + 0.5) * 100 },
+        })
+      }
+ 
+      if (lakhMatch) {
+        const lVal = parseFloat(lakhMatch[1])
+        priceOrClauses.push({
+          "propertyDetails.priceUnit": "LAKHS",
+          "propertyDetails.askPrice": { $gte: lVal - 5, $lte: lVal + 5 },
+        })
+        priceOrClauses.push({
+          "propertyDetails.rentUnit": "LAKHS",
+          "propertyDetails.rentPerMonth": { $gte: lVal - 5, $lte: lVal + 5 },
+        })
+      }
+ 
+      const orClauses = [
+        { "basicDetails.name":             re },
+        { "basicDetails.address":          re },
+        { "basicDetails.area":             re },
+        { "basicDetails.city":             re },
+        { "basicDetails.state":            re },
+        { propertyId:                      re },
+        { "moreDetails.description":       re },
+        { "moreDetails.amenities":         re },
+        { "propertyDetails.doorFacing":    re },
+        // Enum fields — match raw enum value via regex
+        { "basicDetails.listingType":      re },
+        { "basicDetails.assetType":        re },
+        { "basicDetails.possession":       re },
+        { "propertyDetails.furnishing":    re },
+        { "propertyDetails.floorNumber":   re },
+        { "propertyDetails.ageOfBuilding": re },
+        // Enum reverse-map matches (label → enum string)
+        ...(assetEnum      ? [{ "basicDetails.assetType":        assetEnum      }] : []),
+        ...(possessionEnum ? [{ "basicDetails.possession":       possessionEnum }] : []),
+        ...(furnishingEnum ? [{ "propertyDetails.furnishing":    furnishingEnum }] : []),
+        ...(floorEnum      ? [{ "propertyDetails.floorNumber":   floorEnum      }] : []),
+        ...(ageEnum        ? [{ "propertyDetails.ageOfBuilding": ageEnum        }] : []),
+        // BHK
+        ...(bhkMatch ? [{ "basicDetails.bedrooms": Number(bhkMatch[1]) }] : []),
+        // Price
+        ...priceOrClauses,
+      ]
+ 
+      filter.$or = orClauses
     }
-
+ 
     if (sbuaMin || sbuaMax) {
       filter["propertyDetails.sbua"] = {};
       if (sbuaMin) filter["propertyDetails.sbua"].$gte = Number(sbuaMin);
       if (sbuaMax) filter["propertyDetails.sbua"].$lte = Number(sbuaMax);
     }
-
+ 
     const isRentalFilter = listingType === 'RENTAL';
-
+ 
     if (budgetMin || budgetMax) {
       const priceField = isRentalFilter ? 'propertyDetails.rentPerMonth' : 'propertyDetails.askPrice';
       const unitField  = isRentalFilter ? 'propertyDetails.rentUnit'     : 'propertyDetails.priceUnit';
@@ -221,28 +338,23 @@ export const getProperties = async (req, res) => {
         filter.$expr = exprs.length === 1 ? exprs[0] : { $and: exprs };
       }
     }
-
+ 
     const sortObj  = SORT_MAP[sort] || SORT_MAP[SortOption.NEWEST_FIRST];
     const pageNum  = Math.max(1, Number(page)  || 1);
     const limitNum = Math.min(100, Number(limit) || 20);
     const skip     = (pageNum - 1) * limitNum;
-
+ 
     const [items, total] = await Promise.all([
       Property.find(filter).sort(sortObj).skip(skip).limit(limitNum),
       Property.countDocuments(filter),
     ]);
-
-    success(res, {
-      items,
-      total,
-      page:       pageNum,
-      limit:      limitNum,
-      totalPages: Math.ceil(total / limitNum),
-    });
+ 
+    success(res, { items, total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum) });
   } catch (err) {
     error(res, err.message);
   }
 };
+ 
 
 // ─────────────────────────────────────────────────────────────
 // GET /api/inventory/:id
@@ -540,3 +652,143 @@ function _extractCloudinaryId(url) {
     return null;
   }
 }
+
+
+export const getSuggestions = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 1) return success(res, []);
+ 
+    const re = new RegExp(q.trim(), "i");
+ 
+    const items = await Property.find({
+      isActive: true,
+      $or: [
+        { "basicDetails.name":    re },
+        { "basicDetails.city":    re },
+        { "basicDetails.area":    re },
+        { "basicDetails.address": re },
+        { propertyId:             re },
+      ],
+    })
+      .select(
+        "propertyId basicDetails.name basicDetails.city basicDetails.area basicDetails.address " +
+        "basicDetails.assetType basicDetails.listingType basicDetails.possession " +
+        "basicDetails.bedrooms basicDetails.primaryImage " +
+        "propertyDetails.askPrice propertyDetails.priceUnit " +
+        "propertyDetails.rentPerMonth propertyDetails.rentUnit propertyDetails.sbua"
+      )
+      .limit(8)
+      .lean();
+ 
+    success(res, items);
+  } catch (err) {
+    error(res, err.message);
+  }
+};
+
+export const getKeywords = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 1) return success(res, []);
+ 
+    const q_lower = q.trim().toLowerCase();
+    const re = new RegExp(q.trim(), "i");
+    const keywords = new Set();
+ 
+    // ── Static label keywords ─────────────────────────────────
+    const staticCandidates = [
+      ...Object.values(ASSET_LABELS),
+      ...Object.values(POSSESSION_LABELS),
+      ...Object.values(FURNISHING_LABELS),
+      ...Object.values(FLOOR_LABELS),
+      ...Object.values(AGE_LABELS),
+      'Resale', 'Rental',
+      'Studio', '1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK',
+      'Corner Unit', 'Gated Community',
+      'Swimming Pool', 'Gym', 'Parking', 'Power Backup',
+      'CCTV', 'Security', 'Lift', 'Garden',
+    ];
+ 
+    for (const val of staticCandidates) {
+      if (val.toLowerCase().includes(q_lower)) keywords.add(val);
+    }
+ 
+    // ── DB keywords ───────────────────────────────────────────
+    const items = await Property.find({
+      isActive: true,
+      $or: [
+        { "basicDetails.name":             re },
+        { "basicDetails.city":             re },
+        { "basicDetails.area":             re },
+        { "basicDetails.address":          re },
+        { "basicDetails.assetType":        re },
+        { "basicDetails.possession":       re },
+        { "basicDetails.listingType":      re },
+        { "propertyDetails.furnishing":    re },
+        { "propertyDetails.floorNumber":   re },
+        { "propertyDetails.ageOfBuilding": re },
+        { propertyId:                      re },
+      ],
+    })
+      .select(
+        "propertyId basicDetails.name basicDetails.city basicDetails.area " +
+        "basicDetails.address basicDetails.possession basicDetails.assetType " +
+        "basicDetails.listingType basicDetails.bedrooms " +
+        "propertyDetails.askPrice propertyDetails.priceUnit " +
+        "propertyDetails.rentPerMonth propertyDetails.rentUnit " +
+        "propertyDetails.furnishing propertyDetails.floorNumber propertyDetails.ageOfBuilding"
+      )
+      .limit(40)
+      .lean();
+ 
+    for (const item of items) {
+      const b  = item.basicDetails    || {};
+      const pd = item.propertyDetails || {};
+      const isRental = b.listingType === 'RENTAL';
+ 
+      const textCandidates = [
+        b.name,
+        b.city,
+        b.area,
+        ASSET_LABELS[b.assetType],
+        POSSESSION_LABELS[b.possession],
+        FURNISHING_LABELS[pd.furnishing],
+        FLOOR_LABELS[pd.floorNumber],
+        AGE_LABELS[pd.ageOfBuilding],
+        b.bedrooms > 0 ? `${b.bedrooms} BHK` : null,
+        ...(b.address ? b.address.split(/[\s,]+/).filter(w => w.length > 2) : []),
+      ].filter(Boolean);
+ 
+      for (const val of textCandidates) {
+        if (val.toLowerCase().includes(q_lower)) keywords.add(val.trim());
+      }
+ 
+      if (item.propertyId && item.propertyId.toLowerCase().includes(q_lower)) {
+        keywords.add(item.propertyId);
+      }
+ 
+      // Price keyword
+      const priceStr = isRental
+        ? _formatPrice(pd.rentPerMonth, pd.rentUnit)
+        : _formatPrice(pd.askPrice, pd.priceUnit);
+ 
+      if (priceStr) {
+        if (priceStr.toLowerCase().includes(q_lower)) keywords.add(priceStr);
+        if (/^\d/.test(q.trim())) keywords.add(priceStr);
+      }
+    }
+ 
+    const result = [...keywords]
+      .sort((a, b) => {
+        const aStarts = a.toLowerCase().startsWith(q_lower) ? 0 : 1;
+        const bStarts = b.toLowerCase().startsWith(q_lower) ? 0 : 1;
+        return aStarts - bStarts || a.localeCompare(b);
+      })
+      .slice(0, 8);
+ 
+    success(res, result);
+  } catch (err) {
+    error(res, err.message);
+  }
+};
