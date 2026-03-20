@@ -23,35 +23,18 @@ import {
   PhoneCall, Mail, ChevronDown, ArrowUpDown,
   ChevronLeft, ChevronRight, Plus, Eye,
 } from "lucide-react";
-import { ASSET_TYPE_OPTIONS, SORT_OPTIONS } from "shared/constants/dropdown.js";
+import {
+  ASSET_TYPE_OPTIONS,BUYER_SORT_OPTIONS,
+  RENTAL_ASSET_OPTIONS, RESALE_ASSET_OPTIONS,
+  BUYER_STATUS_DISPLAY, BUYER_STATUS_API,
+  BUYER_STATUS_OPTIONS_DISPLAY, BUYER_STATUS_STYLES,
+  PRICE_UNIT_LABEL,
+} from "shared/constants/dropdown.js"
 
 /* ─────────────────────────── constants ─────────────────────────── */
-
-const STATUS_DISPLAY = {
-  IN_PROGRESS: "In Progress",
-  ACTIVE:      "Active",
-  CANCELLED:   "Cancelled",
-};
-
-const STATUS_API = {
-  "In Progress": "IN_PROGRESS",
-  "Active":      "ACTIVE",
-  "Cancelled":   "CANCELLED",
-};
-
-const STATUS_OPTIONS_DISPLAY = ["In Progress", "Active", "Cancelled"];
-
-const STATUS_STYLES = {
-  "In Progress": "bg-[#FFF4D3] text-[#F39C12]",
-  "Cancelled":   "bg-[#FFD5D5] text-[#FF5B5B]",
-  "Active":      "bg-[#D9F9E6] text-[#2ECC71]",
-};
-
-const UNIT_LABEL = { THOUSANDS: "K", LAKHS: "L", CRORES: "Cr" };
-
 function formatPrice(value, unit) {
   if (!value || value === 0) return "—";
-  return `₹${value}${UNIT_LABEL[unit] ?? ""}`;
+  return `₹${value}${PRICE_UNIT_LABEL[unit] ?? ""}`;
 }
 
 /* ─────────────────────────── main page ─────────────────────────── */
@@ -59,59 +42,40 @@ export default function Customer() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const items          = useSelector(selectBuyerList);
-  const total          = useSelector(selectBuyerTotal);
-  const listLoading    = useSelector(selectListLoading);
-  const listError      = useSelector(selectListError);
+  const items = useSelector(selectBuyerList);
+  const total = useSelector(selectBuyerTotal);
+  const listLoading = useSelector(selectListLoading);
+  const listError = useSelector(selectListError);
   const statusUpdating = useSelector(selectStatusUpdating);
 
-  const [activeType,        setActiveType]        = useState("Resale");
+  const [activeType, setActiveType] = useState("Resale");
   const [selectedAssetType, setSelectedAssetType] = useState("");
-  const [selectedStatus,    setSelectedStatus]    = useState("");
-  const [selectedSort,      setSelectedSort]      = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedSort, setSelectedSort] = useState("");
 
-  useEffect(() => {
-    dispatch(fetchBuyers({ listingType: activeType.toUpperCase(), page: 1, limit: 20 }));
-  }, [dispatch, activeType]);
+const assetTypeOptions = activeType === "Rental" ? RENTAL_ASSET_OPTIONS : RESALE_ASSET_OPTIONS
 
+// Update useEffect to send all filters to API:
+useEffect(() => {
+  const params = {
+    listingType: activeType.toUpperCase(),
+    page: 1,
+    limit: 20,
+  }
+  if (selectedAssetType) {
+    const assetValue = ASSET_TYPE_OPTIONS.find(o => o.label === selectedAssetType)?.value
+    if (assetValue) params.assetType = assetValue
+  }
+  if (selectedStatus) params.status = BUYER_STATUS_API[selectedStatus]
+  if (selectedSort)   params.sortBy = selectedSort
+
+  dispatch(fetchBuyers(params))
+}, [dispatch, activeType, selectedAssetType, selectedStatus, selectedSort])
   const handleStatusChange = (rowId, displayStatus) => {
-    dispatch(updateBuyerStatus({ id: rowId, status: STATUS_API[displayStatus] }));
+    dispatch(updateBuyerStatus({ id: rowId, status: BUYER_STATUS_API[displayStatus] }));
   };
 
-  const filteredData = useMemo(() => {
-    let data = items.filter((item) => {
-      const assetLabel  = ASSET_TYPE_OPTIONS.find(o => o.value === item.assetType)?.label ?? item.assetType;
-      const statusLabel = STATUS_DISPLAY[item.status] ?? item.status;
-      return (
-        (!selectedAssetType || assetLabel === selectedAssetType) &&
-        (!selectedStatus    || statusLabel === selectedStatus)
-      );
-    });
-
-    if (selectedSort) {
-      data = [...data].sort((a, b) => {
-        switch (selectedSort) {
-          case "PRICE_LOW_TO_HIGH":
-            return (a.askPrice ?? 0) - (b.askPrice ?? 0);
-          case "PRICE_HIGH_TO_LOW":
-            return (b.askPrice ?? 0) - (a.askPrice ?? 0);
-          case "NEWEST_FIRST":
-            return new Date(b.createdAt) - new Date(a.createdAt);
-          case "OLDEST_FIRST":
-            return new Date(a.createdAt) - new Date(b.createdAt);
-          case "PRICE_SQFT_LOW_TO_HIGH":
-            return (a.pricePerSqft ?? 0) - (b.pricePerSqft ?? 0);
-          case "PRICE_SQFT_HIGH_TO_LOW":
-            return (b.pricePerSqft ?? 0) - (a.pricePerSqft ?? 0);
-          default:
-            return 0;
-        }
-      });
-    }
-
-    return data;
-  }, [items, selectedAssetType, selectedStatus, selectedSort]);
-
+  
   const columns = useMemo(() => [
     { accessorKey: "name", header: "Name" },
     {
@@ -143,16 +107,16 @@ export default function Customer() {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
-        const displayStatus = STATUS_DISPLAY[row.original.status] ?? row.original.status;
+        const displayStatus = BUYER_STATUS_DISPLAY[row.original.status] ?? row.original.status;
         return (
           <div className="relative inline-block">
             <select
               value={displayStatus}
               disabled={statusUpdating}
               onChange={(e) => handleStatusChange(row.original._id, e.target.value)}
-              className={`appearance-none px-3 py-1.5 rounded-md text-[10px] font-bold w-28 cursor-pointer focus:outline-none disabled:opacity-60 ${STATUS_STYLES[displayStatus]}`}
+              className={`appearance-none px-3 py-1.5 rounded-md text-[10px] font-bold w-28 cursor-pointer focus:outline-none disabled:opacity-60 ${BUYER_STATUS_STYLES[displayStatus]}`}
             >
-              {STATUS_OPTIONS_DISPLAY.map((opt) => (
+              {BUYER_STATUS_OPTIONS_DISPLAY.map((opt) => (
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
@@ -193,7 +157,7 @@ export default function Customer() {
   ], [statusUpdating, navigate]);
 
   const table = useReactTable({
-    data: filteredData,
+    data: items,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -219,9 +183,8 @@ export default function Customer() {
                 setSelectedStatus("");
                 setSelectedSort("");
               }}
-              className={`px-6 py-1 text-sm font-medium transition-colors ${
-                activeType === t ? "bg-[#FF6B6B] text-white" : "text-gray-400 hover:bg-gray-50"
-              }`}
+              className={`px-6 py-1 text-sm font-medium transition-colors ${activeType === t ? "bg-[#FF6B6B] text-white" : "text-gray-400 hover:bg-gray-50"
+                }`}
             >
               {t}
             </button>
@@ -236,7 +199,7 @@ export default function Customer() {
             className="h-10 appearance-none border border-gray-300 rounded-lg pl-4 pr-9 text-gray-500 text-sm hover:bg-gray-50 focus:outline-none focus:border-[#FF6B6B] cursor-pointer bg-white"
           >
             <option value="">Asset Type</option>
-            {ASSET_TYPE_OPTIONS.map(({ value, label }) => (
+            {assetTypeOptions.map(({ value, label }) => (
               <option key={value} value={label}>{label}</option>
             ))}
           </select>
@@ -251,7 +214,7 @@ export default function Customer() {
             className="h-10 appearance-none border border-gray-300 rounded-lg pl-4 pr-9 text-gray-500 text-sm hover:bg-gray-50 focus:outline-none focus:border-[#FF6B6B] cursor-pointer bg-white"
           >
             <option value="">Status</option>
-            {STATUS_OPTIONS_DISPLAY.map((s) => (
+            {BUYER_STATUS_OPTIONS_DISPLAY.map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
@@ -266,7 +229,7 @@ export default function Customer() {
             className="h-10 appearance-none border border-gray-300 rounded-lg pl-4 pr-9 text-gray-500 text-sm hover:bg-gray-50 focus:outline-none focus:border-[#FF6B6B] cursor-pointer bg-white"
           >
             <option value="">Sort By</option>
-            {SORT_OPTIONS.map(({ value, label }) => (
+            {BUYER_SORT_OPTIONS.map(({ value, label }) => (
               <option key={value} value={value}>{label}</option>
             ))}
           </select>
@@ -367,11 +330,10 @@ export default function Customer() {
                   <button
                     key={i}
                     onClick={() => table.setPageIndex(i)}
-                    className={`w-8 h-8 rounded-md text-xs font-bold transition-colors ${
-                      pageIndex === i
+                    className={`w-8 h-8 rounded-md text-xs font-bold transition-colors ${pageIndex === i
                         ? "text-[#FF6B6B] bg-red-50"
                         : "text-gray-400 hover:bg-gray-50"
-                    }`}
+                      }`}
                   >
                     {i + 1}
                   </button>

@@ -37,6 +37,21 @@ const ASSET_TYPE_OPTIONS = [
   { value: AssetType.INDUSTRIAL_LAND,     label: "Industrial Land" },
 ];
 
+const RENTAL_ASSET_VALUES = new Set([
+  AssetType.APARTMENT,
+  AssetType.VILLA,
+  AssetType.OFFICE_SPACE,
+  AssetType.RETAIL_SPACE,
+  AssetType.SHOWROOM,
+  AssetType.SHOP,
+  AssetType.TECH_PARK,
+  AssetType.WAREHOUSE,
+  AssetType.INDUSTRIAL_LAND,
+])
+
+const RENTAL_ASSET_OPTIONS = ASSET_TYPE_OPTIONS.filter(o => RENTAL_ASSET_VALUES.has(o.value))
+const RESALE_ASSET_OPTIONS = ASSET_TYPE_OPTIONS
+
 const DOOR_FACING_OPTIONS = [
   { value: DoorFacing.NORTH,      label: "North" },
   { value: DoorFacing.SOUTH,      label: "South" },
@@ -374,6 +389,37 @@ const SORT_OPTIONS = [
   { label: 'Price/Sqft: High to Low', value: SortOptionExtended.PRICE_SQFT_HIGH_TO_LOW },
 ]
 
+const BUYER_SORT_OPTIONS = [
+  { value: "NEWEST_FIRST",           label: "Newest First" },
+  { value: "OLDEST_FIRST",           label: "Oldest First" },
+  { value: "PRICE_LOW_TO_HIGH",      label: "Ask Price: Low to High" },
+  { value: "PRICE_HIGH_TO_LOW",      label: "Ask Price: High to Low" },
+  { value: "PRICE_PAID_LOW_TO_HIGH", label: "Price Paid: Low to High" },
+  { value: "PRICE_PAID_HIGH_TO_LOW", label: "Price Paid: High to Low" },
+]
+
+ const BUYER_STATUS_DISPLAY = {
+  IN_PROGRESS: "In Progress",
+  ACTIVE:      "Active",
+  CANCELLED:   "Cancelled",
+}
+
+const BUYER_STATUS_API = {
+  "In Progress": "IN_PROGRESS",
+  "Active":      "ACTIVE",
+  "Cancelled":   "CANCELLED",
+}
+
+const BUYER_STATUS_OPTIONS_DISPLAY = ["In Progress", "Active", "Cancelled"]
+
+const BUYER_STATUS_STYLES = {
+  "In Progress": "bg-[#FFF4D3] text-[#F39C12]",
+  "Active":      "bg-[#D9F9E6] text-[#2ECC71]",
+  "Cancelled":   "bg-[#FFD5D5] text-[#FF5B5B]",
+}
+
+const PRICE_UNIT_LABEL = { THOUSANDS: "K", LAKHS: "L", CRORES: "Cr" }
+
 export {
   LISTING_TYPE_OPTIONS,
   ASSET_TYPE_OPTIONS,
@@ -419,4 +465,12 @@ export {
   IDEAL_FOR_OPTIONS,
   UTILITIES_NEARBY_OPTIONS,
   SORT_OPTIONS,
+  RENTAL_ASSET_OPTIONS,
+  RESALE_ASSET_OPTIONS,
+  BUYER_STATUS_DISPLAY,
+  BUYER_STATUS_API,
+  BUYER_STATUS_OPTIONS_DISPLAY,
+  BUYER_STATUS_STYLES,
+  PRICE_UNIT_LABEL,
+  BUYER_SORT_OPTIONS
 };

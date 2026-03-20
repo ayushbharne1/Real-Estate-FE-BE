@@ -1,11 +1,12 @@
 // shared/schemas/buyer.js
 import { z } from "zod";
-import { ListingType, AssetType, PriceUnitExtended, BuyerStatus } from "../enums/index.js";
+import { ListingType, AssetType, PriceUnitExtended, BuyerStatus,BuyerSortOption   } from "../enums/index.js";
 
 const assetTypeValues    = /** @type {[string, ...string[]]} */ ([...Object.values(AssetType)]);
 const listingTypeValues  = /** @type {[string, ...string[]]} */ ([...Object.values(ListingType)]);
 const priceUnitExtValues = /** @type {[string, ...string[]]} */ ([...Object.values(PriceUnitExtended)]);
 const buyerStatusValues  = /** @type {[string, ...string[]]} */ ([...Object.values(BuyerStatus)]);
+const BuyerSortValues  = /** @type {[string, ...string[]]} */ ([...Object.values(BuyerSortOption )])
 
 const buyerBaseSchema = z.object({
   name:        z.string().min(1, "Name is required").max(100),
@@ -60,6 +61,7 @@ export const buyerQuerySchema = z.object({
   listingType: z.enum(listingTypeValues).optional(),
   assetType:   z.enum(assetTypeValues).optional(),
   status:      z.enum(buyerStatusValues).optional(),
+  sortBy:      z.enum(BuyerSortValues).optional(),
   page:        z.coerce.number().int().min(1).default(1),
   limit:       z.coerce.number().int().min(1).max(100).default(20),
-});
+})

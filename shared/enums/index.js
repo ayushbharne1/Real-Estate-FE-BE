@@ -318,6 +318,15 @@ const LeaseTenure = Object.freeze({
   THIRTY_YEARS:  "THIRTY_YEARS",
 });
 
+const BuyerSortOption = Object.freeze({
+  NEWEST_FIRST:           "NEWEST_FIRST",
+  OLDEST_FIRST:           "OLDEST_FIRST",
+  PRICE_LOW_TO_HIGH:      "PRICE_LOW_TO_HIGH",
+  PRICE_HIGH_TO_LOW:      "PRICE_HIGH_TO_LOW",
+  PRICE_PAID_LOW_TO_HIGH: "PRICE_PAID_LOW_TO_HIGH",
+  PRICE_PAID_HIGH_TO_LOW: "PRICE_PAID_HIGH_TO_LOW",
+})
+
 export {
   ListingType, AssetType, DoorFacing, AgeOfBuilding, FloorRange,
   FurnishingStatus, ParkingType, PossessionStatus, BHKType,
@@ -329,4 +338,5 @@ export {
   Zoning, LandType, LandShape, Topography, CompoundWall, GateType,
   RoadType, LeaseTenure,
   SortOptionExtended,
+  BuyerSortOption
 };
