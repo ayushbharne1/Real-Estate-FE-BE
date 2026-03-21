@@ -497,22 +497,7 @@ const Dashboard = () => {
     window.addEventListener('navbar:search', handler)
     return () => window.removeEventListener('navbar:search', handler)
   }, [])
-
-  useEffect(() => {
-    const params = { listingType: activeTab === 'rental' ? 'RENTAL' : 'RESALE' }
-    if (configuration.length > 0) params.bhkTypes = configuration.map(b => b.replace('BHK', ''))
-    if (budget?.min) params.budgetMin = budget.min
-    if (budget?.max) params.budgetMax = budget.max
-    if (sbua?.min) params.sbuaMin = sbua.min
-    if (sbua?.max) params.sbuaMax = sbua.max
-    dispatch(fetchAssetTypeCounts(params))
-  }, [activeTab, configuration, budget, sbua, dispatch])
-
-  const handleSearchInput = (val) => {
-    setInputSearch(val)
-    clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => { setDebouncedSearch(val); setPage(1) }, 400)
-  }
+ 
 
   const isRental = activeTab === 'rental'
 
@@ -531,7 +516,18 @@ const Dashboard = () => {
     return params
   }, [isRental, activeCategory, assetType, configuration, budget, sbua, sortBy, page, limit, debouncedSearch])
 
-  useEffect(() => { dispatch(fetchProperties(buildParams())) }, [dispatch, buildParams])
+ useEffect(() => {
+  const params = buildParams()
+  dispatch(fetchProperties(params))
+  dispatch(fetchAssetTypeCounts({
+    listingType: params.listingType,
+    bhkTypes: params.bhkTypes,
+    budgetMin: params.budgetMin,
+    budgetMax: params.budgetMax,
+    sbuaMin: params.sbuaMin,
+    sbuaMax: params.sbuaMax,
+  }))
+}, [dispatch, buildParams])
 
   const handleTabChange = (tab) => {
     setActiveTab(tab); setPage(1); setAssetType(null)
