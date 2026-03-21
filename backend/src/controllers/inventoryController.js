@@ -220,7 +220,7 @@ export const createProperty = async (req, res) => {
 export const getProperties = async (req, res) => {
   try {
     const {
-      search, listingType, assetType, sort,
+      search, listingType, assetType, sortBy,
       budgetMin, budgetMax, sbuaMin, sbuaMax, page, limit,
     } = req.query;
     const rawBhk = req.query['bhkTypes[]'] || req.query.bhkTypes;
@@ -339,7 +339,7 @@ export const getProperties = async (req, res) => {
       }
     }
  
-    const sortObj  = SORT_MAP[sort] || SORT_MAP[SortOption.NEWEST_FIRST];
+    const sortObj  = SORT_MAP[sortBy] || SORT_MAP[SortOption.NEWEST_FIRST];
     const pageNum  = Math.max(1, Number(page)  || 1);
     const limitNum = Math.min(100, Number(limit) || 20);
     const skip     = (pageNum - 1) * limitNum;
