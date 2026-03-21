@@ -313,8 +313,8 @@ export default function Customer() {
           <div className="mt-8 flex items-center justify-between px-2">
             <div className="text-xs text-gray-400 font-medium">
               Showing{" "}
-              {items.length === 0 ? 0 : pageIndex * pageSize + 1}–
-              {Math.min((pageIndex + 1) * pageSize, items.length)} of {total} Results
+              {total === 0 ? 0 : pageIndex * pageSize + 1}–
+              {Math.min((pageIndex + 1) * pageSize,total)} of {total} Results
             </div>
 
             <div className="flex items-center gap-1">
