@@ -12,9 +12,9 @@ const RED = '#E8431A'
 // ─── Fix Leaflet default icon URLs broken by Vite's bundler ──────────────────
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
-  iconUrl:       new URL('leaflet/dist/images/marker-icon.png',    import.meta.url).href,
+  iconUrl: new URL('leaflet/dist/images/marker-icon.png', import.meta.url).href,
   iconRetinaUrl: new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).href,
-  shadowUrl:     new URL('leaflet/dist/images/marker-shadow.png',  import.meta.url).href,
+  shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href,
 })
 
 // Custom branded orange pin
@@ -25,13 +25,13 @@ const orangeIcon = L.divIcon({
       fill="${RED}" stroke="white" stroke-width="2"/>
     <circle cx="16" cy="16" r="6" fill="white"/>
   </svg>`,
-  iconSize:   [32, 42],
+  iconSize: [32, 42],
   iconAnchor: [16, 42],
 })
 
-export const inputBase  = 'w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm placeholder-gray-300 outline-none bg-white transition-all'
+export const inputBase = 'w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm placeholder-gray-300 outline-none bg-white transition-all'
 export const focusStyle = { borderColor: RED, boxShadow: `0 0 0 3px ${RED}18` }
-export const blurStyle  = { borderColor: '#e5e7eb', boxShadow: 'none' }
+export const blurStyle = { borderColor: '#e5e7eb', boxShadow: 'none' }
 
 // ─── Label ────────────────────────────────────────────────────────────────────
 export const Label = ({ children, required }) => (
@@ -43,7 +43,7 @@ export const Label = ({ children, required }) => (
 // ─── FieldError ───────────────────────────────────────────────────────────────
 export const FieldError = ({ name, formik }) => {
   const touched = formik.touched[name]
-  const error   = formik.errors[name]
+  const error = formik.errors[name]
   if (!touched || !error) return null
   return (
     <p className="flex items-center gap-1 text-xs mt-1" style={{ color: RED }}>
@@ -88,8 +88,8 @@ export const NumberInput = ({ name, placeholder, suffix, formik }) => {
 export const Dropdown = ({ name, placeholder, options = [], formik, onSelect }) => {
   const [open, setOpen] = useState(false)
   const ref = useRef()
-  const val           = formik.values[name]
-  const err           = formik.touched[name] && formik.errors[name]
+  const val = formik.values[name]
+  const err = formik.touched[name] && formik.errors[name]
   const selectedLabel = options.find(o => o.value === val)?.label ?? (val || '')
 
   useEffect(() => {
@@ -142,7 +142,7 @@ export const PriceInput = ({ fieldKey, formik }) => {
   const [open, setOpen] = useState(false)
   const ref = useRef()
   const valueKey = fieldKey === 'askPrice' ? 'askPriceValue' : fieldKey === 'rent' ? 'rentValue' : 'depositValue'
-  const unitKey  = fieldKey === 'askPrice' ? 'askPriceUnit'  : fieldKey === 'rent' ? 'rentUnit'  : 'depositUnit'
+  const unitKey = fieldKey === 'askPrice' ? 'askPriceUnit' : fieldKey === 'rent' ? 'rentUnit' : 'depositUnit'
   const err = formik.touched[valueKey] && formik.errors[valueKey]
 
   useEffect(() => {
@@ -260,7 +260,7 @@ export const PricingDivider = () => (
 // ─── Amenities ────────────────────────────────────────────────────────────────
 export const AmenitiesInput = ({ formik }) => {
   const [customInput, setCustomInput] = useState('')
-  const [extras, setExtras]           = useState([])
+  const [extras, setExtras] = useState([])
   const all = [...AMENITY_OPTIONS, ...extras.map(v => ({ value: v, label: v }))]
 
   const toggle = v => {
@@ -315,15 +315,15 @@ export const AmenitiesInput = ({ formik }) => {
 // ─── renderField ──────────────────────────────────────────────────────────────
 export function renderField(key, cfg, formik) {
   switch (cfg.type) {
-    case 'text':        return <TextInput    name={key} placeholder={`Enter ${cfg.label}`} formik={formik} />
-    case 'number':      return <NumberInput  name={key} placeholder={`Enter ${cfg.label}`} suffix={cfg.suffix} formik={formik} />
-    case 'dropdown':    return <Dropdown     name={key} placeholder={`Select ${cfg.label}`} options={cfg.options} formik={formik} />
-    case 'yesno':       return <YesNoInput   name={key} formik={formik} />
-    case 'price':       return <PriceInput   fieldKey={key} formik={formik} />
-    case 'config':      return <ConfigInput  formik={formik} />
-    case 'multiselect': return <MultiSelect  name={key} options={cfg.options} formik={formik} />
-    case 'amenities':   return null
-    default:            return <TextInput    name={key} placeholder={`Enter ${cfg.label}`} formik={formik} />
+    case 'text': return <TextInput name={key} placeholder={`Enter ${cfg.label}`} formik={formik} />
+    case 'number': return <NumberInput name={key} placeholder={`Enter ${cfg.label}`} suffix={cfg.suffix} formik={formik} />
+    case 'dropdown': return <Dropdown name={key} placeholder={`Select ${cfg.label}`} options={cfg.options} formik={formik} />
+    case 'yesno': return <YesNoInput name={key} formik={formik} />
+    case 'price': return <PriceInput fieldKey={key} formik={formik} />
+    case 'config': return <ConfigInput formik={formik} />
+    case 'multiselect': return <MultiSelect name={key} options={cfg.options} formik={formik} />
+    case 'amenities': return null
+    default: return <TextInput name={key} placeholder={`Enter ${cfg.label}`} formik={formik} />
   }
 }
 
@@ -336,7 +336,7 @@ export const PhotoUpload = ({ onChange, existingUrls = [], maxCount = 10 }) => {
 
   const add = e => {
     const files = Array.from(e.target.files)
-    const next  = [...previews, ...files.map(f => ({ url: URL.createObjectURL(f), file: f, existing: false }))].slice(0, maxCount)
+    const next = [...previews, ...files.map(f => ({ url: URL.createObjectURL(f), file: f, existing: false }))].slice(0, maxCount)
     setPreviews(next)
     _notify(next)
     e.target.value = ''
@@ -351,8 +351,8 @@ export const PhotoUpload = ({ onChange, existingUrls = [], maxCount = 10 }) => {
   }
 
   const _notify = items => onChange?.({
-    newFiles:     items.filter(x => !x.existing).map(x => x.file),
-    existingUrls: items.filter(x =>  x.existing).map(x => x.url),
+    newFiles: items.filter(x => !x.existing).map(x => x.file),
+    existingUrls: items.filter(x => x.existing).map(x => x.url),
   })
 
   return (
@@ -410,19 +410,19 @@ export const VideoUpload = ({ onChange, existingUrl = null }) => {
     <div>
       {!video
         ? <div onClick={() => ref.current?.click()}
-            className="flex items-center gap-2 border-2 border-dashed border-gray-200 rounded-xl p-3 cursor-pointer hover:border-orange-300 transition-colors">
-            <Upload className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-400">Add Video</span>
-            <span className="ml-auto text-xs text-gray-300">max 100MB</span>
-          </div>
+          className="flex items-center gap-2 border-2 border-dashed border-gray-200 rounded-xl p-3 cursor-pointer hover:border-orange-300 transition-colors">
+          <Upload className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-400">Add Video</span>
+          <span className="ml-auto text-xs text-gray-300">max 100MB</span>
+        </div>
         : <div className="relative border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
-            <video src={video.url} className="w-full h-24 object-cover" controls />
-            <button type="button" onClick={remove}
-              className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center shadow">
-              <X className="w-3 h-3" />
-            </button>
-            {video.existing && <p className="text-[10px] text-gray-400 px-2 py-1">Existing video</p>}
-          </div>
+          <video src={video.url} className="w-full h-24 object-cover" controls />
+          <button type="button" onClick={remove}
+            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center shadow">
+            <X className="w-3 h-3" />
+          </button>
+          {video.existing && <p className="text-[10px] text-gray-400 px-2 py-1">Existing video</p>}
+        </div>
       }
       <input ref={ref} type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden" onChange={add} />
     </div>
@@ -467,28 +467,23 @@ async function forwardGeocode(query) {
 
 // ─── Map Picker Modal ─────────────────────────────────────────────────────────
 export const MapPickerModal = ({ onClose, onConfirm, initialAddress = '' }) => {
-  const [markerPos,   setMarkerPos]   = useState(null)
-  const [flyTarget,   setFlyTarget]   = useState(null)
+  const [markerPos, setMarkerPos] = useState(null)
+  const [flyTarget, setFlyTarget] = useState(null)
   const [displayAddr, setDisplayAddr] = useState('')
-  const [searchText,  setSearchText]  = useState(initialAddress)
+  const [searchText, setSearchText] = useState(initialAddress)
   const [suggestions, setSuggestions] = useState([])
-  const [searching,   setSearching]   = useState(false)
-  const [confirming,  setConfirming]  = useState(false)
+  const [searching, setSearching] = useState(false)
+  const [confirming, setConfirming] = useState(false)
   const debounceRef = useRef(null)
+  const abortRef = useRef(null)
 
   // Geocode initial address on first open
-  useEffect(() => {
-    if (!initialAddress.trim()) return
-    forwardGeocode(initialAddress)
-      .then(results => {
-        if (!results?.[0]) return
-        const pos = { lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon) }
-        setMarkerPos(pos)
-        setFlyTarget(pos)
-        setDisplayAddr(results[0].display_name)
-      })
-      .catch(() => {})
-  }, []) // run once on mount
+ useEffect(() => {
+  return () => {
+    abortRef.current?.abort()
+    clearTimeout(debounceRef.current)
+  }
+}, [])
 
   // Drop/move marker + reverse geocode on map click
   const handleMapClick = async (latlng) => {
@@ -499,7 +494,7 @@ export const MapPickerModal = ({ onClose, onConfirm, initialAddress = '' }) => {
         setDisplayAddr(data.display_name)
         setSearchText(data.display_name)
       }
-    } catch {}
+    } catch { }
   }
 
   // Reverse geocode after dragging the marker
@@ -512,7 +507,7 @@ export const MapPickerModal = ({ onClose, onConfirm, initialAddress = '' }) => {
         setDisplayAddr(data.display_name)
         setSearchText(data.display_name)
       }
-    } catch {}
+    } catch { }
   }
 
   // Debounced search-as-you-type
@@ -523,16 +518,23 @@ export const MapPickerModal = ({ onClose, onConfirm, initialAddress = '' }) => {
     if (!val.trim()) return
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
+      abortRef.current?.abort()
+      abortRef.current = new AbortController()
       setSearching(true)
       try {
-        setSuggestions(await forwardGeocode(val) || [])
-      } catch {
-        setSuggestions([])
+        const r = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&addressdetails=1&limit=6&countrycodes=in`,
+          { headers: NOMINATIM_HEADERS, signal: abortRef.current.signal }
+        )
+        setSuggestions(await r.json() || [])
+      } catch (e) {
+        if (e.name !== 'AbortError') setSuggestions([])
       } finally {
         setSearching(false)
       }
     }, 400)
   }
+
 
   const selectSuggestion = (item) => {
     const pos = { lat: parseFloat(item.lat), lng: parseFloat(item.lon) }
@@ -555,7 +557,7 @@ export const MapPickerModal = ({ onClose, onConfirm, initialAddress = '' }) => {
           setDisplayAddr(data.display_name)
           setSearchText(data.display_name)
         }
-      } catch {}
+      } catch { }
     })
   }
 
@@ -577,8 +579,8 @@ export const MapPickerModal = ({ onClose, onConfirm, initialAddress = '' }) => {
       onConfirm({
         address: streetAddr || data?.display_name || '',
         pincode: a.postcode || '',
-        city:    a.city || a.town || a.village || a.county || '',
-        state:   a.state || '',
+        city: a.city || a.town || a.village || a.county || '',
+        state: a.state || '',
       })
     } catch {
       setConfirming(false)
