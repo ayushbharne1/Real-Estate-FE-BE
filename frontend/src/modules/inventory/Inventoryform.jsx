@@ -63,6 +63,11 @@ export default function InventoryForm({
     removeVideo:    false,
   })
 
+  const submitPayload = useCallback(
+  (values) => buildSubmitPayload(values),
+  [] // buildSubmitPayload is a pure function, no deps needed
+)
+
   const formik = useFormik({
     initialValues:      initialValues ?? INITIAL_VALUES,
     validateOnChange:   true,
@@ -70,7 +75,7 @@ export default function InventoryForm({
     enableReinitialize: true,
     onSubmit: async values => {
       // This only runs when the submit button (type="submit") is clicked on step 2
-      const payload = buildSubmitPayload(values)
+      const payload = submitPayload(values)
       const media   = mediaRef.current
 
       const fd = buildFormData(
