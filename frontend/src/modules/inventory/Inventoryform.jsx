@@ -1,5 +1,5 @@
 // src/modules/inventory/InventoryForm.jsx
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef, useEffect,useCallback  } from 'react'
 import { useFormik } from 'formik'
 import { useDispatch, useSelector } from 'react-redux'
 import {
