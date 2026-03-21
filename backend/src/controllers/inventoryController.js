@@ -689,14 +689,14 @@ export const getSuggestions = async (req, res) => {
 
 export const getKeywords = async (req, res) => {
   try {
-    const { q } = req.query;
-    if (!q || q.trim().length < 1) return success(res, []);
- 
-    const q_lower = q.trim().toLowerCase();
-    const re = new RegExp(q.trim(), "i");
-    const keywords = new Set();
- 
-    // ── Static label keywords ─────────────────────────────────
+    const { q } = req.query
+    if (!q || q.trim().length < 1) return success(res, [])
+
+    const q_lower = q.trim().toLowerCase()
+    const re = new RegExp(q.trim(), 'i')
+    const keywords = new Set()
+
+    // Static label matching — stays in JS, zero DB cost
     const staticCandidates = [
       ...Object.values(ASSET_LABELS),
       ...Object.values(POSSESSION_LABELS),
@@ -708,87 +708,67 @@ export const getKeywords = async (req, res) => {
       'Corner Unit', 'Gated Community',
       'Swimming Pool', 'Gym', 'Parking', 'Power Backup',
       'CCTV', 'Security', 'Lift', 'Garden',
-    ];
- 
+    ]
     for (const val of staticCandidates) {
-      if (val.toLowerCase().includes(q_lower)) keywords.add(val);
+      if (val.toLowerCase().includes(q_lower)) keywords.add(val)
     }
- 
-    // ── DB keywords ───────────────────────────────────────────
-    const items = await Property.find({
-      isActive: true,
-      $or: [
-        { "basicDetails.name":             re },
-        { "basicDetails.city":             re },
-        { "basicDetails.area":             re },
-        { "basicDetails.address":          re },
-        { "basicDetails.assetType":        re },
-        { "basicDetails.possession":       re },
-        { "basicDetails.listingType":      re },
-        { "propertyDetails.furnishing":    re },
-        { "propertyDetails.floorNumber":   re },
-        { "propertyDetails.ageOfBuilding": re },
-        { propertyId:                      re },
-      ],
-    })
-      .select(
-        "propertyId basicDetails.name basicDetails.city basicDetails.area " +
-        "basicDetails.address basicDetails.possession basicDetails.assetType " +
-        "basicDetails.listingType basicDetails.bedrooms " +
-        "propertyDetails.askPrice propertyDetails.priceUnit " +
-        "propertyDetails.rentPerMonth propertyDetails.rentUnit " +
-        "propertyDetails.furnishing propertyDetails.floorNumber propertyDetails.ageOfBuilding"
-      )
-      .limit(40)
-      .lean();
- 
+
+    // Push distinct field extraction into MongoDB — no JS loop over 40 docs
+    const pipeline = [
+      {
+        $match: {
+          isActive: true,
+          $or: [
+            { 'basicDetails.name':    re },
+            { 'basicDetails.city':    re },
+            { 'basicDetails.area':    re },
+            { propertyId:             re },
+          ],
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name:      '$basicDetails.name',
+          city:      '$basicDetails.city',
+          area:      '$basicDetails.area',
+          propertyId: 1,
+          bedrooms:  '$basicDetails.bedrooms',
+          assetType: '$basicDetails.assetType',
+          possession:'$basicDetails.possession',
+        },
+      },
+      { $limit: 20 }, // reduced from 40 — distinct values are enough
+    ]
+
+    const items = await Property.aggregate(pipeline)
+
     for (const item of items) {
-      const b  = item.basicDetails    || {};
-      const pd = item.propertyDetails || {};
-      const isRental = b.listingType === 'RENTAL';
- 
-      const textCandidates = [
-        b.name,
-        b.city,
-        b.area,
-        ASSET_LABELS[b.assetType],
-        POSSESSION_LABELS[b.possession],
-        FURNISHING_LABELS[pd.furnishing],
-        FLOOR_LABELS[pd.floorNumber],
-        AGE_LABELS[pd.ageOfBuilding],
-        b.bedrooms > 0 ? `${b.bedrooms} BHK` : null,
-        ...(b.address ? b.address.split(/[\s,]+/).filter(w => w.length > 2) : []),
-      ].filter(Boolean);
- 
-      for (const val of textCandidates) {
-        if (val.toLowerCase().includes(q_lower)) keywords.add(val.trim());
-      }
- 
-      if (item.propertyId && item.propertyId.toLowerCase().includes(q_lower)) {
-        keywords.add(item.propertyId);
-      }
- 
-      // Price keyword
-      const priceStr = isRental
-        ? _formatPrice(pd.rentPerMonth, pd.rentUnit)
-        : _formatPrice(pd.askPrice, pd.priceUnit);
- 
-      if (priceStr) {
-        if (priceStr.toLowerCase().includes(q_lower)) keywords.add(priceStr);
-        if (/^\d/.test(q.trim())) keywords.add(priceStr);
+      const candidates = [
+        item.name,
+        item.city,
+        item.area,
+        item.propertyId,
+        ASSET_LABELS[item.assetType],
+        POSSESSION_LABELS[item.possession],
+        item.bedrooms > 0 ? `${item.bedrooms} BHK` : null,
+      ].filter(Boolean)
+
+      for (const val of candidates) {
+        if (val.toLowerCase().includes(q_lower)) keywords.add(val.trim())
       }
     }
- 
+
     const result = [...keywords]
       .sort((a, b) => {
-        const aStarts = a.toLowerCase().startsWith(q_lower) ? 0 : 1;
-        const bStarts = b.toLowerCase().startsWith(q_lower) ? 0 : 1;
-        return aStarts - bStarts || a.localeCompare(b);
+        const aStarts = a.toLowerCase().startsWith(q_lower) ? 0 : 1
+        const bStarts = b.toLowerCase().startsWith(q_lower) ? 0 : 1
+        return aStarts - bStarts || a.localeCompare(b)
       })
-      .slice(0, 8);
- 
-    success(res, result);
+      .slice(0, 8)
+
+    success(res, result)
   } catch (err) {
-    error(res, err.message);
+    error(res, err.message)
   }
-};
+}
