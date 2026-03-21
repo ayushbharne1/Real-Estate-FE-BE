@@ -40,8 +40,17 @@ function formatPriceExtended(value, unit) {
   return `₹${value}${UNIT_LABEL[unit] ?? ''}`
 }
 
+function formatPriceDisplay(value, unit) {
+  if (value == null || value === '') return '—'
+  const num = Number(value)
+  if (isNaN(num) || num === 0) return '—'
+  if (unit === 'CRORES') return `₹${num.toFixed(2)} Cr`
+  if (num >= 100) return `₹${(num / 100).toFixed(2)} Cr`
+  return `₹${num.toFixed(2)} L`
+}
+
 export{
   formatPrice, formatConfiguration, getRelativeTime,
   buildGoogleMapsUrl, generatePropertyId, getLabelFromOptions,
-  formatPriceExtended
+  formatPriceExtended, formatPriceDisplay
 };

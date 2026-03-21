@@ -19,6 +19,10 @@ import {
   selectListError,
 } from '../../redux/slices/inventoryslice'
 
+import { ASSET_TYPE_OPTIONS } from 'shared/constants/dropdown.js'
+
+import { formatPriceDisplay as formatPrice } from 'shared/utils/index.js'
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { id: 'all', label: 'All', Icon: LayoutGrid, assetFilter: null },
@@ -28,23 +32,6 @@ const CATEGORIES = [
   { id: 'villas', label: 'Villas', Icon: TreePine, assetFilter: ['VILLA', 'VILAMENT', 'INDEPENDENT_HOUSE', 'ROW_HOUSE'] },
 ]
 
-const ASSET_TYPES = [
-  { label: 'Apartment',          value: 'APARTMENT',           Icon: Home },
-  { label: 'Plot',               value: 'PLOT',                Icon: Landmark },
-  { label: 'Villa',              value: 'VILLA',               Icon: TreePine },
-  { label: 'Independent House',  value: 'INDEPENDENT_HOUSE',   Icon: Home },
-  { label: 'Commercial Space',   value: 'COMMERCIAL_SPACE',    Icon: Building2 },
-  { label: 'Row House',          value: 'ROW_HOUSE',           Icon: Home },
-  { label: 'Commercial Property',value: 'COMMERCIAL_PROPERTY', Icon: Warehouse },
-  { label: 'Villament',          value: 'VILAMENT',            Icon: Home },
-  { label: 'Office Space',       value: 'OFFICE_SPACE',        Icon: Building2 },
-  { label: 'Retail Space',       value: 'RETAIL_SPACE',        Icon: Store },
-  { label: 'Showroom',           value: 'SHOWROOM',            Icon: Store },
-  { label: 'Shop',               value: 'SHOP',                Icon: Store },
-  { label: 'Tech Park',          value: 'TECH_PARK',           Icon: Building2 },
-  { label: 'Warehouse',          value: 'WAREHOUSE',           Icon: Warehouse },
-  { label: 'Industrial Land',    value: 'INDUSTRIAL_LAND',     Icon: Landmark },
-]
 
 const BHK_OPTIONS = ['1BHK', '2BHK', '3BHK', '4BHK', '5BHK']
 
@@ -60,15 +47,6 @@ const SORT_OPTIONS = [
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const RED = '#E8431A'
 
-function formatPrice(value, unit) {
-  if (value == null || value === '') return '—'
-  const num = Number(value)
-  if (isNaN(num) || num === 0) return '—'
-  if (unit === 'CRORES') return `₹${num.toFixed(2)} Cr`
-  if (num >= 100) return `₹${(num / 100).toFixed(2)} Cr`
-  return `₹${num.toFixed(2)} L`
-}
-
 function formatSqft(val) {
   return val ? `${Number(val).toLocaleString()} sq.ft` : '—'
 }
@@ -83,7 +61,7 @@ function getBHKLabel(bedrooms) {
 }
 
 function getAssetLabel(assetType) {
-  return ASSET_TYPES.find(a => a.value === assetType)?.label || assetType || '—'
+  return ASSET_TYPE_OPTIONS.find(a => a.value === assetType)?.label || assetType || '—'
 }
 
 function labelify(str) {
@@ -227,7 +205,7 @@ const AssetTypeDropdown = ({ selected, onChange, counts = {} }) => {
   }, [])
 
   // Only show asset types that have at least 1 property
-  const visibleTypes = ASSET_TYPES.filter(({ value }) => (counts[value] ?? 0) > 0)
+  const visibleTypes = ASSET_TYPE_OPTIONS.filter(({ value }) => (counts[value] ?? 0) > 0)
 
   return (
     <div ref={ref} className="relative">
