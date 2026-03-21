@@ -3,8 +3,9 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Search, X, Loader2 } from 'lucide-react'
 import api from '../../api/axiosInstance'
+import { setSearchQuery } from '../../redux/slices/uiSlice'
+import { useDispatch } from 'react-redux'
 
-export const SEARCH_EVENT = 'navbar:search'
 
 export default function SearchBar() {
   const [query, setQuery] = useState('')
@@ -18,6 +19,8 @@ export default function SearchBar() {
   const debounceRef = useRef(null)
   const containerRef = useRef(null)
   const inputRef = useRef(null)
+
+  const dispatch = useDispatch()
 
   // Close on outside click
   useEffect(() => {
@@ -48,9 +51,9 @@ export default function SearchBar() {
     if (location.pathname !== '/') {
       navigate('/', { state: { search: q } })
     } else {
-      window.dispatchEvent(new CustomEvent(SEARCH_EVENT, { detail: q }))
+      dispatch(setSearchQuery(q))
     }
-  }, [location.pathname, navigate])
+  }, [location.pathname, navigate, dispatch])
 
   const fetchSuggestions = useCallback(async (q) => {
     if (!q.trim()) { setSuggestions([]); setOpen(false); return }

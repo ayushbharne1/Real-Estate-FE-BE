@@ -23,6 +23,8 @@ import { ASSET_TYPE_OPTIONS } from 'shared/constants/dropdown.js'
 
 import { formatPriceDisplay as formatPrice } from 'shared/utils/index.js'
 
+import { selectSearchQuery } from '../../redux/slices/uiSlice'
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { id: 'all', label: 'All', Icon: LayoutGrid, assetFilter: null },
@@ -448,6 +450,7 @@ const Dashboard = () => {
   const loading = useSelector(selectListLoading)
   const listError = useSelector(selectListError)
   const assetCounts = useSelector(selectAssetCounts)
+  const navbarSearch = useSelector(selectSearchQuery)
 
   const [viewMode, setViewMode] = useState('grid')
   const [activeCategory, setActiveCategory] = useState('all')
@@ -464,17 +467,6 @@ const Dashboard = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const debounceRef = useRef(null)
 
-  useEffect(() => {
-    const handler = (e) => {
-      const q = e.detail || ''
-      setInputSearch(q)
-      clearTimeout(debounceRef.current)
-      setDebouncedSearch(q)
-      setPage(1)
-    }
-    window.addEventListener('navbar:search', handler)
-    return () => window.removeEventListener('navbar:search', handler)
-  }, [])
  
 
   const isRental = activeTab === 'rental'
@@ -490,9 +482,9 @@ const Dashboard = () => {
     if (sbua?.min) params.sbuaMin = sbua.min
     if (sbua?.max) params.sbuaMax = sbua.max
     if (sortBy) params.sortBy = sortBy
-    if (debouncedSearch) params.search = debouncedSearch
+    if (navbarSearch) params.search = navbarSearch 
     return params
-  }, [isRental, activeCategory, assetType, configuration, budget, sbua, sortBy, page, limit, debouncedSearch])
+  }, [isRental, activeCategory, assetType, configuration, budget, sbua, sortBy, page, limit, navbarSearch])
 
  useEffect(() => {
   const params = buildParams()
@@ -512,7 +504,7 @@ const Dashboard = () => {
     setConfiguration([]); setBudget(null); setSbua(null); setSortBy(null)
   }
   const handleCategoryChange = (cat) => { setActiveCategory(cat); setPage(1); setAssetType(null) }
-  const hasFilters = assetType || configuration.length > 0 || budget?.min || budget?.max || sbua?.min || sbua?.max || sortBy || debouncedSearch
+  const hasFilters = assetType || configuration.length > 0 || budget?.min || budget?.max || sbua?.min || sbua?.max || sortBy
 
   return (
     <div className="bg-white min-h-[80vh]" style={{ fontFamily: "'Segoe UI', sans-serif" }}>
