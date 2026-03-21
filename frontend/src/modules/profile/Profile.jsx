@@ -1,12 +1,12 @@
 // src/modules/profile/Profile.jsx
 
 import { useEffect, useState } from 'react'
-import { useNavigate }         from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { toast }               from 'react-toastify'
+import { toast } from 'react-toastify'
 import { User, AtSign, Mail, LogOut, Camera } from 'lucide-react'
 
-import { logoutUser }          from '../../redux/slices/authSlice'
+import { logoutUser } from '../../redux/slices/authSlice'
 import {
   fetchProfile,
   selectProfile,
@@ -14,45 +14,10 @@ import {
   selectProfileError,
 } from '../../redux/slices/profileSlice'
 
+import ConfirmModal from '../../components/common/ConfirmModal'
+
 const RED = '#E8431A'
 
-// ── Confirm Modal ─────────────────────────────────────────────────────────────
-const ConfirmModal = ({ isOpen, title, message, confirmText, cancelText, onConfirm, onCancel }) => {
-  if (!isOpen) return null
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div
-        className="bg-white w-80 rounded-2xl shadow-2xl p-7 text-center"
-        style={{ border: `2px solid ${RED}40` }}
-      >
-        <div
-          className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
-          style={{ background: `${RED}15` }}
-        >
-          <LogOut className="w-6 h-6" style={{ color: RED }} />
-        </div>
-        <h2 className="text-xl font-black mb-2" style={{ color: RED }}>{title}</h2>
-        <p className="text-gray-500 text-sm mb-7">{message}</p>
-        <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            className="flex-1 py-2.5 rounded-xl border text-sm font-semibold hover:bg-orange-50 transition"
-            style={{ borderColor: RED, color: RED }}
-          >
-            {cancelText}
-          </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold transition hover:opacity-90"
-            style={{ background: RED }}
-          >
-            {confirmText}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 // ── Info Row ──────────────────────────────────────────────────────────────────
 const InfoRow = ({ icon: Icon, label, value }) => (
@@ -87,12 +52,12 @@ const Profile = () => {
   const navigate = useNavigate()
 
   // Profile state — from profileSlice (GET /api/auth/me)
-  const profile        = useSelector(selectProfile)
+  const profile = useSelector(selectProfile)
   const profileLoading = useSelector(selectProfileLoading)
-  const profileError   = useSelector(selectProfileError)
+  const profileError = useSelector(selectProfileError)
 
   const [showConfirm, setShowConfirm] = useState(false)
-  const [loggingOut,  setLoggingOut]  = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
 
   // Fetch fresh profile from API on mount
   useEffect(() => {
@@ -109,7 +74,7 @@ const Profile = () => {
 
   // API returns userName (not name) — derive display name + initials
   const displayName = profile?.userName || 'Admin'
-  const initials    = displayName
+  const initials = displayName
     .split(' ')
     .map((w) => w[0])
     .join('')
@@ -203,9 +168,9 @@ const Profile = () => {
             </div>
           ) : (
             <>
-              <InfoRow icon={User}   label="Username"      value={profile?.userName} />
-              <InfoRow icon={Mail}   label="Email Address" value={profile?.email} />
-              <InfoRow icon={AtSign} label="Admin ID"      value={profile?.id} />
+              <InfoRow icon={User} label="Username" value={profile?.userName} />
+              <InfoRow icon={Mail} label="Email Address" value={profile?.email} />
+              <InfoRow icon={AtSign} label="Admin ID" value={profile?.id} />
             </>
           )}
         </div>
