@@ -5,7 +5,7 @@ import inventoryReducer from './slices/inventoryslice'
 import profileReducer from './slices/profileSlice'
 import buyerReducer from './slices/buyerSlice'
 
-export const store = configureStore({
+ const store = configureStore({
   reducer: {
     auth:      authReducer,
     inventory: inventoryReducer,
