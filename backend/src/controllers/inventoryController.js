@@ -361,7 +361,7 @@ export const getProperties = async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 export const getProperty = async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id);
+    const property = await Property.findOne({ _id: req.params.id ,isActive: true});
     if (!property) return error(res, "Property not found", 404);
     success(res, property);
   } catch (err) {
