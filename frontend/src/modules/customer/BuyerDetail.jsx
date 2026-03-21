@@ -17,6 +17,7 @@ import {
   Calendar, RefreshCw, PhoneCall,
 } from "lucide-react";
 import { ASSET_TYPE_OPTIONS } from "shared/constants/dropdown.js";
+import { formatPriceExtended as formatPrice } from 'shared/utils/index.js'
 
 /* ─────────────────────────── constants ─────────────────────────── */
 const RED = "#EE5352";
@@ -39,11 +40,7 @@ const UNIT_LABEL = {
   CRORES: "Cr",
 };
 
-function formatPrice(value, unit) {
-  if (!value && value !== 0) return "—";
-  if (value === 0) return "—";
-  return `₹${value}${UNIT_LABEL[unit] ?? ""}`;
-}
+ 
 
 function formatDate(iso) {
   if (!iso) return "—";

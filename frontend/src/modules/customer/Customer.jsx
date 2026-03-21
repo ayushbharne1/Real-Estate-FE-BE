@@ -31,11 +31,7 @@ import {
   PRICE_UNIT_LABEL,
 } from "shared/constants/dropdown.js"
 
-/* ─────────────────────────── constants ─────────────────────────── */
-function formatPrice(value, unit) {
-  if (!value || value === 0) return "—";
-  return `₹${value}${PRICE_UNIT_LABEL[unit] ?? ""}`;
-}
+import { formatPriceExtended as formatPrice } from 'shared/utils/index.js'
 
 /* ─────────────────────────── main page ─────────────────────────── */
 export default function Customer() {

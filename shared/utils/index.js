@@ -34,7 +34,14 @@ function getLabelFromOptions(options, value) {
   return options.find((o) => o.value === value)?.label ?? value;
 }
 
+function formatPriceExtended(value, unit) {
+  if (!value || value === 0) return '—'
+  const UNIT_LABEL = { THOUSANDS: 'K', LAKHS: 'L', CRORES: 'Cr' }
+  return `₹${value}${UNIT_LABEL[unit] ?? ''}`
+}
+
 export{
   formatPrice, formatConfiguration, getRelativeTime,
   buildGoogleMapsUrl, generatePropertyId, getLabelFromOptions,
+  formatPriceExtended
 };
