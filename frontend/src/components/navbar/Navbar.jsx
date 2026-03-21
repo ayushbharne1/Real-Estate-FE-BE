@@ -6,7 +6,6 @@ import { Bell } from 'lucide-react'
 import companyLogo from '../../assets/logo.svg'
 import SearchBar from './SearchBar'
 
-export { SEARCH_EVENT } from './SearchBar'
 
 const Navbar = () => {
   const location = useLocation()

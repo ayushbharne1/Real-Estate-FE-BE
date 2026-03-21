@@ -1,14 +1,6 @@
 // src/api/buyerApi.js
 // All buyer / customer API calls — JSON body (no multipart)
 import api from "./axiosInstance";
-
-// Attach auth token on every request
-api.interceptors.request.use(cfg => {
-  const token = localStorage.getItem('token')
-  if (token) cfg.headers.Authorization = `Bearer ${token}`
-  return cfg
-})
-
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
 function _normalise(err) {
