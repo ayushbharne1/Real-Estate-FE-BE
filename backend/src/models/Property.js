@@ -190,4 +190,11 @@ propertySchema.pre("save", async function (next) {
   next();
 });
 
+// Indexes
+propertySchema.index({ isActive: 1, 'basicDetails.listingType': 1, 'basicDetails.assetType': 1 });
+propertySchema.index({ 'propertyDetails.askPrice': 1 });
+propertySchema.index({ 'propertyDetails.pricePerSqft': 1 });
+propertySchema.index({ createdAt: -1 });
+propertySchema.index({ 'basicDetails.city': 1 });
+
 export default mongoose.model("Property", propertySchema);
