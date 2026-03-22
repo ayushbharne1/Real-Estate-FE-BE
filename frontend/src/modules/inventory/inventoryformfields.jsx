@@ -334,6 +334,13 @@ export const PhotoUpload = ({ onChange, existingUrls = [], maxCount = 10 }) => {
     existingUrls.map(url => ({ url, file: null, existing: true }))
   )
 
+
+   useEffect(() => {
+    return () => {
+      previews.forEach(p => { if (!p.existing) URL.revokeObjectURL(p.url) })
+    }
+  }, []) // empty deps — only run on unmount
+
   const add = e => {
     const files = Array.from(e.target.files)
     const next = [...previews, ...files.map(f => ({ url: URL.createObjectURL(f), file: f, existing: false }))].slice(0, maxCount)
