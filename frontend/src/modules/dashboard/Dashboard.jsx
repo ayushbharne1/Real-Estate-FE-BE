@@ -1,5 +1,5 @@
 // src/modules/dashboard/Dashboard.jsx
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -95,7 +95,7 @@ function buildShareMessage(prop) {
 }
 
 // ── Share Modal ───────────────────────────────────────────────────────────────
-const ShareModal = ({ prop, onClose }) => {
+const ShareModal = memo(({ prop, onClose }) => {
   const [copied, setCopied] = useState(false)
   const message = buildShareMessage(prop)
   const propUrl = `${window.location.origin}/property/details/${prop._id}`
@@ -129,14 +129,14 @@ const ShareModal = ({ prop, onClose }) => {
       </div>
     </div>
   )
-}
+})
 
 // ── PropertyCard ──────────────────────────────────────────────────────────────
 const Chip = ({ label }) => (
   <span className="text-xs border border-gray-200 rounded-full px-3 py-1 text-gray-500 whitespace-nowrap bg-gray-50">{label}</span>
 )
 
-const PropertyCard = ({ prop, mode, onShare }) => {
+const PropertyCard = memo(({ prop, mode, onShare }) => {
   const navigate = useNavigate()
   const isRental = mode === 'rental'
   const b = prop.basicDetails || {}
@@ -193,10 +193,10 @@ const PropertyCard = ({ prop, mode, onShare }) => {
       </div>
     </div>
   )
-}
+})
 
 // ── Asset Type Dropdown — only shows types with count > 0 ─────────────────────
-const AssetTypeDropdown = ({ selected, onChange, counts = {} }) => {
+const AssetTypeDropdown = memo(({ selected, onChange, counts = {} }) => {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -236,7 +236,7 @@ const AssetTypeDropdown = ({ selected, onChange, counts = {} }) => {
       )}
     </div>
   )
-}
+})
 
 const ConfigurationDropdown = ({ selected, onChange }) => {
   const [open, setOpen] = useState(false)
