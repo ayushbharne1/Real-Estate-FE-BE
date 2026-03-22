@@ -1,7 +1,7 @@
 // Route: /customer
 // Dependencies: @tanstack/react-table, lucide-react, react-router-dom, react-redux
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo,useCallback  } from "react";
 import {
   useReactTable,
   getCoreRowModel,
