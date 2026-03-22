@@ -1,8 +1,8 @@
 // src/modules/inventory/InventorySteps.jsx
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { State, City } from 'country-state-city'
-import { MapPin, AlertCircle, Check } from 'lucide-react'
+import { MapPin, AlertCircle, Check, Loader2 } from 'lucide-react'
 import {
   Label, FieldError, TextInput, Dropdown, PricingDivider,
   PhotoUpload, VideoUpload, AmenitiesInput, renderField,
@@ -22,11 +22,117 @@ function makeRows(entries) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// ADDRESS AUTOCOMPLETE
+// ─────────────────────────────────────────────────────────────────────────────
+const AddressAutocomplete = ({ name, placeholder, formik }) => {
+  const [suggestions, setSuggestions] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [open, setOpen] = useState(false)
+  const debounceRef = useRef(null)
+  const abortRef = useRef(null)
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    const handler = e => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      abortRef.current?.abort()
+      clearTimeout(debounceRef.current)
+    }
+  }, [])
+
+  const handleChange = e => {
+    const val = e.target.value
+    formik.setFieldValue(name, val)
+    setSuggestions([])
+
+    if (!val.trim() || val.length < 3) { setOpen(false); return }
+
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      abortRef.current?.abort()
+      abortRef.current = new AbortController()
+      setLoading(true)
+      try {
+        const r = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&addressdetails=1&limit=6&countrycodes=in`,
+          { headers: { 'Accept-Language': 'en' }, signal: abortRef.current.signal }
+        )
+        const data = await r.json()
+        setSuggestions(data || [])
+        setOpen((data || []).length > 0)
+      } catch (err) {
+        if (err.name !== 'AbortError') setSuggestions([])
+      } finally {
+        setLoading(false)
+      }
+    }, 400)
+  }
+
+  const handleSelect = (item, setPincodeStatus) => {
+    const a = item.address || {}
+    const streetParts = [
+      a.house_number,
+      a.road || a.pedestrian || a.footway,
+      a.neighbourhood || a.suburb || a.quarter,
+    ].filter(Boolean)
+    const streetAddr = streetParts.length
+      ? streetParts.join(', ')
+      : item.display_name.split(',').slice(0, 3).join(',').trim()
+
+    formik.setFieldValue(name, streetAddr)
+
+    if (a.postcode) {
+      formik.setFieldValue('pincode', a.postcode)
+      formik.setFieldError('pincode', undefined)
+      formik.setFieldTouched('pincode', false, false)
+      setPincodeStatus?.('found')
+    }
+
+    if (a.state) {
+      const norm = s => s.toLowerCase().replace(/\s+/g, '')
+      const matched = IN_STATES.find(s =>
+        norm(s.name) === norm(a.state) ||
+        norm(s.name).includes(norm(a.state)) ||
+        norm(a.state).includes(norm(s.name))
+      )
+      const stateName = matched?.name || a.state
+      formik.setFieldValue('state', stateName)
+
+      const cityName = a.city || a.town || a.village || a.county || ''
+      if (cityName) {
+        if (matched) {
+          const stateCities = City.getCitiesOfState('IN', matched.isoCode).map(c => c.name)
+          const matchedCity = stateCities.find(c =>
+            norm(c) === norm(cityName) ||
+            norm(cityName).includes(norm(c)) ||
+            norm(c).includes(norm(cityName))
+          )
+          formik.setFieldValue('city', matchedCity || cityName)
+        } else {
+          formik.setFieldValue('city', cityName)
+        }
+      }
+    }
+
+    setSuggestions([])
+    setOpen(false)
+  }
+
+  const err = formik.touched[name] && formik.errors[name]
+
+  return { suggestions, loading, open, containerRef, handleChange, handleSelect, err }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // STEP 1 — Basic Details
 // ─────────────────────────────────────────────────────────────────────────────
 export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = [], existingVideoUrl = null }) => {
   const [pincodeStatus, setPincodeStatus] = useState('idle')
-  const [showMap,       setShowMap]       = useState(false)
+  const [showMap, setShowMap] = useState(false)
 
   const listingType  = formik.values.listingType
   const assetOptions = getAssetTypeOptions(listingType)
@@ -35,7 +141,104 @@ export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = 
   const cities      = selState ? City.getCitiesOfState('IN', selState.isoCode).map(c => c.name) : []
   const cityOptions = cities.map(c => ({ value: c, label: c }))
 
-  // ── Pincode auto-fill via postal API ─────────────────────────────────────
+  // ── Address autocomplete state ────────────────────────────────────────────
+  const [addrSuggestions, setAddrSuggestions] = useState([])
+  const [addrLoading, setAddrLoading] = useState(false)
+  const [addrOpen, setAddrOpen] = useState(false)
+  const addrDebounceRef = useRef(null)
+  const addrAbortRef = useRef(null)
+  const addrContainerRef = useRef(null)
+
+  useEffect(() => {
+    const handler = e => {
+      if (addrContainerRef.current && !addrContainerRef.current.contains(e.target)) setAddrOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      addrAbortRef.current?.abort()
+      clearTimeout(addrDebounceRef.current)
+    }
+  }, [])
+
+  const handleAddressChange = e => {
+    const val = e.target.value
+    formik.setFieldValue('address', val)
+    setAddrSuggestions([])
+
+    if (!val.trim() || val.length < 3) { setAddrOpen(false); return }
+
+    clearTimeout(addrDebounceRef.current)
+    addrDebounceRef.current = setTimeout(async () => {
+      addrAbortRef.current?.abort()
+      addrAbortRef.current = new AbortController()
+      setAddrLoading(true)
+      try {
+        const r = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&addressdetails=1&limit=6&countrycodes=in`,
+          { headers: { 'Accept-Language': 'en' }, signal: addrAbortRef.current.signal }
+        )
+        const data = await r.json()
+        setAddrSuggestions(data || [])
+        setAddrOpen((data || []).length > 0)
+      } catch (err) {
+        if (err.name !== 'AbortError') setAddrSuggestions([])
+      } finally {
+        setAddrLoading(false)
+      }
+    }, 400)
+  }
+
+  const handleAddrSelect = item => {
+    const a = item.address || {}
+    const streetParts = [
+      a.house_number,
+      a.road || a.pedestrian || a.footway,
+      a.neighbourhood || a.suburb || a.quarter,
+    ].filter(Boolean)
+    const streetAddr = streetParts.length
+      ? streetParts.join(', ')
+      : item.display_name.split(',').slice(0, 3).join(',').trim()
+
+    formik.setFieldValue('address', streetAddr)
+
+    if (a.postcode) {
+      formik.setFieldValue('pincode', a.postcode)
+      formik.setFieldError('pincode', undefined)
+      formik.setFieldTouched('pincode', false, false)
+      setPincodeStatus('found')
+    }
+
+    if (a.state) {
+      const norm = s => s.toLowerCase().replace(/\s+/g, '')
+      const matched = IN_STATES.find(s =>
+        norm(s.name) === norm(a.state) ||
+        norm(s.name).includes(norm(a.state)) ||
+        norm(a.state).includes(norm(s.name))
+      )
+      const stateName = matched?.name || a.state
+      formik.setFieldValue('state', stateName)
+
+      const cityName = a.city || a.town || a.village || a.county || ''
+      if (cityName && matched) {
+        const stateCities = City.getCitiesOfState('IN', matched.isoCode).map(c => c.name)
+        const norm2 = s => s.toLowerCase().replace(/\s+/g, '')
+        const matchedCity = stateCities.find(c =>
+          norm2(c) === norm2(cityName) ||
+          norm2(cityName).includes(norm2(c)) ||
+          norm2(c).includes(norm2(cityName))
+        )
+        formik.setFieldValue('city', matchedCity || cityName)
+      } else if (cityName) {
+        formik.setFieldValue('city', cityName)
+      }
+    }
+
+    setAddrSuggestions([])
+    setAddrOpen(false)
+  }
+
+  // ── Pincode auto-fill ─────────────────────────────────────────────────────
   const handlePin = async e => {
     const val = e.target.value.replace(/\D/g, '').slice(0, 6)
     formik.setFieldValue('pincode', val)
@@ -69,9 +272,7 @@ export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = 
     }
   }
 
-  // ── Map confirm — fills address, pincode, state, city ────────────────────
-  // Nominatim state names may differ slightly from country-state-city library
-  // (e.g. "Odisha" vs "Orissa") so we do a fuzzy normalised match.
+  // ── Map confirm ───────────────────────────────────────────────────────────
   const handleMapConfirm = ({ address, pincode, city, state }) => {
     if (address) formik.setFieldValue('address', address)
 
@@ -95,11 +296,12 @@ export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = 
       if (city) {
         if (matched) {
           const stateCities = City.getCitiesOfState('IN', matched.isoCode).map(c => c.name)
-          const matchedCity = stateCities.find(c =>
-            norm(c) === norm(city) ||
-            norm(city).includes(norm(c)) ||
-            norm(c).includes(norm(city))
-          )
+          const matchedCity = stateCities.find(c => {
+            const norm2 = s => s.toLowerCase().replace(/\s+/g, '')
+            return norm2(c) === norm2(city) ||
+              norm2(city).includes(norm2(c)) ||
+              norm2(c).includes(norm2(city))
+          })
           formik.setFieldValue('city', matchedCity || city)
         } else {
           formik.setFieldValue('city', city)
@@ -111,6 +313,8 @@ export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = 
 
     setShowMap(false)
   }
+
+  const addrErr = formik.touched.address && formik.errors.address
 
   return (
     <>
@@ -144,10 +348,48 @@ export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = 
           </div>
         </div>
 
-        {/* Address */}
+        {/* Address — searchable autocomplete */}
         <div>
           <Label required>Address</Label>
-          <TextInput name="address" placeholder="Full property address" formik={formik} />
+          <div ref={addrContainerRef} className="relative">
+            <div className="relative">
+              <input
+                type="text"
+                name="address"
+                placeholder="Search full property address…"
+                value={formik.values.address ?? ''}
+                onChange={handleAddressChange}
+                onBlur={formik.handleBlur}
+                autoComplete="off"
+                className={inputBase}
+                style={addrErr ? { borderColor: RED } : {}}
+                onFocus={e => Object.assign(e.target.style, focusStyle)}
+                onBlurCapture={e => Object.assign(e.target.style, blurStyle)}
+              />
+              {addrLoading && (
+                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin pointer-events-none" />
+              )}
+            </div>
+
+            {addrOpen && addrSuggestions.length > 0 && (
+              <ul className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-2xl z-[9999] max-h-56 overflow-y-auto">
+                {addrSuggestions.map((s, i) => (
+                  <li key={i}>
+                    <button
+                      type="button"
+                      onMouseDown={() => handleAddrSelect(s)}
+                      className="w-full text-left px-4 py-2.5 text-sm hover:bg-orange-50 transition-colors border-b border-gray-50 last:border-0 flex items-start gap-2"
+                    >
+                      <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-gray-400" />
+                      <span className="text-gray-700 leading-snug">{s.display_name}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <FieldError name="address" formik={formik} />
+          </div>
         </div>
 
         {/* Pincode / State / City / Open Map */}
@@ -210,7 +452,7 @@ export const Step1 = ({ formik, onPhotosChange, onVideoChange, existingImages = 
         </div>
       </div>
 
-      {/* Map modal — outside the form grid to avoid z-index clipping */}
+      {/* Map modal */}
       {showMap && (
         <MapPickerModal
           initialAddress={formik.values.address || ''}
