@@ -34,25 +34,16 @@ export default function SearchBar() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // Restore from nav state
-  useEffect(() => {
-    if (location.pathname === '/' && location.state?.search) {
-      const q = location.state.search
-      setQuery(q)
-      fireSearch(q)
-      window.history.replaceState({}, '')
-    }
-  }, [location])
+ 
 
-  const fireSearch = useCallback((q) => {
-    setSuggestions([])
-    setOpen(false)
-    setActiveIdx(-1)
-    dispatch(setSearchQuery(q))
-    dispatch(setDebouncedSearchQuery(q))
-    if (location.pathname !== '/') navigate('/', { state: { search: q } })
-  }, [location.pathname, navigate, dispatch])
-
+ const fireSearch = useCallback((q) => {
+  setSuggestions([])
+  setOpen(false)
+  setActiveIdx(-1)
+  dispatch(setSearchQuery(q))
+  dispatch(setDebouncedSearchQuery(q))
+  if (location.pathname !== '/') navigate('/')
+}, [location.pathname, navigate, dispatch])
   const fetchSuggestions = useCallback(async (q) => {
     if (!q.trim()) { setSuggestions([]); setOpen(false); return }
     setLoading(true)
