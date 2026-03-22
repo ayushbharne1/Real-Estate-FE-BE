@@ -1,4 +1,5 @@
 import api from "./axiosInstance";
+import { getCached, setCached } from './cache'
 
 // ─── helpers ─────────────────────────────
 
@@ -29,8 +30,12 @@ export function buildFormData(values, imageFiles = [], videoFile = null, existin
 // ─── API functions ───────────────────────
 
 export async function fetchProperties(params = {}) {
+  const key = 'assetCounts:' + JSON.stringify(params)
+  const cached = getCached(key)
+  if (cached) return cached
   try {
     const { data } = await api.get("/inventory", { params });
+    setCached(key, data.data)
     return data.data;
   } catch (err) {
     throw _normalise(err);
@@ -38,6 +43,7 @@ export async function fetchProperties(params = {}) {
 }
 
 export async function fetchProperty(id) {
+
   try {
     const { data } = await api.get(`/inventory/${id}`);
     return data.data;
@@ -89,11 +95,14 @@ export async function deleteProperty(id) {
 }
 
 export async function fetchAssetTypeCounts(params) {
+  const key = 'assetCounts:' + JSON.stringify(params)
+  const cached = getCached(key)
+  if (cached) return cached
   try {
     const { data } = await api.get("/inventory/asset-type-counts", {
       params: params || {},
     });
-
+    setCached(key, data.data)
     return data.data;
   } catch (err) {
     throw _normalise(err);

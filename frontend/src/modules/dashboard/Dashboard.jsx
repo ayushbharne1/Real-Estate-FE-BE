@@ -1,5 +1,5 @@
 // src/modules/dashboard/Dashboard.jsx
-import { useState, useRef, useEffect, useCallback, memo } from 'react'
+import { useState, useRef, useEffect, useCallback, memo,useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -146,12 +146,26 @@ const PropertyCard = memo(({ prop, mode, onShare }) => {
   const facing = pd.doorFacing?.replace(/_/g, ' ') || null
   const priceLabel = isRental ? formatPrice(pd.rentPerMonth, pd.rentUnit) : formatPrice(pd.askPrice, pd.priceUnit)
   const depositLabel = isRental ? formatPrice(pd.deposit, pd.depositUnit) : null
+  const [imgLoaded, setImgLoaded] = useState(false)
 
   return (
     <div onClick={() => navigate(`/property/details/${prop._id}`)}
       className="bg-white rounded-md overflow-hidden shadow-md border border-gray-300 hover:shadow-lg transition-all duration-200 cursor-pointer group">
       <div className="relative overflow-hidden">
-        <img src={img} alt={b.name} className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300" />
+        <div className="relative overflow-hidden bg-gray-100">
+          {!imgLoaded && (
+            <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+          )}
+          <img
+            src={img}
+            alt={b.name}
+            loading="lazy"
+            decoding="async"
+            onLoad={() => setImgLoaded(true)}
+            className={`w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+          />
+        </div>
         <span className="absolute top-3 left-3 bg-[#E8431A] text-white text-xs font-bold px-2.5 py-1 rounded-md tracking-wide">{prop.propertyId}</span>
         <span className="absolute top-3 right-3 text-white text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#E8431A]">
           {isRental ? 'Rental' : 'Resale'}
@@ -471,6 +485,14 @@ const Dashboard = () => {
 
   const isRental = activeTab === 'rental'
 
+  const debouncedBuildParams = useMemo(() => {
+  let timer
+  return (fn) => {
+    clearTimeout(timer)
+    timer = setTimeout(fn, 300)
+  }
+}, [])
+
   const buildParams = useCallback(() => {
     const categoryObj = CATEGORIES.find(c => c.id === activeCategory)
     const params = {
@@ -492,7 +514,9 @@ const Dashboard = () => {
     if (navbarSearch) params.search = navbarSearch
     return params
   }, [isRental, activeCategory, assetType, configuration, budget, sbua, sortBy, page, limit, navbarSearch])
-  useEffect(() => {
+
+ useEffect(() => {
+  debouncedBuildParams(() => {
     const params = buildParams()
     dispatch(fetchProperties(params))
     dispatch(fetchAssetTypeCounts({
@@ -503,7 +527,8 @@ const Dashboard = () => {
       sbuaMin: params.sbuaMin,
       sbuaMax: params.sbuaMax,
     }))
-  }, [dispatch, buildParams])
+  })
+}, [dispatch, buildParams])
 
   const handleTabChange = (tab) => {
     setActiveTab(tab); setPage(1); setAssetType(null)

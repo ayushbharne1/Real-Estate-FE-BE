@@ -67,9 +67,10 @@ export default function Customer() {
 
     dispatch(fetchBuyers(params))
   }, [dispatch, activeType, selectedAssetType, selectedStatus, selectedSort])
-  const handleStatusChange = (rowId, displayStatus) => {
-    dispatch(updateBuyerStatus({ id: rowId, status: BUYER_STATUS_API[displayStatus] }));
-  };
+
+  const handleStatusChange = useCallback((rowId, displayStatus) => {
+    dispatch(updateBuyerStatus({ id: rowId, status: BUYER_STATUS_API[displayStatus] }))
+  }, [dispatch])
 
 
   const columns = useMemo(() => [
@@ -150,7 +151,7 @@ export default function Customer() {
         </div>
       ),
     },
-  ], [statusUpdating, navigate]);
+  ], [statusUpdating, navigate,handleStatusChange]);
 
   const table = useReactTable({
     data: items,
@@ -310,7 +311,7 @@ export default function Customer() {
             <div className="text-xs text-gray-400 font-medium">
               Showing{" "}
               {total === 0 ? 0 : pageIndex * pageSize + 1}–
-              {Math.min((pageIndex + 1) * pageSize,total)} of {total} Results
+              {Math.min((pageIndex + 1) * pageSize, total)} of {total} Results
             </div>
 
             <div className="flex items-center gap-1">
