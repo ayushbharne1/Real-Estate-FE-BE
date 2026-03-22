@@ -51,4 +51,9 @@ const buyerSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+buyerSchema.index({ isActive: 1, listingType: 1, status: 1 });
+buyerSchema.index({ isActive: 1, assetType: 1 });
+buyerSchema.index({ createdAt: -1 });
+buyerSchema.index({ name: 'text', email: 'text', contact: 'text', propertyId: 'text' });
+
 export default mongoose.model("Buyer", buyerSchema);
