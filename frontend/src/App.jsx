@@ -1,5 +1,6 @@
+import { lazy, Suspense } from 'react'
 import AppRoutes from "./routes/AppRoutes";
-import { ToastContainer, Slide, Bounce } from "react-toastify";
+import { ToastContainer, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function App() {
@@ -15,13 +16,14 @@ function App() {
         draggable
         pauseOnFocusLoss
         theme="light"
-        transition={Bounce}   // 🔥 Animation Here
+        transition={Bounce}
         toastClassName="rounded-xl shadow-lg"
         bodyClassName="text-sm font-medium"
         progressClassName="bg-gradient-to-r from-green-400 to-blue-500"
       />
-  <AppRoutes />
+      <AppRoutes />
     </>
-)}
+  )
+}
 
 export default App;

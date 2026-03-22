@@ -1,59 +1,45 @@
+import { lazy, Suspense } from 'react'
 import { Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-
-import {
-  selectIsAuthenticated,
-  selectSessionExpired,
-  selectToken,
-  clearSessionExpired,
-} from "../redux/slices/authSlice";
-
+import { selectIsAuthenticated, selectToken } from "../redux/slices/authSlice";
 import MainLayout from "../components/layout/MainLayout";
 
-import Dashboard from "../modules/dashboard/Dashboard";
-import PropertyDetail from "../modules/dashboard/PropertyDetail";
-import AddInventory from "../modules/inventory/AddInventory";
-import EditInventory from "../modules/inventory/Editinventory";
-import Profile from "../modules/profile/Profile";
-import Premium from "../modules/premium/Premium";
-import Customer from "../modules/customer/Customer";
-import {useDispatch} from "react-redux"
-import {useEffect} from "react"
-import AddCustomerForm from "../modules/customer/AddCustomerForm";
-import BuyerDetail from "../modules/customer/BuyerDetail";
+const Dashboard     = lazy(() => import('../modules/dashboard/Dashboard'))
+const PropertyDetail = lazy(() => import('../modules/dashboard/PropertyDetail'))
+const AddInventory  = lazy(() => import('../modules/inventory/AddInventory'))
+const EditInventory = lazy(() => import('../modules/inventory/Editinventory'))
+const Profile       = lazy(() => import('../modules/profile/Profile'))
+const Premium       = lazy(() => import('../modules/premium/Premium'))
+const Customer      = lazy(() => import('../modules/customer/Customer'))
+const AddCustomerForm = lazy(() => import('../modules/customer/AddCustomerForm'))
+const BuyerDetail   = lazy(() => import('../modules/customer/BuyerDetail'))
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <span className="inline-block w-8 h-8 border-4 border-gray-200 rounded-full animate-spin"
+      style={{ borderTopColor: '#E8431A' }} />
+  </div>
+)
 
 const AuthGuard = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const token = useSelector(selectToken);
-
-  if (!isAuthenticated || !token) {
-    return <Navigate to="/login" replace />;
-  }
-
+  if (!isAuthenticated || !token) return <Navigate to="/login" replace />;
   return <MainLayout />;
 };
+
 const ProtectedRoutes = () => [
   <Route key="main" path="/" element={<AuthGuard />}>
-
-    <Route index element={<Dashboard />} />
-
-    <Route path="property/details/:id" element={<PropertyDetail />} />
-
-    <Route path="add" element={<AddInventory />} />
-
-    <Route path="edit/:id" element={<EditInventory />} />
-
-    {/* also support this path */}
-    <Route path="inventory/edit/:id" element={<EditInventory />} />
-
-    <Route path="profile" element={<Profile />} />
-
-    <Route path="premium" element={<Premium />} />
-
-    <Route path="customer" element={<Customer />} />
-    <Route path="/customer/add" element={<AddCustomerForm />} />
-    <Route path="/customer/:id" element={<BuyerDetail />} />
-
+    <Route index element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
+    <Route path="property/details/:id" element={<Suspense fallback={<PageLoader />}><PropertyDetail /></Suspense>} />
+    <Route path="add" element={<Suspense fallback={<PageLoader />}><AddInventory /></Suspense>} />
+    <Route path="edit/:id" element={<Suspense fallback={<PageLoader />}><EditInventory /></Suspense>} />
+    <Route path="inventory/edit/:id" element={<Suspense fallback={<PageLoader />}><EditInventory /></Suspense>} />
+    <Route path="profile" element={<Suspense fallback={<PageLoader />}><Profile /></Suspense>} />
+    <Route path="premium" element={<Suspense fallback={<PageLoader />}><Premium /></Suspense>} />
+    <Route path="customer" element={<Suspense fallback={<PageLoader />}><Customer /></Suspense>} />
+    <Route path="/customer/add" element={<Suspense fallback={<PageLoader />}><AddCustomerForm /></Suspense>} />
+    <Route path="/customer/:id" element={<Suspense fallback={<PageLoader />}><BuyerDetail /></Suspense>} />
   </Route>,
 ];
 
