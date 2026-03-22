@@ -1,40 +1,31 @@
 import axios from "axios";
-import  store  from "../redux/store";
+import store from "../redux/store";
 import { setSessionExpired } from "../redux/slices/authSlice";
-
-let isSessionHandled = false;
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: { "Content-Type": "application/json" },
 });
 
-// Attach token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Handle expired token
 api.interceptors.response.use(
-  (response) => {
-    isSessionHandled = false; // reset on every successful response
-    return response;
-  },
+  (response) => response,
   (error) => {
-    if (error.response?.status === 401 && !isSessionHandled) {
-      isSessionHandled = true;
-      store.dispatch(setSessionExpired());
+    if (error.response?.status === 401) {
+      const state = store.getState();
+      // Only dispatch if not already expired — read from store, no mutable var
+      if (!state.auth.sessionExpired && state.auth.isAuthenticated) {
+        store.dispatch(setSessionExpired());
+      }
     }
     return Promise.reject(error);
   }
 );
 
-export const resetSessionHandler = () => { isSessionHandled = false; };
-
+export const resetSessionHandler = () => {};
 export default api;

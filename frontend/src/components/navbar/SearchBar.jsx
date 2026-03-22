@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Search, X, Loader2 } from 'lucide-react'
 import api from '../../api/axiosInstance'
-import { setSearchQuery } from '../../redux/slices/uiSlice'
+import { setSearchQuery, setDebouncedSearchQuery } from '../../redux/slices/uiSlice'
 import { useDispatch } from 'react-redux'
 
 
@@ -48,11 +48,9 @@ export default function SearchBar() {
     setSuggestions([])
     setOpen(false)
     setActiveIdx(-1)
-    if (location.pathname !== '/') {
-      navigate('/', { state: { search: q } })
-    } else {
-      dispatch(setSearchQuery(q))
-    }
+    dispatch(setSearchQuery(q))
+    dispatch(setDebouncedSearchQuery(q))
+    if (location.pathname !== '/') navigate('/', { state: { search: q } })
   }, [location.pathname, navigate, dispatch])
 
   const fetchSuggestions = useCallback(async (q) => {
@@ -79,14 +77,19 @@ export default function SearchBar() {
     const val = e.target.value
     setQuery(val)
     setActiveIdx(-1)
+    dispatch(setSearchQuery(val)) // immediate for input display only
+
     clearTimeout(debounceRef.current)
     if (!val.trim()) {
+      dispatch(setDebouncedSearchQuery(''))
       setSuggestions([])
       setOpen(false)
-      fireSearch('')
       return
     }
-    debounceRef.current = setTimeout(() => fetchSuggestions(val), 300)
+    debounceRef.current = setTimeout(() => {
+      dispatch(setDebouncedSearchQuery(val)) // triggers Dashboard fetch
+      fetchSuggestions(val)
+    }, 300)
   }
 
   const handleKeyDown = (e) => {

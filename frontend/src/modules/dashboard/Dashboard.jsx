@@ -23,7 +23,7 @@ import { ASSET_TYPE_OPTIONS } from 'shared/constants/dropdown.js'
 
 import { formatPriceDisplay as formatPrice } from 'shared/utils/index.js'
 
-import { selectSearchQuery } from '../../redux/slices/uiSlice'
+import { selectDebouncedSearchQuery } from '../../redux/slices/uiSlice'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -38,10 +38,10 @@ const CATEGORIES = [
 const BHK_OPTIONS = ['1BHK', '2BHK', '3BHK', '4BHK', '5BHK']
 
 const SORT_OPTIONS = [
-  { label: 'Price: Low to High',      value: 'PRICE_LOW_TO_HIGH' },
-  { label: 'Price: High to Low',      value: 'PRICE_HIGH_TO_LOW' },
-  { label: 'Newest First',            value: 'NEWEST_FIRST' },
-  { label: 'Oldest First',            value: 'OLDEST_FIRST' },
+  { label: 'Price: Low to High', value: 'PRICE_LOW_TO_HIGH' },
+  { label: 'Price: High to Low', value: 'PRICE_HIGH_TO_LOW' },
+  { label: 'Newest First', value: 'NEWEST_FIRST' },
+  { label: 'Oldest First', value: 'OLDEST_FIRST' },
   { label: 'Price/Sqft: Low to High', value: 'PRICE_SQFT_LOW_TO_HIGH' },
   { label: 'Price/Sqft: High to Low', value: 'PRICE_SQFT_HIGH_TO_LOW' },
 ]
@@ -450,7 +450,7 @@ const Dashboard = () => {
   const loading = useSelector(selectListLoading)
   const listError = useSelector(selectListError)
   const assetCounts = useSelector(selectAssetCounts)
-  const navbarSearch = useSelector(selectSearchQuery)
+  const navbarSearch = useSelector(selectDebouncedSearchQuery)
 
   const [viewMode, setViewMode] = useState('grid')
   const [activeCategory, setActiveCategory] = useState('all')
@@ -467,37 +467,43 @@ const Dashboard = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const debounceRef = useRef(null)
 
- 
+
 
   const isRental = activeTab === 'rental'
 
   const buildParams = useCallback(() => {
     const categoryObj = CATEGORIES.find(c => c.id === activeCategory)
-    const params = { listingType: isRental ? 'RENTAL' : 'RESALE', page, limit }
-    if (assetType) { params.assetType = assetType }
-    else if (categoryObj?.assetFilter?.length === 1) { params.assetType = categoryObj.assetFilter[0] }
+    const params = {
+      listingType: isRental ? 'RENTAL' : 'RESALE',
+      page,
+      limit,
+    }
+    if (assetType) {
+      params.assetType = assetType
+    } else if (categoryObj?.assetFilter?.length === 1) {
+      params.assetType = categoryObj.assetFilter[0]
+    }
     if (configuration.length > 0) params.bhkTypes = configuration.map(b => b.replace('BHK', ''))
     if (budget?.min) params.budgetMin = budget.min
     if (budget?.max) params.budgetMax = budget.max
     if (sbua?.min) params.sbuaMin = sbua.min
     if (sbua?.max) params.sbuaMax = sbua.max
     if (sortBy) params.sortBy = sortBy
-    if (navbarSearch) params.search = navbarSearch 
+    if (navbarSearch) params.search = navbarSearch
     return params
   }, [isRental, activeCategory, assetType, configuration, budget, sbua, sortBy, page, limit, navbarSearch])
-
- useEffect(() => {
-  const params = buildParams()
-  dispatch(fetchProperties(params))
-  dispatch(fetchAssetTypeCounts({
-    listingType: params.listingType,
-    bhkTypes: params.bhkTypes,
-    budgetMin: params.budgetMin,
-    budgetMax: params.budgetMax,
-    sbuaMin: params.sbuaMin,
-    sbuaMax: params.sbuaMax,
-  }))
-}, [dispatch, buildParams])
+  useEffect(() => {
+    const params = buildParams()
+    dispatch(fetchProperties(params))
+    dispatch(fetchAssetTypeCounts({
+      listingType: params.listingType,
+      bhkTypes: params.bhkTypes,
+      budgetMin: params.budgetMin,
+      budgetMax: params.budgetMax,
+      sbuaMin: params.sbuaMin,
+      sbuaMax: params.sbuaMax,
+    }))
+  }, [dispatch, buildParams])
 
   const handleTabChange = (tab) => {
     setActiveTab(tab); setPage(1); setAssetType(null)
