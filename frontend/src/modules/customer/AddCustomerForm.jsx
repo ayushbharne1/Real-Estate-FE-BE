@@ -46,8 +46,7 @@ const validationSchema = Yup.object({
     .email("Enter a valid email address")
     .required("Email is required"),
   propertyId: Yup.string()
-  .matches(/^[A-Z]{2}\d{4,}$/, 'Format: 2 letters + 4+ digits (e.g. PB5609)')
-    .required("Property ID is required"),
+  .matches(/^[A-Z]{2}\d{4,}$/, 'Format: 2 letters + 4+ digits (e.g. PB5609)'),
   assetType: Yup.string()
     .oneOf(ASSET_TYPE_OPTIONS.map((o) => o.value), "Select a valid asset type")
     .required("Asset type is required"),
