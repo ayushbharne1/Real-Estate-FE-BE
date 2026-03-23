@@ -329,7 +329,7 @@ export default function AddCustomerForm() {
             </Field>
 
             {/* Property ID */}
-            <Field label="Property ID" error={f.errors.propertyId} touched={f.touched.propertyId} required>
+            <Field label="Property ID" error={f.errors.propertyId} touched={f.touched.propertyId}>
               <input
                 name="propertyId"
                 placeholder="Enter Property ID"
