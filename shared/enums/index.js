@@ -111,6 +111,7 @@ const Amenity = Object.freeze({
 const PriceUnit = Object.freeze({
   LAKHS:  "LAKHS",
   CRORES: "CRORES",
+  THOUSANDS : "THOUSANDS"
 });
 
 // ── Rental-specific enums ─────────────────────────────

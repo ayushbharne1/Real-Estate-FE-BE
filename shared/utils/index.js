@@ -44,8 +44,10 @@ function formatPriceDisplay(value, unit) {
   if (value == null || value === '') return '—'
   const num = Number(value)
   if (isNaN(num) || num === 0) return '—'
+  if(unit ==="THOUSANDS") return  `₹${num.toFixed(2)} K`
+  if(unit ==="THOUSANDS" && num>=100) return `₹${num.toFixed(2)} L`
   if (unit === 'CRORES') return `₹${num.toFixed(2)} Cr`
-  if (num >= 100) return `₹${(num / 100).toFixed(2)} Cr`
+  if (unit === 'CRORES'&& num >= 100) return `₹${(num / 100).toFixed(2)} Cr`
   return `₹${num.toFixed(2)} L`
 }
 

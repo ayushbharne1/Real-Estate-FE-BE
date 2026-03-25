@@ -368,6 +368,7 @@ const BUYER_STATUS_OPTIONS = [
 const PRICE_UNIT_OPTIONS = [
   { value: PriceUnit.LAKHS,  label: "Lakhs" },
   { value: PriceUnit.CRORES, label: "Crores" },
+  { value: PriceUnit.THOUSANDS, label:"Thousands"}
 ];
 
 const PRICE_UNIT_EXTENDED_OPTIONS = [

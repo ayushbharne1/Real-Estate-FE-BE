@@ -151,7 +151,7 @@ export const PriceInput = ({ fieldKey, formik }) => {
     return () => document.removeEventListener('mousedown', h)
   }, [])
 
-  const unitLabel = { LAKHS: 'Lakhs', CRORES: 'Crores' }
+  const unitLabel = { LAKHS: 'Lakhs', CRORES: 'Crores', THOUSANDS: 'Thousands' }
 
   return (
     <div>
@@ -170,7 +170,7 @@ export const PriceInput = ({ fieldKey, formik }) => {
           </button>
           {open && (
             <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-2xl z-30 w-28">
-              {['LAKHS', 'CRORES'].map(u => (
+              {['LAKHS', 'CRORES','THOUSANDS'].map(u => (
                 <button key={u} type="button"
                   onClick={() => { formik.setFieldValue(unitKey, u); setOpen(false) }}
                   className="w-full text-left px-3 py-2 text-sm hover:bg-orange-50 transition-colors"
